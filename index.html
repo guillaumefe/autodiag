@@ -1,0 +1,1824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Caty Health Tracker</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body, html { height: 100%; font-family: Arial, sans-serif; }
+    .splash-container { width: 100%; height: 100%; background: linear-gradient(to bottom, #ff9a8b, #ff6f61); display: flex; justify-content: center; align-items: center; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 1000; overflow: hidden; }
+    .brand { font-size: 4em; font-weight: bold; color: white; text-shadow: 2px 2px 10px rgba(0,0,0,0.5); opacity: 0; animation: fall 2s ease-in-out forwards; }
+    @keyframes fall { 0% { transform: translateY(-100vh); opacity: 0; } 50% { transform: translateY(0); opacity: 1; } 70% { transform: translateY(-20px); } 100% { transform: translateY(0); } }
+    .fade-out { animation: fadeOut 1s forwards; }
+    @keyframes fadeOut { 0% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+    .app-container { display: none; flex: 1; flex-direction: column; height: 100%; }
+    header { background-color: #ff6f61; color: white; text-align: center; padding: 1em; font-size: 1.5em; position: relative; }
+    nav { display: flex; justify-content: space-between; align-items: center; padding: 1em; background-color: #f3f3f3; flex-wrap: wrap; }
+    nav select, nav button { padding: 0.5em; border-radius: 5px; border: 1px solid #ddd; cursor: pointer; margin: 0.5em 0; }
+    nav .nav-buttons { display: flex; flex-wrap: wrap; gap: 0.5em; }
+    main { display: flex; flex: 1; overflow-y: hidden; padding: 1em; flex-direction: row; }
+    .main-content { flex-grow: 1; overflow-y: auto; padding: 1em; background-color: #f9f9f9; display: flex; flex-direction: column; gap: 2em; }
+    .logs-container { width: 100%; max-width: 300px; background-color: #333; color: #fff; display: none; flex-direction: column; padding: 1em; overflow-y: auto; position: relative; }
+    @media (min-width: 768px) { .logs-container { width: 30%; max-width: none; } }
+    .logs-container h3 { margin-bottom: 1em; }
+    .log-entry { font-size: 0.9em; margin-bottom: 0.5em; padding: 0.5em; border-radius: 5px; }
+    .log-entry.info { background-color: #2196f3; }
+    .log-entry.warning { background-color: #ff9800; }
+    .log-entry.error { background-color: #f44336; }
+    .chart-container, .quiz-container, .chat-container, .calendar-container { background: white; padding: 1em; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .chart-container canvas, .chat-container video { width: 100%; height: 300px; }
+    .chat-container { display: flex; flex-direction: column; height: 400px; }
+    .connected-users { margin-bottom: 1em; }
+    .connected-users h3 { margin-bottom: 0.5em; }
+    .connected-users ul { list-style: none; max-height: 100px; overflow-y: auto; }
+    .connected-users li { margin-bottom: 0.3em; display: flex; justify-content: space-between; align-items: center; }
+    .connected-users button { margin-left: 0.5em; padding: 0.2em 0.5em; border: none; background-color: #4caf50; color: white; border-radius: 3px; cursor: pointer; }
+    .messages { flex-grow: 1; overflow-y: auto; border: 1px solid #ccc; padding: 0.5em; margin-bottom: 0.5em; border-radius: 5px; background-color: #fff; }
+    .message { margin-bottom: 0.5em; display: flex; }
+    .message.user { justify-content: flex-end; }
+    .message .avatar { width: 40px; height: 40px; border-radius: 50%; background-color: #bbb; margin-right: 0.5em; }
+    .message.user .avatar { margin-left: 0.5em; margin-right: 0; }
+    .message .text { max-width: 60%; padding: 0.5em 1em; border-radius: 20px; background-color: #fff; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .message.user .text { background-color: #dcf8c6; }
+    .message .text::after { content: ""; position: absolute; top: 10px; width: 0; height: 0; border: 10px solid transparent; }
+    .message.user .text::after { right: -20px; border-left-color: #dcf8c6; }
+    .message .text::after { left: -20px; border-right-color: #fff; }
+    .chat-input { display: flex; gap: 0.5em; }
+    .chat-input input { flex-grow: 1; padding: 0.5em; border: 1px solid #ccc; border-radius: 5px; }
+    .chat-input button { padding: 0.5em 1em; border: none; background-color: #76c7c0; color: white; cursor: pointer; border-radius: 5px; }
+    .voice-buttons, .voip-buttons { display: flex; justify-content: space-between; margin-top: 0.5em; }
+    .voice-buttons button, .voip-buttons button { padding: 0.5em; border: none; background-color: #2196f3; color: white; cursor: pointer; border-radius: 5px; flex: 1; margin: 0 0.25em; }
+    .voip-buttons button { background-color: #f44336; }
+    .voip-buttons button:first-child { background-color: #4caf50; }
+    #remoteVideo { width: 100%; height: 200px; background-color: #000; border-radius: 5px; margin-top: 0.5em; }
+    footer { background-color: #ff6f61; color: white; text-align: center; padding: 0.5em; flex-shrink: 0; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1001; }
+    .modal-content { background: white; padding: 2em; border-radius: 10px; width: 90%; max-width: 500px; text-align: center; display: flex; flex-direction: column; gap: 1em; }
+    .modal-content label { align-self: flex-start; }
+    .modal-content input, .modal-content select, .modal-content button, .modal-content textarea { margin: 0.5em 0; padding: 0.5em; width: 100%; }
+    .toggle-logs-btn { position: absolute; top: 10px; right: -40px; background-color: #333; color: #fff; border: none; padding: 0.5em; cursor: pointer; border-radius: 5px 0 0 5px; transform: rotate(-90deg); transform-origin: top right; font-size: 0.9em; }
+    @media (max-width: 767px) { 
+      .logs-container { position: fixed; bottom: 0; right: 0; width: 100%; max-width: none; height: 200px; } 
+      .toggle-logs-btn { right: 10px; top: -40px; transform: rotate(0); } 
+    }
+    .slider-container { display: flex; flex-direction: column; margin-bottom: 1em; }
+    .slider-container label { margin-bottom: 0.5em; }
+    .slider-input { display: flex; align-items: center; }
+    .slider-input input[type="range"] { flex-grow: 1; }
+    .slider-value { width: 50px; text-align: center; font-weight: bold; margin-left: 0.5em; }
+    .slider-value.good { color: green; }
+    .slider-value.warning { color: orange; }
+    .slider-value.bad { color: red; }
+    .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: 0.4s; border-radius: 24px; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: 0.4s; border-radius: 50%; }
+    input:checked + .slider { background-color: #2196F3; }
+    input:checked + .slider:before { transform: translateX(26px); }
+    .language-selector { margin-left: 1em; }
+    .password-container { position: relative; }
+    .password-container input { width: 100%; padding-right: 30px; }
+    .toggle-password { position: absolute; top: 50%; right: 10px; transform: translateY(-50%); cursor: pointer; }
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .messages {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 1em;
+      background-color: #f0f2f5;
+      border-radius: 5px;
+    }
+    .message {
+      display: flex;
+      margin-bottom: 1em;
+    }
+    .message.user {
+      justify-content: flex-end;
+    }
+    .message .avatar { width: 40px; height: 40px; border-radius: 50%; background-color: #bbb; margin-right: 0.5em; }
+    .message.user .avatar { margin-left: 0.5em; margin-right: 0; }
+    .message .text { max-width: 60%; padding: 0.5em 1em; border-radius: 20px; background-color: #fff; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .message.user .text { background-color: #dcf8c6; }
+    .message .text::after { content: ""; position: absolute; top: 10px; width: 0; height: 0; border: 10px solid transparent; }
+    .message.user .text::after { right: -20px; border-left-color: #dcf8c6; }
+    .message .text::after { left: -20px; border-right-color: #fff; }
+    .calendar-container {
+      background-color: #fff;
+      padding: 1em;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      height: 100%;
+    }
+    .calendar-container h2 {
+      margin-bottom: 1em;
+      text-align: center;
+    }
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 0.5em;
+    }
+    .calendar-day {
+      background-color: #f0f2f5;
+      padding: 1em;
+      border-radius: 5px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+    }
+    .calendar-day:hover {
+      background-color: #e0e0e0;
+    }
+    .calendar-day.has-event::after {
+      content: "";
+      position: absolute;
+      bottom: 5px;
+      right: 5px;
+      width: 8px;
+      height: 8px;
+      background-color: #ff6f61;
+      border-radius: 50%;
+    }
+    .event-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1002;
+    }
+    .event-modal-content {
+      background: white;
+      padding: 2em;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 1em;
+    }
+    .event-modal-content input, .event-modal-content textarea {
+      width: 100%;
+      padding: 0.5em;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .event-modal-content button {
+      padding: 0.5em;
+      border: none;
+      background-color: #2196f3;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .error { border-color: red; }
+  </style>
+</head>
+<body>
+  <div class="splash-container" id="splash">
+    <div class="brand">Caty</div>
+  </div>
+  <div class="app-container" id="app">
+    <header>
+      <span data-key="appTitle">Caty Health Tracker</span>
+      <select id="languageSelector" class="language-selector" onchange="changeLanguage(this.value)">
+        <option value="" disabled selected>Select Language</option>
+        <option value="en">EN</option>
+        <option value="fr">FR</option>
+        <option value="es">ES</option>
+      </select>
+    </header>
+    <nav>
+      <select id="chatSelector" onchange="selectChat()">
+        <option value="" disabled selected>Select Chat</option>
+      </select>
+      <div class="nav-buttons">
+        <button onclick="createChat()">Create Chat</button>
+        <button onclick="shareChat()">Share Chat</button>
+        <button onclick="exportChatPdf()">Export Chat PDF</button>
+        <button onclick="deleteChat()" id="deleteChatBtn" style="display:none;">Delete Chat</button>
+        <button id="manageQuestions" onclick="openManageQuestionsModal()" style="display:none;">Manage Questions</button>
+        <button onclick="logout()" style="display:none;" id="logoutBtn">Logout</button>
+      </div>
+    </nav>
+    <main>
+      <div class="main-content">
+        <section class="chart-container" id="chartsSection" style="display:none;">
+          <h2 data-key="realTimeRadar">Real-Time Health Radar</h2>
+          <canvas id="realtimeRadar"></canvas>
+        </section>
+        <section class="quiz-container" id="quizSection" style="display:none;">
+          <h2 data-key="dailyHealthChecklist">Daily Health Checklist</h2>
+          <form id="quizForm">
+          </form>
+          <button onclick="saveAnswers()">Save</button>
+        </section>
+        <section class="chart-container" id="timeSeriesSection" style="display:none;">
+          <h2 data-key="healthMetrics">Health Metrics Over Time</h2>
+          <canvas id="timeSeriesChart"></canvas>
+        </section>
+        <section class="chat-container" id="chatSection" style="display:none;">
+          <h2>Chat</h2>
+          <div class="connected-users">
+            <h3>Connected Users:</h3>
+            <ul id="usersList"></ul>
+          </div>
+          <div class="messages" id="messages"></div>
+          <div class="chat-input">
+            <input type="text" id="messageInput" placeholder="Type a message">
+            <button onclick="sendMessage()">Send</button>
+          </div>
+          <div class="voice-buttons">
+            <button onclick="startRecording()">Record Voice</button>
+            <button onclick="sendVoice()">Send Voice</button>
+          </div>
+          <div class="voip-buttons">
+            <button onclick="startCall()">Start Call</button>
+            <button onclick="endCall()">End Call</button>
+          </div>
+          <video id="remoteVideo" autoplay></video>
+        </section>
+        <section class="calendar-container" id="calendarSection" style="display:none;">
+          <h2>Shared Calendar</h2>
+          <div class="calendar" id="calendar">
+          </div>
+          <button onclick="showAddEventModal()">Add Event</button>
+        </section>
+      </div>
+      <div class="logs-container" id="logsContainer">
+        <button class="toggle-logs-btn" onclick="toggleLogs()">Logs</button>
+        <h3>Logs</h3>
+        <div id="logs"></div>
+      </div>
+    </main>
+    <footer>Made with ❤️ for your beloved cats</footer>
+  </div>
+  
+  <div class="modal" id="languageModal">
+    <div class="modal-content">
+      <h2>Select Language</h2>
+      <select id="initialLanguageSelector">
+        <option value="en">English</option>
+        <option value="fr">Français</option>
+        <option value="es">Español</option>
+      </select>
+      <button onclick="submitLanguage()">Submit</button>
+    </div>
+  </div>
+  
+  <div class="modal" id="firebaseConfigModal">
+    <div class="modal-content">
+      <h2>Configure Firebase</h2>
+      <label for="apiKey">API Key:</label>
+      <input type="text" id="apiKey" placeholder="Enter API Key">
+      <label for="authDomain">Auth Domain:</label>
+      <input type="text" id="authDomain" placeholder="Enter Auth Domain">
+      <label for="databaseURL">Database URL:</label>
+      <input type="text" id="databaseURL" placeholder="Enter Database URL">
+      <label for="projectId">Project ID:</label>
+      <input type="text" id="projectId" placeholder="Enter Project ID">
+      <label for="storageBucket">Storage Bucket:</label>
+      <input type="text" id="storageBucket" placeholder="Enter Storage Bucket">
+      <label for="messagingSenderId">Messaging Sender ID:</label>
+      <input type="text" id="messagingSenderId" placeholder="Enter Messaging Sender ID">
+      <label for="appId">App ID:</label>
+      <input type="text" id="appId" placeholder="Enter App ID">
+      <button onclick="submitFirebaseConfig()">Submit</button>
+    </div>
+  </div>
+  
+  <div class="modal" id="authModal">
+    <div class="modal-content">
+      <h2 id="authTitle">Login</h2>
+      <input type="email" id="authEmail" placeholder="Email">
+      <div class="password-container">
+        <input type="password" id="authPassword" placeholder="Password">
+        <span class="toggle-password" onclick="togglePasswordVisibility('authPassword')">👁️</span>
+      </div>
+      <button onclick="authenticate()">Login</button>
+      <button onclick="toggleAuthMode()">Sign Up</button>
+      <button onclick="closeModal('authModal')">Close</button>
+    </div>
+  </div>
+  
+  <div class="modal" id="linkChatModal">
+    <div class="modal-content">
+      <h2>Link to Existing Chat</h2>
+      <input type="text" id="linkChatCode" placeholder="Enter Chat Code">
+      <button onclick="linkExistingChat()">Link Chat</button>
+      <button onclick="closeModal('linkChatModal')">Close</button>
+    </div>
+  </div>
+  
+  <div class="modal" id="tutorialModal">
+    <div class="modal-content">
+      <h2 id="tutorialTitle"></h2>
+      <p id="tutorialText"></p>
+      <button onclick="nextTutorialStep()">Next</button>
+      <button onclick="closeModal('tutorialModal')">Close</button>
+    </div>
+  </div>
+  
+  <div class="modal" id="deleteChatModal">
+    <div class="modal-content">
+      <h2>Delete Chat</h2>
+      <p>Please type the chat name to confirm deletion:</p>
+      <input type="text" id="confirmChatName" placeholder="Enter Chat Name">
+      <button onclick="confirmDeleteChat()">Delete</button>
+      <button onclick="closeModal('deleteChatModal')">Close</button>
+      <span id="deleteError" style="color: red; display: none;">Chat name does not match.</span>
+    </div>
+  </div>
+  
+  <div class="event-modal" id="addEventModal">
+    <div class="event-modal-content">
+      <h2>Add Event</h2>
+      <input type="text" id="eventTitle" placeholder="Event Title">
+      <input type="datetime-local" id="eventDateTime">
+      <textarea id="eventDescription" placeholder="Event Description"></textarea>
+      <button onclick="addEvent()">Add</button>
+      <button onclick="closeModal('addEventModal')">Cancel</button>
+    </div>
+  </div>
+  
+  <script>
+    const languages = {
+      en: {
+        appTitle: "Caty Health Tracker",
+        selectLanguage: "Select Language",
+        apiKeyLabel: "API Key:",
+        authDomainLabel: "Auth Domain:",
+        databaseURLLabel: "Database URL:",
+        projectIdLabel: "Project ID:",
+        storageBucketLabel: "Storage Bucket:",
+        messagingSenderIdLabel: "Messaging Sender ID:",
+        appIdLabel: "App ID:",
+        or: "OR",
+        login: "Login",
+        signup: "Sign Up",
+        close: "Close",
+        email: "Email",
+        password: "Password",
+        createChat: "Create Chat",
+        shareChat: "Share Chat",
+        exportChatPdf: "Export Chat PDF",
+        deleteChat: "Delete Chat",
+        realTimeRadar: "Real-Time Health Radar",
+        dailyHealthChecklist: "Daily Health Checklist",
+        healthMetrics: "Health Metrics Over Time",
+        save: "Save",
+        send: "Send",
+        recordVoice: "Record Voice",
+        sendVoice: "Send Voice",
+        startCall: "Start Call",
+        endCall: "End Call",
+        addEvent: "Add Event",
+        logs: "Logs",
+        toggleLogs: "Logs",
+        addQuestion: "Add Question",
+        confirmDelete: "Please type the chat name to confirm deletion:",
+        enterChatName: "Enter Chat Name",
+        tutorial: "Tutorial",
+        next: "Next",
+        selectChat: "Select Chat",
+        typeMessage: "Type a message",
+        loginPrompt: "Please log in or sign up to continue.",
+        signupSuccess: "Signup successful! Please verify your email.",
+        loginSuccess: "Login successful!",
+        logoutSuccess: "Logout successful!",
+        eventAdded: "Event added successfully!",
+        eventCancelled: "Event addition cancelled.",
+        errorOccurred: "An error occurred. Please try again."
+      },
+      fr: {
+        appTitle: "Caty Health Tracker",
+        selectLanguage: "Sélectionner la langue",
+        apiKeyLabel: "Clé API :",
+        authDomainLabel: "Domaine d'authentification :",
+        databaseURLLabel: "URL de la base de données :",
+        projectIdLabel: "ID du projet :",
+        storageBucketLabel: "Bucket de stockage :",
+        messagingSenderIdLabel: "ID de l'expéditeur de messages :",
+        appIdLabel: "ID de l'application :",
+        or: "OU",
+        login: "Connexion",
+        signup: "Inscription",
+        close: "Fermer",
+        email: "Email",
+        password: "Mot de passe",
+        createChat: "Créer un chat",
+        shareChat: "Partager le chat",
+        exportChatPdf: "Exporter le chat en PDF",
+        deleteChat: "Supprimer le chat",
+        realTimeRadar: "Radar de santé en temps réel",
+        dailyHealthChecklist: "Checklist santé quotidienne",
+        healthMetrics: "Métriques de santé au fil du temps",
+        save: "Enregistrer",
+        send: "Envoyer",
+        recordVoice: "Enregistrer une voix",
+        sendVoice: "Envoyer la voix",
+        startCall: "Démarrer l'appel",
+        endCall: "Terminer l'appel",
+        addEvent: "Ajouter un événement",
+        logs: "Journaux",
+        toggleLogs: "Journaux",
+        addQuestion: "Ajouter une question",
+        confirmDelete: "Veuillez taper le nom du chat pour confirmer la suppression :",
+        enterChatName: "Entrez le nom du chat",
+        tutorial: "Tutoriel",
+        next: "Suivant",
+        selectChat: "Sélectionner un chat",
+        typeMessage: "Tapez un message",
+        loginPrompt: "Veuillez vous connecter ou vous inscrire pour continuer.",
+        signupSuccess: "Inscription réussie ! Veuillez vérifier votre email.",
+        loginSuccess: "Connexion réussie !",
+        logoutSuccess: "Déconnexion réussie !",
+        eventAdded: "Événement ajouté avec succès !",
+        eventCancelled: "Ajout d'événement annulé.",
+        errorOccurred: "Une erreur s'est produite. Veuillez réessayer."
+      },
+      es: {
+        appTitle: "Caty Health Tracker",
+        selectLanguage: "Seleccionar idioma",
+        apiKeyLabel: "Clave API:",
+        authDomainLabel: "Dominio de autenticación:",
+        databaseURLLabel: "URL de la base de datos:",
+        projectIdLabel: "ID del proyecto:",
+        storageBucketLabel: "Bucket de almacenamiento:",
+        messagingSenderIdLabel: "ID del remitente de mensajes:",
+        appIdLabel: "ID de la aplicación:",
+        or: "O",
+        login: "Iniciar sesión",
+        signup: "Registrarse",
+        close: "Cerrar",
+        email: "Correo electrónico",
+        password: "Contraseña",
+        createChat: "Crear chat",
+        shareChat: "Compartir chat",
+        exportChatPdf: "Exportar chat en PDF",
+        deleteChat: "Eliminar chat",
+        realTimeRadar: "Radar de salud en tiempo real",
+        dailyHealthChecklist: "Lista de verificación diaria de salud",
+        healthMetrics: "Métricas de salud a lo largo del tiempo",
+        save: "Guardar",
+        send: "Enviar",
+        recordVoice: "Grabar voz",
+        sendVoice: "Enviar voz",
+        startCall: "Iniciar llamada",
+        endCall: "Terminar llamada",
+        addEvent: "Agregar evento",
+        logs: "Registros",
+        toggleLogs: "Registros",
+        addQuestion: "Agregar pregunta",
+        confirmDelete: "Por favor, escribe el nombre del chat para confirmar la eliminación:",
+        enterChatName: "Ingresa el nombre del chat",
+        tutorial: "Tutorial",
+        next: "Siguiente",
+        selectChat: "Seleccionar chat",
+        typeMessage: "Escribe un mensaje",
+        loginPrompt: "Por favor, inicia sesión o regístrate para continuar.",
+        signupSuccess: "¡Registro exitoso! Por favor, verifica tu correo electrónico.",
+        loginSuccess: "¡Inicio de sesión exitoso!",
+        logoutSuccess: "¡Cierre de sesión exitoso!",
+        eventAdded: "¡Evento agregado exitosamente!",
+        eventCancelled: "Adición de evento cancelada.",
+        errorOccurred: "Ocurrió un error. Por favor, intenta nuevamente."
+      }
+    };
+    let currentLanguage = localStorage.getItem('selectedLanguage') || 'en';
+    let firebaseConfigStored = null;
+    const catsData = [];
+    let currentChatIndex = 0;
+    let realtimeRadar, timeSeriesChart;
+    let mediaRecorder = null;
+    const configuration = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+    const tutorialSteps = {
+      en: [
+        { title: "Welcome", text: "Welcome to Caty Health Tracker! Follow the steps to get started." },
+        { title: "Create a Chat", text: "Click on 'Create Chat' to add a new chat." },
+        { title: "Fill the Checklist", text: "Fill out the daily checklist to monitor your cat's health." },
+        { title: "Real-Time Radar", text: "The radar updates in real-time based on your responses." },
+        { title: "Health Metrics", text: "View health metrics over time in the charts." },
+        { title: "Export as PDF", text: "Export the chat as a PDF to share with your veterinarian." },
+        { title: "Share Chat", text: "Share your chat with others using a secure code." },
+        { title: "VoIP Calls", text: "Initiate secure voice calls with other users." }
+      ],
+      fr: [
+        { title: "Bienvenue", text: "Bienvenue dans Caty Health Tracker! Suivez les étapes pour commencer." },
+        { title: "Créer un Chat", text: "Cliquez sur 'Créer un chat' pour ajouter un nouveau chat." },
+        { title: "Remplir la Checklist", text: "Remplissez la checklist quotidienne pour surveiller la santé de votre chat." },
+        { title: "Radar en Temps Réel", text: "Le radar se met à jour en temps réel en fonction de vos réponses." },
+        { title: "Métriques de Santé", text: "Consultez les métriques de santé au fil du temps dans les graphiques." },
+        { title: "Exporter en PDF", text: "Exportez le chat en PDF pour le partager avec votre vétérinaire." },
+        { title: "Partager le Chat", text: "Partagez votre chat avec d'autres utilisateurs via un code sécurisé." },
+        { title: "Appels VoIP", text: "Initiez des appels vocaux sécurisés avec d'autres utilisateurs." }
+      ],
+      es: [
+        { title: "Bienvenido", text: "¡Bienvenido a Caty Health Tracker! Sigue los pasos para comenzar." },
+        { title: "Crear un Chat", text: "Haz clic en 'Crear chat' para añadir un nuevo chat." },
+        { title: "Completar la Checklist", text: "Completa la checklist diaria para monitorear la salud de tu gato." },
+        { title: "Radar en Tiempo Real", text: "El radar se actualiza en tiempo real según tus respuestas." },
+        { title: "Métricas de Salud", text: "Consulta las métricas de salud a lo largo del tiempo en los gráficos." },
+        { title: "Exportar a PDF", text: "Exporta el chat como PDF para compartirlo con tu veterinario." },
+        { title: "Compartir Chat", text: "Comparte tu chat con otros usuarios usando un código seguro." },
+        { title: "Llamadas VoIP", text: "Inicia llamadas de voz seguras con otros usuarios." }
+      ]
+    };
+    let tutorialStep = 0;
+    const offlineQueue = [];
+    
+    function logMessage(type, message) {
+      const logContainer = document.getElementById("logs");
+      if (!logContainer) return;
+      const logEntry = document.createElement("div");
+      logEntry.classList.add("log-entry", type);
+      logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      logContainer.appendChild(logEntry);
+      logContainer.scrollTop = logContainer.scrollHeight;
+      console[type === 'error' ? 'error' : type === 'warning' ? 'warn' : 'log'](`Log (${type}): ${message}`);
+    }
+    
+    function changeLanguage(lang) {
+      currentLanguage = lang;
+      localStorage.setItem('selectedLanguage', lang);
+      document.querySelectorAll('[data-key]').forEach(element => {
+        const key = element.getAttribute('data-key');
+        if (languages[lang][key]) {
+          if (element.tagName.toLowerCase() === 'input' || element.tagName.toLowerCase() === 'textarea') {
+            element.placeholder = languages[lang][key];
+          } else if (element.tagName.toLowerCase() === 'select') {
+          } else {
+            element.textContent = languages[lang][key];
+          }
+        }
+      });
+    }
+    
+    function getTranslation(key) {
+      return languages[currentLanguage][key] || key;
+    }
+    
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = "none";
+      if (modalId === 'deleteChatModal') {
+        const input = document.getElementById("confirmChatName");
+        const errorMsg = document.getElementById("deleteError");
+        input.classList.remove("error");
+        errorMsg.style.display = "none";
+        input.value = "";
+      }
+    }
+    
+    function submitLanguage() {
+      const lang = document.getElementById("initialLanguageSelector").value;
+      if (!lang) {
+        logMessage("warning", "No language selected.");
+        return;
+      }
+      changeLanguage(lang);
+      closeModal('languageModal');
+      document.getElementById("firebaseConfigModal").style.display = "flex";
+    }
+    
+    function submitFirebaseConfig() {
+      const apiKey = document.getElementById("apiKey").value.trim();
+      const authDomain = document.getElementById("authDomain").value.trim();
+      const databaseURL = document.getElementById("databaseURL").value.trim();
+      const projectId = document.getElementById("projectId").value.trim();
+      const storageBucket = document.getElementById("storageBucket").value.trim();
+      const messagingSenderId = document.getElementById("messagingSenderId").value.trim();
+      const appId = document.getElementById("appId").value.trim();
+      if (!apiKey || !authDomain || !databaseURL || !projectId || !storageBucket || !messagingSenderId || !appId) {
+        logMessage("warning", "Incomplete Firebase configuration.");
+        return;
+      }
+      const config = { apiKey, authDomain, databaseURL, projectId, storageBucket, messagingSenderId, appId };
+      initializeFirebaseWithConfig(config);
+    }
+    
+    function initializeFirebaseWithConfig(config) {
+      try {
+        if (firebase.apps.length) {
+          firebase.app().delete().then(() => {
+            firebase.initializeApp(config);
+            firebaseConfigStored = config;
+            localStorage.setItem("firebaseConfig", JSON.stringify(config));
+            logMessage("info", "Firebase configuration initialized.");
+            closeModal("firebaseConfigModal");
+            document.getElementById("authModal").style.display = "flex";
+          }).catch(err => {
+            logMessage("error", `Error resetting Firebase: ${err}`);
+            alert(getTranslation('errorOccurred'));
+          });
+        } else {
+          firebase.initializeApp(config);
+          firebaseConfigStored = config;
+          localStorage.setItem("firebaseConfig", JSON.stringify(config));
+          logMessage("info", "Firebase configuration initialized.");
+          closeModal("firebaseConfigModal");
+          document.getElementById("authModal").style.display = "flex";
+        }
+      } catch (error) {
+        logMessage("error", `Error initializing Firebase: ${error}`);
+        alert(getTranslation('errorOccurred'));
+      }
+    }
+    
+    function initializeFirebase() {
+      const config = JSON.parse(localStorage.getItem("firebaseConfig"));
+      if (config) {
+        firebaseConfigStored = config;
+        try {
+          if (!firebase.apps.length) {
+            firebase.initializeApp(config);
+            logMessage("info", "Firebase initialized successfully.");
+          } else {
+            logMessage("info", "Firebase was already initialized.");
+          }
+          firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(() => {
+            firebase.auth().onAuthStateChanged((user) => {
+              if (user) {
+                document.getElementById("logoutBtn").style.display = "inline-block";
+                document.getElementById("app").style.display = "flex";
+                document.getElementById("authModal").style.display = "none";
+                logMessage("info", `User "${user.email}" authenticated.`);
+                loadUserChats();
+                checkShareURL(user);
+              } else {
+                document.getElementById("logoutBtn").style.display = "none";
+                document.getElementById("app").style.display = "none";
+                document.getElementById("authModal").style.display = "flex";
+                logMessage("info", "No user authenticated.");
+                catsData.length = 0;
+                renderChatSelector();
+                clearSections();
+              }
+            });
+          });
+        } catch (error) {
+          logMessage("error", `Error initializing Firebase: ${error}`);
+          alert(getTranslation('errorOccurred'));
+          document.getElementById("firebaseConfigModal").style.display = "flex";
+        }
+      } else {
+        document.getElementById("languageModal").style.display = "flex";
+        logMessage("warning", "Firebase configuration not found. Prompting to configure.");
+      }
+    }
+    
+    function loadUserChats() {
+      const user = firebase.auth().currentUser;
+      if (!user) return;
+      const userId = user.uid;
+      const dbRef = firebase.database().ref(`/users/${userId}/chats`);
+      dbRef.on('value', snapshot => {
+        const data = snapshot.val();
+        catsData.length = 0;
+        if (data) {
+          Object.values(data).forEach(chat => {
+            if (!chat.calendar) chat.calendar = [];
+            catsData.push(chat);
+          });
+        }
+        renderChatSelector();
+        updateDeleteChatButton();
+        logMessage("info", "Data synchronized from Firebase for the user.");
+      }, (error) => {
+        logMessage("error", `Firebase Realtime Database error: ${error}`);
+      });
+    }
+    
+    function renderChatSelector() {
+      const selector = document.getElementById("chatSelector");
+      selector.innerHTML = `<option value="" disabled selected>${getTranslation('selectChat')}</option>` + 
+        catsData.map((chat, i) => `<option value="${i}">${chat.name}</option>`).join("");
+      if (catsData.length > 0) {
+        selector.value = currentChatIndex;
+        selectChat();
+      }
+    }
+    
+    function selectChat() {
+      const selector = document.getElementById("chatSelector");
+      currentChatIndex = parseInt(selector.value, 10);
+      if (isNaN(currentChatIndex) || currentChatIndex < 0 || currentChatIndex >= catsData.length) {
+        logMessage("warning", "Invalid chat index.");
+        return;
+      }
+      const isConnected = catsData[currentChatIndex].code !== undefined;
+      document.getElementById("chartsSection").style.display = isConnected ? "block" : "none";
+      document.getElementById("timeSeriesSection").style.display = isConnected ? "block" : "none";
+      document.getElementById("quizSection").style.display = isConnected ? "block" : "none";
+      document.getElementById("chatSection").style.display = isConnected ? "flex" : "none";
+      document.getElementById("calendarSection").style.display = isConnected ? "block" : "none";
+      if (isConnected) {
+        renderQuiz();
+        renderRealtimeRadar();
+        renderTimeSeriesChart();
+        renderChat();
+        renderCalendar();
+      } else {
+        clearSections();
+      }
+      updateDeleteChatButton();
+      logMessage("info", `Switched to chat "${catsData[currentChatIndex].name}".`);
+    }
+    
+    function updateDeleteChatButton() {
+      const deleteBtn = document.getElementById("deleteChatBtn");
+      if (catsData.length > 0) {
+        deleteBtn.style.display = "inline-block";
+      } else {
+        deleteBtn.style.display = "none";
+      }
+    }
+    
+    function clearSections() {
+      if (realtimeRadar) realtimeRadar.destroy();
+      if (timeSeriesChart) timeSeriesChart.destroy();
+      document.getElementById("quizForm").innerHTML = "";
+      document.getElementById("messages").innerHTML = "";
+      document.getElementById("remoteVideo").srcObject = null;
+      document.getElementById("calendar").innerHTML = "";
+      if (peerConnection) {
+        peerConnection.close();
+        peerConnection = null;
+      }
+    }
+    
+    const forms = {
+      default: [
+        { label: "Has the cat eaten today?", type: "toggle" },
+        { label: "Number of meals today (0-10)", type: "slider", min: 0, max: 10 },
+        { label: "Has the cat drunk water today?", type: "toggle" },
+        { label: "Has Palladia medication been administered?", type: "toggle" },
+        { label: "Has cortisone medication been administered?", type: "toggle" },
+        { label: "Has the cat vomited recently?", type: "toggle" },
+        { label: "Have you noticed a significant decrease in appetite?", type: "toggle" },
+        { label: "Have you seen urine in the litter box?", type: "toggle" },
+        { label: "Has the cat defecated today?", type: "toggle" },
+        { label: "Consistency of stool (1 = liquid, 10 = very hard)", type: "slider", min: 1, max: 10 },
+        { label: "Does the cat seem active as usual?", type: "toggle" },
+        { label: "Is the cat meowing more than usual?", type: "toggle" },
+        { label: "Have you noticed any physical anomalies (weight loss, swelling)?", type: "toggle" },
+        { label: "Does the cat show signs of pain?", type: "toggle" },
+        { label: "General activity level (1 = lethargic, 10 = very active)", type: "slider", min: 1, max: 10 },
+        { label: "Does the cat seem to be drinking more than usual?", type: "toggle" },
+        { label: "Is the cat breathing normally?", type: "toggle" },
+        { label: "Is the cat scratching excessively?", type: "toggle" },
+        { label: "Is the cat showing signs of aggression?", type: "toggle" },
+        { label: "Is the cat urinating normally?", type: "toggle" },
+        { label: "Is the cat showing signs of jaundice?", type: "toggle" }
+      ]
+    };
+    
+    function renderQuiz() {
+      if (!catsData.length) {
+        logMessage("warning", "No chat available to display the quiz.");
+        return;
+      }
+      const quizContainer = document.getElementById("quizForm");
+      const form = catsData[currentChatIndex].form || forms["default"];
+      const lastEntry = catsData[currentChatIndex].history && catsData[currentChatIndex].history.length > 0 ? catsData[currentChatIndex].history[catsData[currentChatIndex].history.length - 1].answers : [];
+      quizContainer.innerHTML = form.map((q, i) => {
+        if (q.type === "toggle") {
+          let checked = false;
+          let comment = "";
+          if (lastEntry[i]) {
+            checked = typeof lastEntry[i] === "object" ? lastEntry[i].value === 10 : lastEntry[i] === 10;
+            comment = typeof lastEntry[i] === "object" ? lastEntry[i].comment : "";
+          }
+          return `
+            <div class="question-container">
+              <label class="switch">
+                <input type="checkbox" data-index="${i}" onchange="toggleAnswer(${i}, this.checked)" ${checked ? "checked" : ""}>
+                <span class="slider"></span>
+              </label>
+              <label>${q.label}</label>
+              ${q.hasComment ? `<textarea id="comment${i}" placeholder="Enter your comments here..." style="display:${checked ? "block" : "none"};">${comment}</textarea>` : ''}
+            </div>
+          `;
+        } else if (q.type === "slider") {
+          let value = Math.floor((q.min + q.max) / 2);
+          if (lastEntry[i] !== undefined) {
+            value = lastEntry[i];
+          }
+          let valueClass = "good";
+          const mid = (q.min + q.max) / 2;
+          if (value <= mid) {
+            valueClass = "good";
+          } else if (value > mid && value < q.max) {
+            valueClass = "warning";
+          } else {
+            valueClass = "bad";
+          }
+          return `
+            <div class="slider-container">
+              <label for="slider${i}">${q.label}</label>
+              <div class="slider-input">
+                <input type="range" id="slider${i}" min="${q.min}" max="${q.max}" value="${value}" oninput="updateSliderValue(${i}, this.value)">
+                <span class="slider-value ${valueClass}" id="sliderValue${i}">${value}</span>
+              </div>
+            </div>
+          `;
+        }
+        return "";
+      }).join('');
+    }
+    
+    function toggleAnswer(index, isChecked) {
+      const form = catsData[currentChatIndex].form || forms["default"];
+      const question = form[index];
+      if (question.hasComment) {
+        const commentField = document.getElementById(`comment${index}`);
+        commentField.style.display = isChecked ? "block" : "none";
+        if (!isChecked) {
+          commentField.value = "";
+        }
+      }
+      renderRealtimeRadar();
+    }
+    
+    function updateSliderValue(index, value) {
+      const valueSpan = document.getElementById(`sliderValue${index}`);
+      valueSpan.textContent = value;
+      const form = catsData[currentChatIndex].form || forms["default"];
+      const q = form[index];
+      const min = parseInt(q.min, 10);
+      const max = parseInt(q.max, 10);
+      const mid = (min + max) / 2;
+      if (value <= mid) {
+        valueSpan.classList.add("good");
+        valueSpan.classList.remove("warning", "bad");
+      } else if (value > mid && value < max) {
+        valueSpan.classList.add("warning");
+        valueSpan.classList.remove("good", "bad");
+      } else {
+        valueSpan.classList.add("bad");
+        valueSpan.classList.remove("good", "warning");
+      }
+      renderRealtimeRadar();
+    }
+    
+    function currentAnswers() {
+      if (!catsData.length) return [];
+      const form = catsData[currentChatIndex].form || forms["default"];
+      const answers = form.map((q, i) => {
+        if (q.type === "toggle") {
+          const toggle = document.querySelector(`input[data-index="${i}"]`);
+          if (q.hasComment) {
+            const comment = document.getElementById(`comment${i}`).value.trim();
+            return toggle ? { value: toggle.checked ? 10 : 0, comment: toggle.checked ? comment : "" } : { value: 0, comment: "" };
+          }
+          return toggle ? (toggle.checked ? 10 : 0) : 0;
+        } else if (q.type === "slider") {
+          const slider = document.getElementById(`slider${i}`);
+          return slider ? parseInt(slider.value, 10) : 0;
+        }
+        return 0;
+      });
+      return answers;
+    }
+    
+    function renderRealtimeRadar() {
+      if (!catsData.length) return;
+      const form = catsData[currentChatIndex].form || forms["default"];
+      const answers = currentAnswers();
+      const ctx = document.getElementById("realtimeRadar").getContext("2d");
+      if (realtimeRadar) realtimeRadar.destroy();
+      const radarLabels = form.map(q => q.label);
+      const radarData = answers.map(ans => typeof ans === "object" ? ans.value : ans);
+      const radarComments = answers.map(ans => typeof ans === "object" && ans.comment ? ans.comment : "");
+      try {
+        realtimeRadar = new Chart(ctx, {
+          type: "radar",
+          data: {
+            labels: radarLabels,
+            datasets: [{
+              label: "Current Health",
+              data: radarData,
+              fill: true,
+              borderColor: "rgba(75, 192, 192, 1)",
+              backgroundColor: "rgba(75, 192, 192, 0.2)"
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              r: {
+                beginAtZero: true,
+                suggestedMax: 10
+              }
+            },
+            plugins: {
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    const index = context.dataIndex;
+                    const comment = radarComments[index];
+                    let label = context.dataset.label || '';
+                    if (label) {
+                      label += ': ';
+                    }
+                    label += context.parsed.r;
+                    if (comment) {
+                      label += `\nComment: ${comment}`;
+                    }
+                    return label;
+                  }
+                }
+              }
+            }
+          }
+        });
+        logMessage("info", "Real-time radar rendered.");
+      } catch (error) {
+        logMessage("error", `Failed to render real-time radar: ${error}`);
+      }
+    }
+    
+    function saveAnswers() {
+      if (!catsData.length) { 
+        logMessage("warning", "Attempt to save answers without a chat."); 
+        return; 
+      }
+      const currentChat = catsData[currentChatIndex];
+      const answers = currentAnswers();
+      const date = new Date().toLocaleDateString();
+      currentChat.history = currentChat.history || [];
+      currentChat.history.push({ date, answers });
+      saveToFirebase(`/users/${firebase.auth().currentUser.uid}/chats/${currentChat.code}`, currentChat);
+      renderTimeSeriesChart();
+      renderRealtimeRadar();
+      logMessage("info", `Answers saved for chat "${currentChat.name}".`);
+    }
+    
+    function renderTimeSeriesChart() {
+      if (!catsData.length) { 
+        logMessage("warning", "Attempt to render time-series chart without a chat."); 
+        return; 
+      }
+      const currentChat = catsData[currentChatIndex];
+      const dates = currentChat.history ? currentChat.history.map(entry => entry.date) : [];
+      const form = currentChat.form || forms["default"];
+      const datasets = form.map((q, i) => ({
+        label: q.label,
+        data: currentChat.history ? currentChat.history.map(entry => typeof entry.answers[i] === "object" ? entry.answers[i].value : entry.answers[i]) : [],
+        fill: false,
+        borderColor: `rgba(${(i+1)*20 % 255}, ${(i+1)*40 % 255}, ${(i+1)*60 % 255}, 1)`,
+        pointRadius: 3,
+        pointHoverRadius: 5
+      }));
+      const ctx = document.getElementById("timeSeriesChart").getContext("2d");
+      if (timeSeriesChart) timeSeriesChart.destroy();
+      try {
+        timeSeriesChart = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: dates,
+            datasets: datasets
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              tooltip: {
+                callbacks: {
+                  label: (tooltipItem) => {
+                    const dataset = tooltipItem.dataset;
+                    const value = dataset.data[tooltipItem.dataIndex];
+                    return `${dataset.label}: ${value}`;
+                  }
+                }
+              },
+              legend: { display: true, position: 'top' }
+            },
+            interaction: {
+              mode: 'nearest',
+              intersect: true
+            },
+            scales: {
+              y: { beginAtZero: true }
+            }
+          }
+        });
+        logMessage("info", "Time-series chart rendered.");
+      } catch (error) {
+        logMessage("error", `Failed to render time-series chart: ${error}`);
+      }
+    }
+    
+    function createChat() {
+      const name = prompt(getTranslation('createChat'));
+      if (!name) {
+        logMessage("warning", "No name entered for new chat.");
+        return;
+      }
+      const code = generateSecureCode();
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        logMessage("warning", "User attempted to create chat without authentication.");
+        return;
+      }
+      const newChat = { 
+        name: name.trim(), 
+        code, 
+        history: [], 
+        form: JSON.parse(JSON.stringify(forms["default"])),
+        members: { [user.uid]: { email: user.email, role: "admin" } },
+        calendar: []
+      };
+      catsData.push(newChat);
+      saveToFirebase(`/users/${user.uid}/chats/${code}`, newChat);
+      renderChatSelector();
+      selectChat();
+      updateDeleteChatButton();
+      logMessage("info", `New chat "${name}" created successfully.`);
+    }
+    
+    function generateSecureCode() {
+      return Math.random().toString(36).substring(2, 15).toUpperCase() + Math.random().toString(36).substring(2, 15).toUpperCase();
+    }
+    
+    function shareChat() {
+      if (!catsData.length) {
+        logMessage("warning", "No chat available to share.");
+        return;
+      }
+      const currentChat = catsData[currentChatIndex];
+      const shareCode = generateSecureCode();
+      const sharedChat = { ...currentChat };
+      delete sharedChat.history;
+      firebase.database().ref(`/sharedChats/${shareCode}`).set(sharedChat)
+        .then(() => {
+          const shareURL = `${window.location.origin}${window.location.pathname}?share=${shareCode}`;
+          navigator.clipboard.writeText(shareURL).then(() => {
+            logMessage("info", `Chat "${currentChat.name}" shared via URL.`);
+            alert("Chat share URL copied to clipboard!");
+          }).catch(err => {
+            logMessage("error", `Failed to copy share URL: ${err}`);
+            alert("Failed to copy share URL.");
+          });
+        })
+        .catch(err => {
+          logMessage("error", `Failed to share chat: ${err}`);
+          alert("Failed to share chat.");
+        });
+    }
+    
+    function deleteChat() {
+      if (!catsData.length) return;
+      const currentChat = catsData[currentChatIndex];
+      if (currentChat.members[firebase.auth().currentUser.uid].role !== "admin") {
+        logMessage("warning", "User attempted to delete a chat without admin permissions.");
+        return;
+      }
+      document.getElementById("deleteChatModal").style.display = "flex";
+    }
+    
+    function confirmDeleteChat() {
+      const currentChat = catsData[currentChatIndex];
+      const confirmation = document.getElementById("confirmChatName").value.trim();
+      const inputField = document.getElementById("confirmChatName");
+      const errorMsg = document.getElementById("deleteError");
+      if (confirmation === currentChat.name) {
+        const user = firebase.auth().currentUser;
+        if (!user) {
+          logMessage("warning", "User attempted to delete chat without authentication.");
+          return;
+        }
+        firebase.database().ref(`/users/${user.uid}/chats/${currentChat.code}`).remove()
+          .then(() => {
+            logMessage("info", `Chat "${currentChat.name}" deleted successfully.`);
+            catsData.splice(currentChatIndex, 1);
+            renderChatSelector();
+            clearSections();
+            closeModal("deleteChatModal");
+            updateDeleteChatButton();
+          })
+          .catch(err => {
+            logMessage("error", `Error deleting chat "${currentChat.name}": ${err}`);
+          });
+      } else {
+        logMessage("warning", "Chat name confirmation failed.");
+        inputField.classList.add("error");
+        errorMsg.style.display = "block";
+      }
+    }
+    
+    function addEventToCalendar() {
+      document.getElementById("addEventModal").style.display = "flex";
+    }
+    
+    function showAddEventModal() {
+      document.getElementById("addEventModal").style.display = "flex";
+    }
+    
+    function addEvent() {
+      const title = document.getElementById("eventTitle").value.trim();
+      const dateTime = document.getElementById("eventDateTime").value;
+      const description = document.getElementById("eventDescription").value.trim();
+      if (!title || !dateTime) {
+        logMessage("warning", "No event title or date/time entered.");
+        alert(getTranslation('errorOccurred'));
+        return;
+      }
+      const eventDate = new Date(dateTime);
+      if (isNaN(eventDate.getTime())) {
+        logMessage("warning", "Invalid date/time entered.");
+        alert(getTranslation('errorOccurred'));
+        return;
+      }
+      const formattedDate = eventDate.toLocaleString();
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        logMessage("warning", "User attempted to add event without authentication.");
+        alert(getTranslation('loginPrompt'));
+        return;
+      }
+      const chatCode = catsData[currentChatIndex].code;
+      const event = { title, description, date: formattedDate };
+      catsData[currentChatIndex].calendar.push(event);
+      saveToFirebase(`/users/${user.uid}/chats/${chatCode}`, catsData[currentChatIndex])
+        .then(() => {
+          renderCalendar();
+          closeModal("addEventModal");
+          logMessage("info", `Event "${title}" added to calendar.`);
+          document.getElementById("eventTitle").value = "";
+          document.getElementById("eventDateTime").value = "";
+          document.getElementById("eventDescription").value = "";
+          alert(getTranslation('eventAdded'));
+        })
+        .catch(err => {
+          logMessage("error", `Failed to add event: ${err}`);
+          alert(getTranslation('errorOccurred'));
+        });
+    }
+    
+    function renderCalendar() {
+      if (!catsData.length) return;
+      const calendarContainer = document.getElementById("calendar");
+      calendarContainer.innerHTML = '';
+      const calendar = catsData[currentChatIndex].calendar || [];
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dayDiv = document.createElement("div");
+        dayDiv.classList.add("calendar-day");
+        dayDiv.textContent = day;
+        const hasEvent = calendar.some(event => {
+          const eventDate = new Date(event.date);
+          return eventDate.getDate() === day && eventDate.getMonth() === month && eventDate.getFullYear() === year;
+        });
+        if (hasEvent) {
+          dayDiv.classList.add("has-event");
+        }
+        dayDiv.onclick = () => openAddEventPopup(day);
+        calendarContainer.appendChild(dayDiv);
+      }
+      logMessage("info", "Calendar rendered.");
+    }
+    
+    function openAddEventPopup(day) {
+      document.getElementById("addEventModal").style.display = "flex";
+      document.getElementById("eventTitle").placeholder = `Event on day ${day}`;
+    }
+    
+    function toggleLogs() {
+      const logs = document.getElementById("logsContainer");
+      if (logs.style.display === "none" || logs.style.display === "") {
+        logs.style.display = "flex";
+      } else {
+        logs.style.display = "none";
+      }
+    }
+    
+    function authenticate() {
+      const authTitle = document.getElementById("authTitle").innerText;
+      const email = document.getElementById("authEmail").value.trim();
+      const password = document.getElementById("authPassword").value;
+      if (!email || !password) {
+        logMessage("warning", "Authentication fields left empty.");
+        alert(getTranslation('errorOccurred'));
+        return;
+      }
+      if (authTitle === "Login" || authTitle === "Connexion" || authTitle === "Iniciar sesión") {
+        firebase.auth().signInWithEmailAndPassword(email, password)
+          .then((userCredential) => {
+            if (!userCredential.user.emailVerified) {
+              logMessage("warning", "User attempted to login without verifying email.");
+              alert("Please verify your email before logging in.");
+              firebase.auth().signOut();
+              return;
+            }
+            logMessage("info", `User "${userCredential.user.email}" logged in.`);
+            alert(getTranslation('loginSuccess'));
+            closeModal("authModal");
+          })
+          .catch((error) => {
+            logMessage("error", `Login error: ${error.message}`);
+            alert(`Error: ${error.message}`);
+          });
+      } else {
+        if (password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password) || !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+          alert("Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.");
+          logMessage("warning", "User entered weak password during signup.");
+          return;
+        }
+        firebase.auth().createUserWithEmailAndPassword(email, password)
+          .then((userCredential) => {
+            userCredential.user.sendEmailVerification();
+            logMessage("info", `User "${userCredential.user.email}" signed up.`);
+            alert(getTranslation('signupSuccess'));
+            closeModal("authModal");
+          })
+          .catch((error) => {
+            logMessage("error", `Signup error: ${error.message}`);
+            alert(`Error: ${error.message}`);
+          });
+      }
+    }
+    
+    function toggleAuthMode() {
+      const authTitle = document.getElementById("authTitle").innerText;
+      const signupText = languages[currentLanguage]['signup'];
+      const loginText = languages[currentLanguage]['login'];
+      if (authTitle === loginText) {
+        document.getElementById("authTitle").innerText = signupText;
+        document.querySelector("button[onclick='authenticate()']").innerText = signupText;
+        document.querySelector("button[onclick='toggleAuthMode()']").innerText = loginText;
+      } else {
+        document.getElementById("authTitle").innerText = loginText;
+        document.querySelector("button[onclick='authenticate()']").innerText = loginText;
+        document.querySelector("button[onclick='toggleAuthMode()']").innerText = signupText;
+      }
+    }
+    
+    function logout() {
+      firebase.auth().signOut().then(() => {
+        logMessage("info", "User logged out.");
+        alert(getTranslation('logoutSuccess'));
+      }).catch((error) => {
+        logMessage("error", `Logout error: ${error.message}`);
+        alert(`Error: ${error.message}`);
+      });
+    }
+    
+    function renderChat() {
+      if (!catsData.length) return;
+      const messagesContainer = document.getElementById("messages");
+      messagesContainer.innerHTML = "";
+      const user = firebase.auth().currentUser;
+      if (!user) return;
+      const chatCode = catsData[currentChatIndex].code;
+      const chatRef = firebase.database().ref(`/users/${user.uid}/chats/${chatCode}/messages`);
+      chatRef.on('child_added', snapshot => {
+        const msg = snapshot.val();
+        const messageDiv = document.createElement("div");
+        messageDiv.classList.add("message");
+        if (msg.user === user.email) messageDiv.classList.add("user");
+        const avatarDiv = document.createElement("div");
+        avatarDiv.classList.add("avatar");
+        messageDiv.appendChild(avatarDiv);
+        const textDiv = document.createElement("div");
+        textDiv.classList.add("text");
+        if (msg.type === "text") {
+          textDiv.textContent = msg.content;
+        } else if (msg.type === "voice") {
+          const audio = document.createElement("audio");
+          audio.src = msg.content;
+          audio.controls = true;
+          textDiv.appendChild(audio);
+        }
+        messageDiv.appendChild(textDiv);
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      });
+      renderChatMembers();
+    }
+    
+    function renderChatMembers() {
+      const user = firebase.auth().currentUser;
+      if (!user) return;
+      const chatCode = catsData[currentChatIndex].code;
+      const members = catsData[currentChatIndex].members;
+      const usersList = document.getElementById("usersList");
+      usersList.innerHTML = '';
+      for (const uid in members) {
+        const member = members[uid];
+        const li = document.createElement("li");
+        li.innerHTML = `${member.email} - ${member.role === "admin" ? "Admin" : "User"}`;
+        if (member.role !== "admin") {
+          const promoteBtn = document.createElement("button");
+          promoteBtn.textContent = "Promote";
+          promoteBtn.onclick = () => promoteUser(uid);
+          li.appendChild(promoteBtn);
+        } else {
+          if (uid !== user.uid) {
+            const demoteBtn = document.createElement("button");
+            demoteBtn.textContent = "Demote";
+            demoteBtn.onclick = () => demoteUser(uid);
+            li.appendChild(demoteBtn);
+          }
+        }
+        usersList.appendChild(li);
+      }
+    }
+    
+    function openManageQuestionsModal() {
+      const modal = document.getElementById("manageQuestionsModal");
+      modal.style.display = "flex";
+    }
+    
+    function promoteUser(uid) {
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        logMessage("warning", "User attempted to promote without authentication.");
+        alert(getTranslation('loginPrompt'));
+        return;
+      }
+      const isAdmin = catsData[currentChatIndex].members[user.uid].role === "admin";
+      if (!isAdmin) {
+        logMessage("warning", "User attempted to promote without admin permissions.");
+        return;
+      }
+      catsData[currentChatIndex].members[uid].role = "admin";
+      saveToFirebase(`/users/${user.uid}/chats/${catsData[currentChatIndex].code}`, catsData[currentChatIndex])
+        .then(() => {
+          renderChatMembers();
+          logMessage("info", `User "${uid}" promoted to admin.`);
+          alert("User promoted to admin.");
+        })
+        .catch(err => {
+          logMessage("error", `Failed to promote user "${uid}": ${err}`);
+        });
+    }
+    
+    function demoteUser(uid) {
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        logMessage("warning", "User attempted to demote without authentication.");
+        alert(getTranslation('loginPrompt'));
+        return;
+      }
+      const isAdmin = catsData[currentChatIndex].members[user.uid].role === "admin";
+      if (!isAdmin) {
+        logMessage("warning", "User attempted to demote without admin permissions.");
+        return;
+      }
+      const admins = Object.values(catsData[currentChatIndex].members).filter(member => member.role === "admin");
+      if (admins.length <= 1 && catsData[currentChatIndex].members[uid].role === "admin") {
+        logMessage("warning", "Attempt to demote the last admin.");
+        alert("There must be at least one admin for this chat.");
+        return;
+      }
+      catsData[currentChatIndex].members[uid].role = "user";
+      saveToFirebase(`/users/${user.uid}/chats/${catsData[currentChatIndex].code}`, catsData[currentChatIndex])
+        .then(() => {
+          renderChatMembers();
+          logMessage("info", `User "${uid}" demoted to user.`);
+          alert("User demoted to user.");
+        })
+        .catch(err => {
+          logMessage("error", `Failed to demote user "${uid}": ${err}`);
+        });
+    }
+    
+    function saveToFirebase(path, data) {
+      if (firebaseConfigStored) {
+        try {
+          firebase.database().ref(path).set(data).then(() => {
+            logMessage("info", `Data synchronized with Firebase at path "${path}".`);
+            if (offlineQueue.length > 0) {
+              offlineQueue.forEach(item => {
+                firebase.database().ref(item.path).set(item.data)
+                  .then(() => logMessage("info", `Offline data synchronized at path "${item.path}".`))
+                  .catch(err => logMessage("error", `Failed to synchronize offline data at path "${item.path}": ${err}`));
+              });
+              offlineQueue.length = 0;
+            }
+          }).catch(err => {
+            logMessage("error", `Failed to synchronize data with Firebase at path "${path}": ${err}`);
+            offlineQueue.push({ path, data });
+          });
+        } catch (error) {
+          logMessage("error", `Error saving to Firebase: ${error}`);
+          offlineQueue.push({ path, data });
+        }
+      } else {
+        offlineQueue.push({ path, data });
+        logMessage("warning", "Firebase not configured. Data queued for offline synchronization.");
+      }
+    }
+    
+    function exportChatPdf() {
+      if (!catsData.length) return;
+      const currentChat = catsData[currentChatIndex];
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(16);
+      doc.text(`Chat: ${currentChat.name}`, 10, 10);
+      doc.setFontSize(12);
+      if (currentChat.history) {
+        currentChat.history.forEach((entry, index) => {
+          const yOffset = 20 + index * 30;
+          doc.text(`Date: ${entry.date}`, 10, yOffset);
+          entry.answers.forEach((ans, i) => {
+            const question = currentChat.form[i] ? currentChat.form[i].label : "Unknown Question";
+            if (typeof ans === "object") {
+              doc.text(`${question}: ${ans.value}`, 10, yOffset + (i + 1) * 5);
+              if (ans.comment) {
+                doc.text(`Comment: ${ans.comment}`, 10, yOffset + (i + 2) * 5);
+              }
+            } else {
+              doc.text(`${question}: ${ans}`, 10, yOffset + (i + 1) * 5);
+            }
+          });
+        });
+      }
+      doc.save(`${currentChat.name}.pdf`);
+      logMessage("info", `Chat "${currentChat.name}" exported as PDF.`);
+    }
+    
+    function showTutorial() {
+      tutorialStep = 0;
+      updateTutorialModal();
+      document.getElementById("tutorialModal").style.display = "flex";
+      logMessage("info", "Tutorial started.");
+    }
+    
+    function nextTutorialStep() {
+      if (tutorialStep < tutorialSteps[currentLanguage].length - 1) {
+        tutorialStep++;
+        updateTutorialModal();
+      } else {
+        closeModal("tutorialModal");
+        logMessage("info", "Tutorial completed.");
+      }
+    }
+    
+    function updateTutorialModal() {
+      document.getElementById("tutorialTitle").innerText = tutorialSteps[currentLanguage][tutorialStep].title;
+      document.getElementById("tutorialText").innerText = tutorialSteps[currentLanguage][tutorialStep].text;
+    }
+    
+    function checkShareURL(user) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const shareCode = urlParams.get('share');
+      if (shareCode) {
+        const sharedChatRef = firebase.database().ref(`/sharedChats/${shareCode}`);
+        sharedChatRef.once('value').then(snapshot => {
+          if (snapshot.exists()) {
+            const sharedChat = snapshot.val();
+            const existingIndex = catsData.findIndex(c => c.code === sharedChat.code);
+            if (existingIndex === -1) {
+              sharedChat.members = { ...sharedChat.members, [user.uid]: { email: user.email, role: "user" } };
+              saveToFirebase(`/users/${user.uid}/chats/${sharedChat.code}`, sharedChat)
+                .then(() => {
+                  catsData.push(sharedChat);
+                  renderChatSelector();
+                  selectChat();
+                  updateDeleteChatButton();
+                  logMessage("info", `Shared chat "${sharedChat.name}" added to user.`);
+                  alert("Shared chat added successfully!");
+                  const newURL = window.location.origin + window.location.pathname;
+                  window.history.replaceState({}, document.title, newURL);
+                })
+                .catch(err => {
+                  logMessage("error", `Failed to add shared chat: ${err}`);
+                  alert("Failed to add shared chat.");
+                });
+            } else {
+              logMessage("warning", `Attempt to add already linked chat "${sharedChat.name}".`);
+              alert("Chat is already linked.");
+            }
+          } else {
+            logMessage("warning", `No shared chat found with code "${shareCode}".`);
+            alert("No shared chat found with the provided code.");
+          }
+        }).catch(err => {
+          logMessage("error", `Error retrieving shared chat: ${err}`);
+          alert("Error retrieving shared chat.");
+        });
+      }
+    }
+    
+    window.onload = () => {
+      setTimeout(() => {
+        document.getElementById("splash").classList.add("fade-out");
+        setTimeout(() => {
+          document.getElementById("splash").style.display = "none";
+          initializeFirebase();
+        }, 1000);
+      }, 3000);
+      renderCalendar();
+    };
+    
+    function togglePasswordVisibility(id) {
+      const passwordInput = document.getElementById(id);
+      if (passwordInput.type === "password") {
+        passwordInput.type = "text";
+      } else {
+        passwordInput.type = "password";
+      }
+    }
+    
+    function sendMessage() {
+      if (!catsData.length) return;
+      const messageInput = document.getElementById("messageInput");
+      const message = messageInput.value.trim();
+      if (!message) return;
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        logMessage("warning", "User attempted to send message without authentication.");
+        alert(getTranslation('loginPrompt'));
+        return;
+      }
+      const chatCode = catsData[currentChatIndex].code;
+      const chatRef = firebase.database().ref(`/users/${user.uid}/chats/${chatCode}/messages`).push();
+      chatRef.set({ user: user.email, type: "text", content: message, timestamp: Date.now() });
+      messageInput.value = "";
+    }
+    
+    let audioChunks = [];
+    function startRecording() {
+      if (!navigator.mediaDevices) {
+        logMessage("error", "Media devices not supported.");
+        return;
+      }
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.start();
+        mediaRecorder.ondataavailable = e => {
+          audioChunks.push(e.data);
+        };
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const base64Audio = reader.result;
+            const user = firebase.auth().currentUser;
+            if (!user) {
+              logMessage("warning", "User attempted to send voice message without authentication.");
+              alert(getTranslation('loginPrompt'));
+              return;
+            }
+            const chatCode = catsData[currentChatIndex].code;
+            const chatRef = firebase.database().ref(`/users/${user.uid}/chats/${chatCode}/messages`).push();
+            chatRef.set({ user: user.email, type: "voice", content: base64Audio, timestamp: Date.now() });
+          };
+          reader.readAsDataURL(audioBlob);
+          audioChunks = [];
+        };
+        audioChunks = [];
+        logMessage("info", "Recording started.");
+      }).catch(err => {
+        logMessage("error", `Microphone access denied: ${err}`);
+      });
+    }
+    
+    function sendVoice() {
+      if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        mediaRecorder.stop();
+        logMessage("info", "Recording stopped.");
+      }
+    }
+    
+    let peerConnection = null;
+    function startCall() {
+      if (!catsData.length) return;
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        logMessage("warning", "User attempted to start call without authentication.");
+        alert(getTranslation('loginPrompt'));
+        return;
+      }
+      navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(stream => {
+        document.getElementById("remoteVideo").srcObject = stream;
+        peerConnection = new RTCPeerConnection(configuration);
+        stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+        peerConnection.onicecandidate = event => {
+          if (event.candidate) {
+            firebase.database().ref(`/calls/${catsData[currentChatIndex].code}/offer/candidates`).push().set(event.candidate.toJSON());
+          }
+        };
+        peerConnection.ontrack = event => {
+          const remoteVideo = document.getElementById("remoteVideo");
+          if (remoteVideo.srcObject !== event.streams[0]) {
+            remoteVideo.srcObject = event.streams[0];
+            logMessage("info", "Remote stream received.");
+          }
+        };
+        peerConnection.createOffer().then(offer => {
+          return peerConnection.setLocalDescription(offer);
+        }).then(() => {
+          firebase.database().ref(`/calls/${catsData[currentChatIndex].code}/offer/description`).set(peerConnection.localDescription.toJSON());
+        });
+        firebase.database().ref(`/calls/${catsData[currentChatIndex].code}/offer/description`).on('value', snapshot => {
+          const offerDescription = snapshot.val();
+          if (offerDescription && !peerConnection.currentRemoteDescription) {
+            const offer = new RTCSessionDescription(offerDescription);
+            peerConnection.setRemoteDescription(offer).then(() => {
+              return peerConnection.createAnswer();
+            }).then(answer => {
+              return peerConnection.setLocalDescription(answer);
+            }).then(() => {
+              firebase.database().ref(`/calls/${catsData[currentChatIndex].code}/answer/description`).set(peerConnection.localDescription.toJSON());
+            });
+          }
+        });
+        firebase.database().ref(`/calls/${catsData[currentChatIndex].code}/answer/description`).on('value', snapshot => {
+          const answerDescription = snapshot.val();
+          if (answerDescription && peerConnection.remoteDescription === null) {
+            const answer = new RTCSessionDescription(answerDescription);
+            peerConnection.setRemoteDescription(answer);
+          }
+        });
+        firebase.database().ref(`/calls/${catsData[currentChatIndex].code}/offer/candidates`).on('child_added', snapshot => {
+          const candidateData = snapshot.val();
+          if (candidateData) {
+            const candidate = new RTCIceCandidate(candidateData);
+            peerConnection.addIceCandidate(candidate).catch(err => {
+              logMessage("error", `Error adding ICE candidate: ${err}`);
+            });
+          }
+        });
+        logMessage("info", "Call started.");
+      }).catch(err => {
+        logMessage("error", `Camera or microphone access denied: ${err}`);
+      });
+    }
+    
+    function endCall() {
+      if (peerConnection) {
+        peerConnection.close();
+        peerConnection = null;
+        document.getElementById("remoteVideo").srcObject = null;
+        firebase.database().ref(`/calls/${catsData[currentChatIndex].code}`).remove();
+        logMessage("info", "Call ended.");
+      }
+    }
+    
+    function addQuestion() {
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        logMessage("warning", "User attempted to add a question without authentication.");
+        alert(getTranslation('loginPrompt'));
+        return;
+      }
+      const isAdmin = catsData[currentChatIndex].members[user.uid].role === "admin";
+      if (!isAdmin) {
+        logMessage("warning", "User attempted to add a question without admin permissions.");
+        return;
+      }
+      const label = prompt("Enter the question text:");
+      if (!label) {
+        logMessage("warning", "No question text entered.");
+        return;
+      }
+      const type = prompt("Enter the question type ('toggle' or 'slider'):");
+      if (!['toggle', 'slider'].includes(type)) {
+        logMessage("warning", "Invalid question type entered.");
+        return;
+      }
+      let min = null, max = null;
+      if (type === 'slider') {
+        min = parseInt(prompt("Enter the slider's minimum value:"), 10);
+        max = parseInt(prompt("Enter the slider's maximum value:"), 10);
+        if (isNaN(min) || isNaN(max) || min >= max) {
+          logMessage("warning", "Invalid slider values entered.");
+          return;
+        }
+      }
+      const hasComment = confirm("Does this question require a comment?");
+      const newQuestion = { label, type };
+      if (type === 'slider') {
+        newQuestion.min = min;
+        newQuestion.max = max;
+      }
+      if (hasComment) {
+        newQuestion.hasComment = true;
+      }
+      catsData[currentChatIndex].form.push(newQuestion);
+      saveToFirebase(`/users/${user.uid}/chats/${catsData[currentChatIndex].code}`, catsData[currentChatIndex])
+        .then(() => {
+          renderQuiz();
+          renderRealtimeRadar();
+          renderTimeSeriesChart();
+          logMessage("info", `Question added: "${label}".`);
+          alert("Question added successfully!");
+        })
+        .catch(err => {
+          logMessage("error", `Failed to add question: ${err}`);
+          alert("Failed to add question.");
+        });
+    }
+    
+    function exportChatPdf() {
+      if (!catsData.length) return;
+      const currentChat = catsData[currentChatIndex];
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(16);
+      doc.text(`Chat: ${currentChat.name}`, 10, 10);
+      doc.setFontSize(12);
+      if (currentChat.history) {
+        currentChat.history.forEach((entry, index) => {
+          const yOffset = 20 + index * 30;
+          doc.text(`Date: ${entry.date}`, 10, yOffset);
+          entry.answers.forEach((ans, i) => {
+            const question = currentChat.form[i] ? currentChat.form[i].label : "Unknown Question";
+            if (typeof ans === "object") {
+              doc.text(`${question}: ${ans.value}`, 10, yOffset + (i + 1) * 5);
+              if (ans.comment) {
+                doc.text(`Comment: ${ans.comment}`, 10, yOffset + (i + 2) * 5);
+              }
+            } else {
+              doc.text(`${question}: ${ans}`, 10, yOffset + (i + 1) * 5);
+            }
+          });
+        });
+      }
+      doc.save(`${currentChat.name}.pdf`);
+      logMessage("info", `Chat "${currentChat.name}" exported as PDF.`);
+    }
+    
+    function showTutorial() {
+      tutorialStep = 0;
+      updateTutorialModal();
+      document.getElementById("tutorialModal").style.display = "flex";
+      logMessage("info", "Tutorial started.");
+    }
+    
+    function nextTutorialStep() {
+      if (tutorialStep < tutorialSteps[currentLanguage].length - 1) {
+        tutorialStep++;
+        updateTutorialModal();
+      } else {
+        closeModal("tutorialModal");
+        logMessage("info", "Tutorial completed.");
+      }
+    }
+    
+    function updateTutorialModal() {
+      document.getElementById("tutorialTitle").innerText = tutorialSteps[currentLanguage][tutorialStep].title;
+      document.getElementById("tutorialText").innerText = tutorialSteps[currentLanguage][tutorialStep].text;
+    }
+    
+    function checkShareURL(user) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const shareCode = urlParams.get('share');
+      if (shareCode) {
+        const sharedChatRef = firebase.database().ref(`/sharedChats/${shareCode}`);
+        sharedChatRef.once('value').then(snapshot => {
+          if (snapshot.exists()) {
+            const sharedChat = snapshot.val();
+            const existingIndex = catsData.findIndex(c => c.code === sharedChat.code);
+            if (existingIndex === -1) {
+              sharedChat.members = { ...sharedChat.members, [user.uid]: { email: user.email, role: "user" } };
+              saveToFirebase(`/users/${user.uid}/chats/${sharedChat.code}`, sharedChat)
+                .then(() => {
+                  catsData.push(sharedChat);
+                  renderChatSelector();
+                  selectChat();
+                  updateDeleteChatButton();
+                  logMessage("info", `Shared chat "${sharedChat.name}" added to user.`);
+                  alert("Shared chat added successfully!");
+                  const newURL = window.location.origin + window.location.pathname;
+                  window.history.replaceState({}, document.title, newURL);
+                })
+                .catch(err => {
+                  logMessage("error", `Failed to add shared chat: ${err}`);
+                  alert("Failed to add shared chat.");
+                });
+            } else {
+              logMessage("warning", `Attempt to add already linked chat "${sharedChat.name}".`);
+              alert("Chat is already linked.");
+            }
+          } else {
+            logMessage("warning", `No shared chat found with code "${shareCode}".`);
+            alert("No shared chat found with the provided code.");
+          }
+        }).catch(err => {
+          logMessage("error", `Error retrieving shared chat: ${err}`);
+          alert("Error retrieving shared chat.");
+        });
+      }
+    }
+  </script>
+</body>
+</html>
