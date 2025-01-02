@@ -303,6 +303,102 @@
       .toggle-logs-btn { right: 10px; top: -40px; transform: rotate(0); } 
     }
   </style>
+ <!-- Styles pour le Modal d'Édition d'Événement -->
+<style>
+  /* Styles du Modal d'Édition d'Événement */
+  #editEventModal {
+    display: none; /* Caché par défaut */
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+  }
+
+  .event-modal-content {
+    background-color: #fefefe;
+    margin: 10% auto; /* 10% du haut et centré */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Largeur du modal */
+    max-width: 500px;
+    border-radius: 10px;
+    position: relative;
+  }
+
+  .event-modal-content h2 {
+    margin-bottom: 20px;
+  }
+
+  .event-modal-content label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+
+  .event-modal-content input,
+  .event-modal-content textarea {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+  .modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .modal-buttons button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .modal-buttons button:first-child {
+    background-color: #4CAF50;
+    color: white;
+  }
+
+  .modal-buttons button:last-child {
+    background-color: #f44336;
+    color: white;
+  }
+
+  /* Boutons Éditer et Supprimer dans les Tooltips */
+  .event-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+  }
+
+  .event-item button {
+    margin-left: 5px;
+    padding: 2px 5px;
+    font-size: 0.8em;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+
+  .edit-event-btn {
+    background-color: #2196F3;
+    color: white;
+  }
+
+  .delete-event-btn {
+    background-color: #f44336;
+    color: white;
+  }
+</style>
+
 </head>
 <body>
   <!-- Splash Screen -->
@@ -2087,8 +2183,471 @@
         });
       });
     }
-
     
   </script>
+  
+  
+  
+ <script>
+// Patch 1: Navigation in the Shared Calendar (left and right)
+document.addEventListener('DOMContentLoaded', () => {
+    const calendarContainer = document.querySelector('.calendar-container');
+    const prevButton = document.createElement('button');
+    const nextButton = document.createElement('button');
+
+    prevButton.textContent = '<';
+    nextButton.textContent = '>';
+
+    prevButton.classList.add('calendar-nav-button');
+    nextButton.classList.add('calendar-nav-button');
+
+    calendarContainer.prepend(prevButton);
+    calendarContainer.append(nextButton);
+
+    prevButton.addEventListener('click', () => {
+        renderCalendar('previous'); // Move to previous period
+    });
+
+    nextButton.addEventListener('click', () => {
+        renderCalendar('next'); // Move to next period
+    });
+});
+</script>
+
+<script>
+// Patch 2: Event modification and deletion via modal on hover tooltip
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.calendar-event').forEach(event => {
+        event.addEventListener('mouseover', () => {
+            const tooltip = document.createElement('div');
+            tooltip.className = 'event-tooltip';
+            tooltip.innerHTML = `
+                <button class="edit-event-btn">Edit</button>
+                <button class="delete-event-btn">Delete</button>
+            `;
+            event.appendChild(tooltip);
+
+            tooltip.querySelector('.edit-event-btn').addEventListener('click', () => {
+                openModalToEditEvent(event.dataset.eventId); // Implement this function
+            });
+
+            tooltip.querySelector('.delete-event-btn').addEventListener('click', () => {
+                deleteEvent(event.dataset.eventId); // Implement this function
+            });
+
+            event.addEventListener('mouseleave', () => {
+                tooltip.remove();
+            });
+        });
+    });
+});
+</script>
+
+
+
+<script>
+// Patch 4: Correcting dates in health metrics graph
+document.addEventListener('DOMContentLoaded', () => {
+    const healthMetricsGraph = document.querySelector('.health-metrics-graph');
+    if (healthMetricsGraph) {
+        const dateElements = healthMetricsGraph.querySelectorAll('.date');
+        dateElements.forEach(dateElement => {
+            const rawDate = dateElement.dataset.rawDate;
+            const parsedDate = new Date(rawDate);
+
+            if (!isNaN(parsedDate.getTime())) {
+                dateElement.textContent = parsedDate.toLocaleDateString();
+            } else {
+                dateElement.textContent = 'Invalid Date';
+            }
+        });
+    }
+});
+</script>
+
+<!-- Modal pour Éditer un Événement -->
+<div class="modal" id="editEventModal">
+  <div class="event-modal-content">
+    <h2>Éditer l'Événement</h2>
+    <label for="editEventTitle">Titre de l'Événement :</label>
+    <input type="text" id="editEventTitle" placeholder="Entrez le titre de l'événement">
+    
+    <label for="editEventDateTime">Date et Heure de l'Événement :</label>
+    <input type="datetime-local" id="editEventDateTime">
+    
+    <label for="editEventDescription">Description de l'Événement :</label>
+    <textarea id="editEventDescription" placeholder="Entrez la description de l'événement"></textarea>
+    
+    <div class="modal-buttons">
+      <button onclick="saveEditedEvent()">Sauvegarder</button>
+      <button onclick="closeModal('editEventModal')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+<!-- Patch Script: Enhanced Tooltip Event Management -->
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Function to find the index of an event in the calendar array
+    function findEventIndex(event) {
+      const calendar = catsData[currentChatIndex].calendar;
+      return calendar.findIndex(e => 
+        e.title === event.title && 
+        e.description === event.description && 
+        new Date(e.date).toISOString() === new Date(event.date).toISOString()
+      );
+    }
+
+    // Function to create editable tooltip content
+    function createEditableTooltip(dayEvents) {
+      return `
+        <strong>Events:</strong><br>
+        ${dayEvents.map((event, idx) => `
+          <div class="tooltip-event" data-event-index="${idx}">
+            <em>${event.title}</em>: ${event.description}
+            <div class="event-actions">
+              <button class="edit-event-btn">Edit</button>
+              <button class="delete-event-btn">Delete</button>
+            </div>
+          </div>
+        `).join('<br>')}
+      `;
+    }
+
+    // Initialize MutationObserver to watch for tooltip additions
+    const observer = new MutationObserver(mutations => {
+      mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+          if (node.classList && node.classList.contains('tooltip')) {
+            // Retrieve the corresponding day's events
+            const dayNumber = node.parentElement.textContent.trim();
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = today.getMonth();
+            const day = parseInt(dayNumber, 10);
+            const eventsForDay = catsData[currentChatIndex].calendar.filter(event => {
+              const eventDate = new Date(event.date);
+              return eventDate.getDate() === day &&
+                     eventDate.getMonth() === month &&
+                     eventDate.getFullYear() === year;
+            });
+
+            // Update tooltip with editable content
+            node.innerHTML = createEditableTooltip(eventsForDay);
+          }
+        });
+      });
+    });
+
+    // Start observing the calendar container for tooltip changes
+    const calendarContainer = document.querySelector('.calendar-container');
+    observer.observe(calendarContainer, { childList: true, subtree: true });
+
+    // Event delegation for Edit and Delete buttons within tooltips
+    calendarContainer.addEventListener('click', (e) => {
+      if (e.target.classList.contains('edit-event-btn')) {
+        const tooltipEventDiv = e.target.closest('.tooltip-event');
+        const eventIndex = parseInt(tooltipEventDiv.dataset.eventIndex, 10);
+        const event = catsData[currentChatIndex].calendar[eventIndex];
+        openEditEventModal(eventIndex, event);
+      }
+
+      if (e.target.classList.contains('delete-event-btn')) {
+        const tooltipEventDiv = e.target.closest('.tooltip-event');
+        const eventIndex = parseInt(tooltipEventDiv.dataset.eventIndex, 10);
+        confirmDeleteEvent(eventIndex);
+      }
+    });
+
+    // Function to open the Edit Event Modal with pre-filled data
+    function openEditEventModal(index, event) {
+      const modal = document.getElementById("editEventModal");
+      modal.style.display = "flex";
+      modal.dataset.eventIndex = index;
+
+      document.getElementById("editEventTitle").value = event.title;
+      const eventDate = new Date(event.date);
+      // Format date to 'YYYY-MM-DDTHH:MM' for datetime-local input
+      const formattedDate = eventDate.toISOString().slice(0,16);
+      document.getElementById("editEventDateTime").value = formattedDate;
+      document.getElementById("editEventDescription").value = event.description;
+    }
+
+    // Function to save the edited event
+    window.saveEditedEvent = function() {
+      const modal = document.getElementById("editEventModal");
+      const index = parseInt(modal.dataset.eventIndex, 10);
+      const updatedTitle = document.getElementById("editEventTitle").value.trim();
+      const updatedDateTime = document.getElementById("editEventDateTime").value;
+      const updatedDescription = document.getElementById("editEventDescription").value.trim();
+
+      if (!updatedTitle || !updatedDateTime) {
+        alert("Event title and date/time are required.");
+        return;
+      }
+
+      const updatedDate = new Date(updatedDateTime);
+      if (isNaN(updatedDate.getTime())) {
+        alert("Invalid date/time format.");
+        return;
+      }
+
+      // Update the event in the calendar array
+      catsData[currentChatIndex].calendar[index] = {
+        title: updatedTitle,
+        date: updatedDate.toISOString(),
+        description: updatedDescription
+      };
+
+      // Save the updated chat to Firebase
+      saveChatToDatabase(catsData[currentChatIndex])
+        .then(() => {
+          logMessage("info", `Event "${updatedTitle}" edited successfully.`);
+          alert("Event edited successfully!");
+          closeModal("editEventModal");
+          renderCalendar(); // Re-render the calendar to reflect changes
+        })
+        .catch(err => {
+          logMessage("error", `Failed to edit event: ${err}`);
+          alert("Failed to edit event. Please try again.");
+        });
+    }
+
+    // Function to confirm and delete an event
+    function confirmDeleteEvent(index) {
+      const event = catsData[currentChatIndex].calendar[index];
+      const confirmation = confirm(`Are you sure you want to delete the event "${event.title}"?`);
+      if (confirmation) {
+        // Remove the event from the calendar array
+        catsData[currentChatIndex].calendar.splice(index, 1);
+
+        // Save the updated chat to Firebase
+        saveChatToDatabase(catsData[currentChatIndex])
+          .then(() => {
+            logMessage("info", `Event "${event.title}" deleted successfully.`);
+            alert("Event deleted successfully!");
+            renderCalendar(); // Re-render the calendar to reflect changes
+          })
+          .catch(err => {
+            logMessage("error", `Failed to delete event: ${err}`);
+            alert("Failed to delete event. Please try again.");
+          });
+      }
+    }
+
+    // Optional: Close Edit Event Modal when clicking outside the modal content
+    window.onclick = function(event) {
+      const editModal = document.getElementById("editEventModal");
+      if (event.target == editModal) {
+        editModal.style.display = "none";
+      }
+    }
+
+  });
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const translateElements = () => {
+      document.querySelectorAll('[data-key]').forEach(el => {
+        const key = el.getAttribute('data-key');
+        if (languages[currentLanguage][key]) {
+          if (el.placeholder) {
+            el.placeholder = languages[currentLanguage][key];
+          } else {
+            el.textContent = languages[currentLanguage][key];
+          }
+        }
+      });
+    };
+
+    translateElements();
+
+    const observer = new MutationObserver(mutations => {
+      mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+          if (node.nodeType === 1) {
+            if (node.hasAttribute('data-key')) {
+              const key = node.getAttribute('data-key');
+              if (languages[currentLanguage][key]) {
+                if (node.placeholder) {
+                  node.placeholder = languages[currentLanguage][key];
+                } else {
+                  node.textContent = languages[currentLanguage][key];
+                }
+              }
+            }
+            node.querySelectorAll('[data-key]').forEach(el => {
+              const key = el.getAttribute('data-key');
+              if (languages[currentLanguage][key]) {
+                if (el.placeholder) {
+                  el.placeholder = languages[currentLanguage][key];
+                } else {
+                  el.textContent = languages[currentLanguage][key];
+                }
+              }
+            });
+          }
+        });
+      });
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    window.changeLanguage = function(lang) {
+      currentLanguage = lang;
+      localStorage.setItem('selectedLanguage', lang);
+      translateElements();
+    };
+  });
+</script>
+
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    catsData.forEach(chat => {
+      chat.calendar.forEach(event => {
+        if (!event.id) {
+          event.id = 'event-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        }
+      });
+    });
+
+    window.renderCalendar = function(mode = 'current') {
+      if (!catsData.length) return;
+      const calendarContainer = document.getElementById("calendar");
+      calendarContainer.innerHTML = '';
+      const calendar = catsData[currentChatIndex].calendar || [];
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dayDiv = document.createElement("div");
+        dayDiv.classList.add("calendar-day");
+        const date = new Date(year, month, day);
+        dayDiv.textContent = day;
+        const dayEvents = calendar.filter(event => {
+          const eventDate = new Date(event.date);
+          return eventDate.getDate() === day && eventDate.getMonth() === month && eventDate.getFullYear() === year;
+        });
+        if (dayEvents.length > 0) {
+          dayDiv.classList.add("has-event");
+          const tooltip = document.createElement("div");
+          tooltip.classList.add("tooltip");
+          tooltip.innerHTML = `<strong>Events:</strong><br>${dayEvents.map(event => `
+            <div class="tooltip-event" data-event-id="${event.id}">
+              <em>${event.title}</em>: ${event.description}
+              <div class="event-actions">
+                <button class="edit-event-btn">Edit</button>
+                <button class="delete-event-btn">Delete</button>
+              </div>
+            </div>
+          `).join('<br>')}`;
+          dayDiv.appendChild(tooltip);
+        }
+        dayDiv.onclick = () => {
+          window.selectedDate = date;
+          showAddEventModal();
+        };
+        calendarContainer.appendChild(dayDiv);
+      }
+      logMessage("info", "Calendar rendered.");
+    };
+
+    document.querySelector('.calendar-container').addEventListener('click', (e) => {
+      if (e.target.classList.contains('edit-event-btn')) {
+        const eventId = e.target.closest('.tooltip-event').dataset.eventId;
+        const event = catsData[currentChatIndex].calendar.find(ev => ev.id === eventId);
+        if (event) {
+          document.getElementById("editEventTitle").value = event.title;
+          document.getElementById("editEventDateTime").value = new Date(event.date).toISOString().slice(0,16);
+          document.getElementById("editEventDescription").value = event.description;
+          document.getElementById("editEventModal").dataset.editEventId = eventId;
+          document.getElementById("editEventModal").style.display = "flex";
+        }
+      }
+      if (e.target.classList.contains('delete-event-btn')) {
+        const eventId = e.target.closest('.tooltip-event').dataset.eventId;
+        if (confirm("Are you sure you want to delete this event?")) {
+          const index = catsData[currentChatIndex].calendar.findIndex(ev => ev.id === eventId);
+          if (index !== -1) {
+            catsData[currentChatIndex].calendar.splice(index, 1);
+            saveChatToDatabase(catsData[currentChatIndex]).then(() => {
+              renderCalendar();
+              logMessage("info", `Event deleted successfully.`);
+              alert("Event deleted successfully.");
+            }).catch(err => {
+              logMessage("error", `Failed to delete event: ${err}`);
+              alert("Failed to delete event.");
+            });
+          }
+        }
+      }
+    });
+
+    window.saveEditedEvent = function() {
+      const modal = document.getElementById("editEventModal");
+      const eventId = modal.dataset.editEventId;
+      const updatedTitle = document.getElementById("editEventTitle").value.trim();
+      const updatedDateTime = document.getElementById("editEventDateTime").value;
+      const updatedDescription = document.getElementById("editEventDescription").value.trim();
+      const event = catsData[currentChatIndex].calendar.find(ev => ev.id === eventId);
+      if (event) {
+        event.title = updatedTitle;
+        event.date = new Date(updatedDateTime).toISOString();
+        event.description = updatedDescription;
+        saveChatToDatabase(catsData[currentChatIndex]).then(() => {
+          renderCalendar();
+          closeModal("editEventModal");
+          logMessage("info", `Event "${updatedTitle}" edited successfully.`);
+          alert("Event edited successfully!");
+        }).catch(err => {
+          logMessage("error", `Failed to edit event: ${err}`);
+          alert("Failed to edit event.");
+        });
+      }
+    };
+
+    window.addEventListener('load', () => {
+      const originalAddEvent = addEvent;
+      window.addEventEvent = function() {
+        const title = document.getElementById("eventTitle").value.trim();
+        const dateTime = document.getElementById("eventDateTime").value;
+        const description = document.getElementById("eventDescription").value.trim();
+        if (!title || !dateTime) {
+          logMessage("warning", "No event title or date/time entered.");
+          alert(getTranslation('errorOccurred'));
+          return;
+        }
+        const eventDate = new Date(dateTime);
+        if (isNaN(eventDate.getTime())) {
+          logMessage("warning", "Invalid date/time entered.");
+          alert(getTranslation('errorOccurred'));
+          return;
+        }
+        const id = 'event-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        const event = { id, title, description, date: eventDate.toISOString() };
+        catsData[currentChatIndex].calendar.push(event);
+        saveChatToDatabase(catsData[currentChatIndex]).then(() => {
+          renderCalendar();
+          closeModal("addEventModal");
+          logMessage("info", `Event "${title}" added to calendar.`);
+          alert(getTranslation('eventAdded'));
+        }).catch(err => {
+          logMessage("error", `Failed to add event: ${err}`);
+          alert(getTranslation('errorOccurred'));
+        });
+      };
+    });
+  });
+</script>
+
 </body>
 </html>
