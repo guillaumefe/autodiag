@@ -598,6 +598,27 @@
       <button onclick="closeModal('addEventModal')">Cancel</button>
     </div>
   </div>
+  
+
+<!-- Modal pour Éditer un Événement -->
+<div class="modal" id="editEventModal">
+  <div class="event-modal-content">
+    <h2>Éditer l'Événement</h2>
+    <label for="editEventTitle">Titre de l'Événement :</label>
+    <input type="text" id="editEventTitle" placeholder="Entrez le titre de l'événement">
+    
+    <label for="editEventDateTime">Date et Heure de l'Événement :</label>
+    <input type="datetime-local" id="editEventDateTime">
+    
+    <label for="editEventDescription">Description de l'Événement :</label>
+    <textarea id="editEventDescription" placeholder="Entrez la description de l'événement"></textarea>
+    
+    <div class="modal-buttons">
+      <button onclick="saveEditedEvent()">Sauvegarder</button>
+      <button onclick="closeModal('editEventModal')">Annuler</button>
+    </div>
+  </div>
+</div>
 
   <!-- Manage Questions Modal -->
   <div class="modal" id="manageQuestionsModal">
@@ -2265,31 +2286,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<!-- Modal pour Éditer un Événement -->
-<div class="modal" id="editEventModal">
-  <div class="event-modal-content">
-    <h2>Éditer l'Événement</h2>
-    <label for="editEventTitle">Titre de l'Événement :</label>
-    <input type="text" id="editEventTitle" placeholder="Entrez le titre de l'événement">
-    
-    <label for="editEventDateTime">Date et Heure de l'Événement :</label>
-    <input type="datetime-local" id="editEventDateTime">
-    
-    <label for="editEventDescription">Description de l'Événement :</label>
-    <textarea id="editEventDescription" placeholder="Entrez la description de l'événement"></textarea>
-    
-    <div class="modal-buttons">
-      <button onclick="saveEditedEvent()">Sauvegarder</button>
-      <button onclick="closeModal('editEventModal')">Annuler</button>
-    </div>
-  </div>
-</div>
-
-
-
-
-
-
 <!-- Patch Script: Enhanced Tooltip Event Management -->
 <script>
   document.addEventListener('DOMContentLoaded', () => {
@@ -2507,8 +2503,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 </script>
 
-
-
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     catsData.forEach(chat => {
@@ -2575,13 +2569,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (e.target.classList.contains('delete-event-btn')) {
         const eventId = e.target.closest('.tooltip-event').dataset.eventId;
-        if (confirm("Are you sure you want to delete this event?")) {
+        const event = catsData[currentChatIndex].calendar.find(ev => ev.id === eventId);
+        if (event && confirm(`Are you sure you want to delete the event "${event.title}"?`)) {
           const index = catsData[currentChatIndex].calendar.findIndex(ev => ev.id === eventId);
           if (index !== -1) {
             catsData[currentChatIndex].calendar.splice(index, 1);
             saveChatToDatabase(catsData[currentChatIndex]).then(() => {
               renderCalendar();
-              logMessage("info", `Event deleted successfully.`);
+              logMessage("info", `Event "${event.title}" deleted successfully.`);
               alert("Event deleted successfully.");
             }).catch(err => {
               logMessage("error", `Failed to delete event: ${err}`);
@@ -2598,10 +2593,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const updatedTitle = document.getElementById("editEventTitle").value.trim();
       const updatedDateTime = document.getElementById("editEventDateTime").value;
       const updatedDescription = document.getElementById("editEventDescription").value.trim();
+      if (!updatedTitle || !updatedDateTime) {
+        alert("Event title and date/time are required.");
+        return;
+      }
+      const updatedDate = new Date(updatedDateTime);
+      if (isNaN(updatedDate.getTime())) {
+        alert("Invalid date/time format.");
+        return;
+      }
       const event = catsData[currentChatIndex].calendar.find(ev => ev.id === eventId);
       if (event) {
         event.title = updatedTitle;
-        event.date = new Date(updatedDateTime).toISOString();
+        event.date = updatedDate.toISOString();
         event.description = updatedDescription;
         saveChatToDatabase(catsData[currentChatIndex]).then(() => {
           renderCalendar();
@@ -2616,7 +2620,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.addEventListener('load', () => {
-      const originalAddEvent = addEvent;
       window.addEventEvent = function() {
         const title = document.getElementById("eventTitle").value.trim();
         const dateTime = document.getElementById("eventDateTime").value;
@@ -2646,6 +2649,178 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       };
     });
+
+    window.onclick = function(event) {
+      const editModal = document.getElementById("editEventModal");
+      if (event.target == editModal) {
+        editModal.style.display = "none";
+      }
+    }
+  });
+</script>
+
+<script>
+  // Corrected saveChatToDatabase function
+  function saveChatToDatabase(chat) {
+    const user = firebase.auth().currentUser;
+    if (!user) return Promise.reject("No authenticated user.");
+    const userId = user.uid;
+    const dbRef = firebase.database().ref(`/users/${userId}/chats/${chat.code}`);
+    return dbRef.set(chat);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    catsData.forEach(chat => {
+      chat.calendar.forEach(event => {
+        if (!event.id) {
+          event.id = 'event-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        }
+      });
+    });
+
+    window.renderCalendar = function(mode = 'current') {
+      if (!catsData.length) return;
+      const calendarContainer = document.getElementById("calendar");
+      calendarContainer.innerHTML = '';
+      const calendar = catsData[currentChatIndex].calendar || [];
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dayDiv = document.createElement("div");
+        dayDiv.classList.add("calendar-day");
+        const date = new Date(year, month, day);
+        dayDiv.textContent = day;
+        const dayEvents = calendar.filter(event => {
+          const eventDate = new Date(event.date);
+          return eventDate.getDate() === day && eventDate.getMonth() === month && eventDate.getFullYear() === year;
+        });
+        if (dayEvents.length > 0) {
+          dayDiv.classList.add("has-event");
+          const tooltip = document.createElement("div");
+          tooltip.classList.add("tooltip");
+          tooltip.innerHTML = `<strong>Events:</strong><br>${dayEvents.map(event => `
+            <div class="tooltip-event" data-event-id="${event.id}">
+              <em>${event.title}</em>: ${event.description}
+              <div class="event-actions">
+                <button class="edit-event-btn">Edit</button>
+                <button class="delete-event-btn">Delete</button>
+              </div>
+            </div>
+          `).join('<br>')}`;
+          dayDiv.appendChild(tooltip);
+        }
+        dayDiv.onclick = () => {
+          window.selectedDate = date;
+          showAddEventModal();
+        };
+        calendarContainer.appendChild(dayDiv);
+      }
+      logMessage("info", "Calendar rendered.");
+    };
+
+    document.querySelector('.calendar-container').addEventListener('click', (e) => {
+      if (e.target.classList.contains('edit-event-btn')) {
+        const eventId = e.target.closest('.tooltip-event').dataset.eventId;
+        const event = catsData[currentChatIndex].calendar.find(ev => ev.id === eventId);
+        if (event) {
+          document.getElementById("editEventTitle").value = event.title;
+          document.getElementById("editEventDateTime").value = new Date(event.date).toISOString().slice(0,16);
+          document.getElementById("editEventDescription").value = event.description;
+          document.getElementById("editEventModal").dataset.editEventId = eventId;
+          document.getElementById("editEventModal").style.display = "flex";
+        }
+      }
+      if (e.target.classList.contains('delete-event-btn')) {
+        const eventId = e.target.closest('.tooltip-event').dataset.eventId;
+        const event = catsData[currentChatIndex].calendar.find(ev => ev.id === eventId);
+        if (event && confirm(`Are you sure you want to delete the event "${event.title}"?`)) {
+          const index = catsData[currentChatIndex].calendar.findIndex(ev => ev.id === eventId);
+          if (index !== -1) {
+            catsData[currentChatIndex].calendar.splice(index, 1);
+            saveChatToDatabase(catsData[currentChatIndex]).then(() => {
+              renderCalendar();
+              logMessage("info", `Event "${event.title}" deleted successfully.`);
+              alert("Event deleted successfully.");
+            }).catch(err => {
+              logMessage("error", `Failed to delete event: ${err}`);
+              alert("Failed to delete event.");
+            });
+          }
+        }
+      }
+    });
+
+    window.saveEditedEvent = function() {
+      const modal = document.getElementById("editEventModal");
+      const eventId = modal.dataset.editEventId;
+      const updatedTitle = document.getElementById("editEventTitle").value.trim();
+      const updatedDateTime = document.getElementById("editEventDateTime").value;
+      const updatedDescription = document.getElementById("editEventDescription").value.trim();
+      if (!updatedTitle || !updatedDateTime) {
+        alert("Event title and date/time are required.");
+        return;
+      }
+      const updatedDate = new Date(updatedDateTime);
+      if (isNaN(updatedDate.getTime())) {
+        alert("Invalid date/time format.");
+        return;
+      }
+      const event = catsData[currentChatIndex].calendar.find(ev => ev.id === eventId);
+      if (event) {
+        event.title = updatedTitle;
+        event.date = updatedDate.toISOString();
+        event.description = updatedDescription;
+        saveChatToDatabase(catsData[currentChatIndex]).then(() => {
+          renderCalendar();
+          closeModal("editEventModal");
+          logMessage("info", `Event "${updatedTitle}" edited successfully.`);
+          alert("Event edited successfully!");
+        }).catch(err => {
+          logMessage("error", `Failed to edit event: ${err}`);
+          alert("Failed to edit event.");
+        });
+      }
+    };
+
+    window.addEventListener('load', () => {
+      window.addEventEvent = function() {
+        const title = document.getElementById("eventTitle").value.trim();
+        const dateTime = document.getElementById("eventDateTime").value;
+        const description = document.getElementById("eventDescription").value.trim();
+        if (!title || !dateTime) {
+          logMessage("warning", "No event title or date/time entered.");
+          alert(getTranslation('errorOccurred'));
+          return;
+        }
+        const eventDate = new Date(dateTime);
+        if (isNaN(eventDate.getTime())) {
+          logMessage("warning", "Invalid date/time entered.");
+          alert(getTranslation('errorOccurred'));
+          return;
+        }
+        const id = 'event-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        const event = { id, title, description, date: eventDate.toISOString() };
+        catsData[currentChatIndex].calendar.push(event);
+        saveChatToDatabase(catsData[currentChatIndex]).then(() => {
+          renderCalendar();
+          closeModal("addEventModal");
+          logMessage("info", `Event "${title}" added to calendar.`);
+          alert(getTranslation('eventAdded'));
+        }).catch(err => {
+          logMessage("error", `Failed to add event: ${err}`);
+          alert(getTranslation('errorOccurred'));
+        });
+      };
+    });
+
+    window.onclick = function(event) {
+      const editModal = document.getElementById("editEventModal");
+      if (event.target == editModal) {
+        editModal.style.display = "none";
+      }
+    }
   });
 </script>
 
