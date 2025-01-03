@@ -4,122 +4,29 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Caty Health Tracker</title>
-  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
-  <!-- jsPDF and XLSX for export functionalities -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    /* Reset and Base Styles */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body, html { height: 100%; font-family: Arial, sans-serif; }
-    
-    /* Splash Screen */
-    .splash-container {
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(to bottom, #ff9a8b, #ff6f61);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 1000;
-      overflow: hidden;
-    }
-    .brand {
-      font-size: 4em;
-      font-weight: bold;
-      color: white;
-      text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
-      opacity: 0;
-      animation: fall 2s ease-in-out forwards;
-    }
-    @keyframes fall {
-      0% { transform: translateY(-100vh); opacity: 0; }
-      50% { transform: translateY(0); opacity: 1; }
-      70% { transform: translateY(-20px); }
-      100% { transform: translateY(0); }
-    }
+    .splash-container { width: 100%; height: 100%; background: linear-gradient(to bottom, #ff9a8b, #ff6f61); display: flex; justify-content: center; align-items: center; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 1000; overflow: hidden; }
+    .brand { font-size: 4em; font-weight: bold; color: white; text-shadow: 2px 2px 10px rgba(0,0,0,0.5); opacity: 0; animation: fall 2s ease-in-out forwards; }
+    @keyframes fall { 0% { transform: translateY(-100vh); opacity: 0; } 50% { transform: translateY(0); opacity: 1; } 70% { transform: translateY(-20px); } 100% { transform: translateY(0); } }
     .fade-out { animation: fadeOut 1s forwards; }
-    @keyframes fadeOut {
-      0% { opacity: 1; }
-      100% { opacity: 0; visibility: hidden; }
-    }
-
-    /* App Container */
+    @keyframes fadeOut { 0% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
     .app-container { display: none; flex: 1; flex-direction: column; height: 100%; }
-
-    /* Header */
-    header {
-      background-color: #ff6f61;
-      color: white;
-      text-align: center;
-      padding: 1em;
-      font-size: 1.5em;
-      position: relative;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    /* Navigation */
-    nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1em;
-      background-color: #f3f3f3;
-      flex-wrap: wrap;
-    }
-    nav select, nav button {
-      padding: 0.5em;
-      border-radius: 5px;
-      border: 1px solid #ddd;
-      cursor: pointer;
-      margin: 0.5em 0;
-    }
-    nav .nav-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5em;
-    }
-
-    /* Main Content */
-    main {
-      display: flex;
-      flex: 1;
-      overflow-y: hidden;
-      padding: 1em;
-      flex-direction: row;
-    }
-    .main-content {
-      flex-grow: 1;
-      overflow-y: auto;
-      padding: 1em;
-      background-color: #f9f9f9;
-      display: flex;
-      flex-direction: column;
-      gap: 2em;
-    }
-
-    /* Sections */
-    .chart-container, .quiz-container, .chat-container, .calendar-container, .summary-chart-container {
-      background: white;
-      padding: 1em;
-      border-radius: 5px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .chart-container canvas, .summary-chart-container canvas {
-      width: 100%;
-      height: 300px;
-    }
+    header { background-color: #ff6f61; color: white; text-align: center; padding: 1em; font-size: 1.5em; display: flex; justify-content: space-between; align-items: center; }
+    nav { display: flex; justify-content: space-between; align-items: center; padding: 1em; background-color: #f3f3f3; flex-wrap: wrap; }
+    nav select, nav button { padding: 0.5em; border-radius: 5px; border: 1px solid #ddd; cursor: pointer; margin: 0.5em 0; }
+    nav .nav-buttons { display: flex; flex-wrap: wrap; gap: 0.5em; }
+    main { display: flex; flex: 1; overflow-y: hidden; padding: 1em; flex-direction: row; }
+    .main-content { flex-grow: 1; overflow-y: auto; padding: 1em; background-color: #f9f9f9; display: flex; flex-direction: column; gap: 2em; }
+    .chart-container, .quiz-container, .chat-container, .calendar-container, .summary-chart-container { background: white; padding: 1em; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .chart-container canvas, .summary-chart-container canvas { width: 100%; height: 300px; }
     .chat-container { display: flex; flex-direction: column; height: 400px; }
     .connected-users { margin-bottom: 1em; }
     .connected-users h3 { margin-bottom: 0.5em; }
@@ -142,135 +49,30 @@
     .voice-buttons { display: flex; justify-content: space-between; margin-top: 0.5em; }
     .voice-buttons button { padding: 0.5em; border: none; background-color: #2196f3; color: white; cursor: pointer; border-radius: 5px; flex: 1; margin: 0 0.25em; }
     footer { background-color: #ff6f61; color: white; text-align: center; padding: 0.5em; flex-shrink: 0; }
-
-    /* Logs Container */
-    .logs-container {
-      width: 100%;
-      max-width: 300px;
-      background-color: #333;
-      color: #fff;
-      display: none;
-      flex-direction: column;
-      padding: 1em;
-      overflow-y: auto;
-      position: relative;
-    }
-    @media (min-width: 768px) { 
-      .logs-container { width: 30%; max-width: none; } 
-    }
+    .logs-container { width: 100%; max-width: 300px; background-color: #333; color: #fff; display: none; flex-direction: column; padding: 1em; overflow-y: auto; position: relative; }
+    @media (min-width: 768px) { .logs-container { width: 30%; max-width: none; } }
     .logs-container h3 { margin-bottom: 1em; }
     .log-entry { font-size: 0.9em; margin-bottom: 0.5em; padding: 0.5em; border-radius: 5px; }
     .log-entry.info { background-color: #2196f3; }
     .log-entry.warning { background-color: #ff9800; }
     .log-entry.error { background-color: #f44336; }
-    .toggle-logs-btn {
-      position: absolute;
-      top: 10px;
-      right: -40px;
-      background-color: #333;
-      color: #fff;
-      border: none;
-      padding: 0.5em;
-      cursor: pointer;
-      border-radius: 5px 0 0 5px;
-      transform: rotate(-90deg);
-      transform-origin: top right;
-      font-size: 0.9em;
-    }
-    @media (max-width: 767px) { 
-      .logs-container { position: fixed; bottom: 0; right: 0; width: 100%; max-width: none; height: 200px; } 
-      .toggle-logs-btn { right: 10px; top: -40px; transform: rotate(0); } 
-    }
-
-    /* Modals */
-    .modal, .manage-questions-modal, .event-modal, .tutorial-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      justify-content: center;
-      align-items: center;
-      z-index: 1001;
-    }
-    .modal-content, .manage-questions-modal-content, .event-modal-content, .tutorial-modal-content {
-      background: white;
-      padding: 2em;
-      border-radius: 10px;
-      width: 90%;
-      max-width: 600px;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      gap: 1em;
-      position: relative;
-    }
+    .toggle-logs-btn { position: absolute; top: 10px; right: -40px; background-color: #333; color: #fff; border: none; padding: 0.5em; cursor: pointer; border-radius: 5px 0 0 5px; transform: rotate(-90deg); transform-origin: top right; font-size: 0.9em; }
+    @media (max-width: 767px) { .logs-container { position: fixed; bottom: 0; right: 0; width: 100%; max-width: none; height: 200px; } .toggle-logs-btn { right: 10px; top: -40px; transform: rotate(0); } }
+    .modal, .manage-questions-modal, .event-modal, .tutorial-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1001; }
+    .modal-content, .manage-questions-modal-content, .event-modal-content, .tutorial-modal-content { background: white; padding: 2em; border-radius: 10px; width: 90%; max-width: 600px; text-align: center; display: flex; flex-direction: column; gap: 1em; position: relative; }
     .modal-content label, .event-modal-content label { align-self: flex-start; }
-    .modal-content input, .modal-content select, .modal-content button, .modal-content textarea,
-    .event-modal-content input, .event-modal-content textarea { margin: 0.5em 0; padding: 0.5em; width: 100%; }
+    .modal-content input, .modal-content select, .modal-content button, .modal-content textarea, .event-modal-content input, .event-modal-content textarea { margin: 0.5em 0; padding: 0.5em; width: 100%; }
     .manage-questions-modal-content { max-height: 80vh; overflow-y: auto; }
-    .toggle-password {
-      position: absolute;
-      top: 50%;
-      right: 10px;
-      transform: translateY(-50%);
-      cursor: pointer;
-    }
-
-    /* Calendar Styles */
-    .calendar-container {
-      background-color: white;
-      padding: 1em;
-      border-radius: 5px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .calendar {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 1px;
-      background-color: #ccc;
-      margin-bottom: 1em;
-    }
-    .calendar-day {
-      background-color: #fff;
-      padding: 10px;
-      border: 1px solid #ddd;
-      min-height: 80px;
-      position: relative;
-      cursor: pointer;
-      display: flex;
-      align-items: flex-start;
-      justify-content: flex-start;
-      flex-direction: column;
-    }
-    .calendar-day.has-event {
-      background-color: #ffeb3b;
-    }
-    .calendar-day:hover .tooltip {
-      display: block;
-    }
-    .tooltip {
-      display: none;
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: #333;
-      color: #fff;
-      padding: 5px;
-      border-radius: 3px;
-      white-space: nowrap;
-      z-index: 10;
-    }
-    .upcoming-events h3 {
-      margin-bottom: 0.5em;
-    }
+    .toggle-password { position: absolute; top: 50%; right: 10px; transform: translateY(-50%); cursor: pointer; }
+    .calendar-container { background-color: white; padding: 1em; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background-color: #ccc; margin-bottom: 1em; }
+    .calendar-day { background-color: #fff; padding: 10px; border: 1px solid #ddd; min-height: 80px; position: relative; cursor: pointer; display: flex; align-items: flex-start; justify-content: flex-start; flex-direction: column; }
+    .calendar-day.has-event { background-color: #ffeb3b; }
+    .calendar-day:hover .tooltip { display: block; }
+    .tooltip { display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); background-color: #333; color: #fff; padding: 5px; border-radius: 3px; white-space: nowrap; z-index: 10; }
+    .upcoming-events h3 { margin-bottom: 0.5em; }
     .upcoming-events ul { list-style: none; padding: 0; }
     .upcoming-events li { margin-bottom: 0.5em; }
-    
-    /* Slider Styles */
     .slider-container { display: flex; flex-direction: column; margin-bottom: 1em; }
     .slider-container label { margin-bottom: 0.5em; }
     .slider-input { display: flex; align-items: center; }
@@ -285,130 +87,20 @@
     .slider-switch:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: 0.4s; border-radius: 50%; }
     input:checked + .slider-switch { background-color: #2196F3; }
     input:checked + .slider-switch:before { transform: translateX(26px); }
-
-    /* Question List Styles */
     .question-list { text-align: left; }
     .question-list h3 { margin-bottom: 0.5em; }
     .question-list ul { list-style: none; padding: 0; }
     .question-list li { padding: 0.5em; border-bottom: 1px solid #ccc; display: flex; justify-content: space-between; align-items: center; }
     .question-list li:last-child { border-bottom: none; }
     .question-actions button { margin-left: 0.5em; padding: 0.3em 0.6em; border: none; background-color: #2196F3; color: white; border-radius: 3px; cursor: pointer; }
-
-    /* Responsive Adjustments */
-    @media (max-width: 767px) { 
-      header { flex-direction: column; }
-      nav { flex-direction: column; }
-      .nav-buttons { flex-direction: column; width: 100%; }
-      .logs-container { position: fixed; bottom: 0; right: 0; width: 100%; max-width: none; height: 200px; } 
-      .toggle-logs-btn { right: 10px; top: -40px; transform: rotate(0); } 
-    }
-  </style>
- <!-- Styles pour le Modal d'Édition d'Événement -->
-<style>
-  /* Styles du Modal d'Édition d'Événement */
-  #editEventModal {
-    display: none; /* Caché par défaut */
-    position: fixed;
-    z-index: 2000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.5);
-  }
-
-  .event-modal-content {
-    background-color: #fefefe;
-    margin: 10% auto; /* 10% du haut et centré */
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%; /* Largeur du modal */
-    max-width: 500px;
-    border-radius: 10px;
-    position: relative;
-  }
-
-  .event-modal-content h2 {
-    margin-bottom: 20px;
-  }
-
-  .event-modal-content label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-  }
-
-  .event-modal-content input,
-  .event-modal-content textarea {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-  }
-
-  .modal-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-  }
-
-  .modal-buttons button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-
-  .modal-buttons button:first-child {
-    background-color: #4CAF50;
-    color: white;
-  }
-
-  .modal-buttons button:last-child {
-    background-color: #f44336;
-    color: white;
-  }
-
-  /* Boutons Éditer et Supprimer dans les Tooltips */
-  .event-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 5px;
-  }
-
-  .event-item button {
-    margin-left: 5px;
-    padding: 2px 5px;
-    font-size: 0.8em;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-  }
-
-  .edit-event-btn {
-    background-color: #2196F3;
-    color: white;
-  }
-
-  .delete-event-btn {
-    background-color: #f44336;
-    color: white;
-  }
-</style>
-
+    @media (max-width: 767px) { header { flex-direction: column; } nav { flex-direction: column; } .nav-buttons { flex-direction: column; width: 100%; } .logs-container { position: fixed; bottom: 0; right: 0; width: 100%; max-width: none; height: 200px; } .toggle-logs-btn { right: 10px; top: -40px; transform: rotate(0); } }
+    </style>
 </head>
 <body>
-  <!-- Splash Screen -->
   <div class="splash-container" id="splash">
     <div class="brand">Caty</div>
   </div>
-
-  <!-- Main App Container -->
   <div class="app-container" id="app">
-    <!-- Header -->
     <header>
       <span data-key="appTitle">Caty Health Tracker</span>
       <select id="languageSelector" class="language-selector" onchange="changeLanguage(this.value)">
@@ -417,8 +109,6 @@
         <option value="fr">FR</option>
       </select>
     </header>
-
-    <!-- Navigation -->
     <nav>
       <select id="chatSelector" onchange="selectChat()">
         <option value="" disabled selected>Select Chat</option>
@@ -432,36 +122,25 @@
         <button onclick="logout()" style="display:none;" id="logoutBtn">Logout</button>
       </div>
     </nav>
-
-    <!-- Main Content -->
     <main>
       <div class="main-content">
-        <!-- Real-Time Radar Chart -->
         <section class="chart-container" id="chartsSection" style="display:none;">
           <h2 data-key="realTimeRadar">Real-Time Health Radar</h2>
           <canvas id="realtimeRadar"></canvas>
         </section>
-
-        <!-- Daily Health Checklist -->
         <section class="quiz-container" id="quizSection" style="display:none;">
           <h2 data-key="dailyHealthChecklist">Daily Health Checklist</h2>
           <form id="quizForm"></form>
           <button onclick="saveAnswers()">Save</button>
         </section>
-
-        <!-- Health Metrics Over Time -->
         <section class="chart-container" id="timeSeriesSection" style="display:none;">
           <h2 data-key="healthMetrics">Health Metrics Over Time</h2>
           <canvas id="timeSeriesChart"></canvas>
         </section>
-
-        <!-- Summary Radar Over Time -->
         <section class="summary-chart-container" id="summaryChartSection" style="display:none;">
           <h2>Summary Radar Over Time</h2>
           <canvas id="summaryRadarChart"></canvas>
         </section>
-
-        <!-- Chat Section -->
         <section class="chat-container" id="chatSection" style="display:none;">
           <h2>Chat</h2>
           <div class="connected-users">
@@ -480,8 +159,6 @@
             <button id="reRecordButton" onclick="reRecordVoice()" style="display:none;">Re-record</button>
           </div>
         </section>
-
-        <!-- Shared Calendar -->
         <section class="calendar-container" id="calendarSection" style="display:none;">
           <h2>Shared Calendar</h2>
           <div class="calendar" id="calendar"></div>
@@ -492,21 +169,14 @@
           <button onclick="showAddEventModal()">Add Event</button>
         </section>
       </div>
-
-      <!-- Logs Container -->
       <div class="logs-container" id="logsContainer">
         <button class="toggle-logs-btn" onclick="toggleLogs()">Logs</button>
         <h3>Logs</h3>
         <div id="logs"></div>
       </div>
     </main>
-
-    <!-- Footer -->
     <footer>Made with ❤️ for your beloved cats</footer>
   </div>
-
-  <!-- Modals -->
-  <!-- Language Selection Modal -->
   <div class="modal" id="languageModal">
     <div class="modal-content">
       <h2>Select Language</h2>
@@ -517,8 +187,6 @@
       <button onclick="submitLanguage()">Submit</button>
     </div>
   </div>
-
-  <!-- Firebase Configuration Modal -->
   <div class="modal" id="firebaseConfigModal">
     <div class="modal-content">
       <h2>Configure Firebase</h2>
@@ -539,8 +207,6 @@
       <button onclick="submitFirebaseConfig()">Submit</button>
     </div>
   </div>
-
-  <!-- Authentication Modal -->
   <div class="modal" id="authModal">
     <div class="modal-content">
       <h2 id="authTitle">Login</h2>
@@ -554,8 +220,6 @@
       <button onclick="closeModal('authModal')">Close</button>
     </div>
   </div>
-
-  <!-- Link Existing Chat Modal -->
   <div class="modal" id="linkChatModal">
     <div class="modal-content">
       <h2>Link to Existing Chat</h2>
@@ -564,8 +228,6 @@
       <button onclick="closeModal('linkChatModal')">Close</button>
     </div>
   </div>
-
-  <!-- Tutorial Modal -->
   <div class="modal" id="tutorialModal">
     <div class="modal-content">
       <h2 id="tutorialTitle"></h2>
@@ -574,8 +236,6 @@
       <button onclick="closeModal('tutorialModal')">Close</button>
     </div>
   </div>
-
-  <!-- Delete Chat Confirmation Modal -->
   <div class="modal" id="deleteChatModal">
     <div class="modal-content">
       <h2>Delete Chat</h2>
@@ -586,8 +246,6 @@
       <span id="deleteError" style="color: red; display: none;">Chat name does not match.</span>
     </div>
   </div>
-
-  <!-- Add Event Modal -->
   <div class="modal" id="addEventModal">
     <div class="modal-content">
       <h2>Add Event</h2>
@@ -598,29 +256,21 @@
       <button onclick="closeModal('addEventModal')">Cancel</button>
     </div>
   </div>
-  
-
-<!-- Modal pour Éditer un Événement -->
-<div class="modal" id="editEventModal">
-  <div class="event-modal-content">
-    <h2>Éditer l'Événement</h2>
-    <label for="editEventTitle">Titre de l'Événement :</label>
-    <input type="text" id="editEventTitle" placeholder="Entrez le titre de l'événement">
-    
-    <label for="editEventDateTime">Date et Heure de l'Événement :</label>
-    <input type="datetime-local" id="editEventDateTime">
-    
-    <label for="editEventDescription">Description de l'Événement :</label>
-    <textarea id="editEventDescription" placeholder="Entrez la description de l'événement"></textarea>
-    
-    <div class="modal-buttons">
-      <button onclick="saveEditedEvent()">Sauvegarder</button>
-      <button onclick="closeModal('editEventModal')">Annuler</button>
+  <div class="modal" id="editEventModal">
+    <div class="event-modal-content">
+      <h2>Éditer l'Événement</h2>
+      <label for="editEventTitle">Titre de l'Événement :</label>
+      <input type="text" id="editEventTitle" placeholder="Entrez le titre de l'événement">
+      <label for="editEventDateTime">Date et Heure de l'Événement :</label>
+      <input type="datetime-local" id="editEventDateTime">
+      <label for="editEventDescription">Description de l'Événement :</label>
+      <textarea id="editEventDescription" placeholder="Entrez la description de l'événement"></textarea>
+      <div class="modal-buttons">
+        <button onclick="saveEditedEvent()">Sauvegarder</button>
+        <button onclick="closeModal('editEventModal')">Annuler</button>
+      </div>
     </div>
   </div>
-</div>
-
-  <!-- Manage Questions Modal -->
   <div class="modal" id="manageQuestionsModal">
     <div class="modal-content">
       <h2>Manage Questions</h2>
@@ -632,134 +282,10 @@
       <button onclick="closeModal('manageQuestionsModal')">Close</button>
     </div>
   </div>
-
   <script>
-    // Language Translations
     const languages = {
-      en: {
-        appTitle: "Caty Health Tracker",
-        selectLanguage: "Select Language",
-        apiKeyLabel: "API Key:",
-        authDomainLabel: "Auth Domain:",
-        databaseURLLabel: "Database URL:",
-        projectIdLabel: "Project ID:",
-        storageBucketLabel: "Storage Bucket:",
-        messagingSenderIdLabel: "Messaging Sender ID:",
-        appIdLabel: "App ID:",
-        or: "OR",
-        login: "Login",
-        signup: "Sign Up",
-        close: "Close",
-        email: "Email",
-        password: "Password",
-        createChat: "Create Chat",
-        shareChat: "Share Chat",
-        exportChatExcel: "Export Chat Excel",
-        deleteChat: "Delete Chat",
-        realTimeRadar: "Real-Time Health Radar",
-        dailyHealthChecklist: "Daily Health Checklist",
-        healthMetrics: "Health Metrics Over Time",
-        summaryRadar: "Summary Radar Over Time",
-        save: "Save",
-        send: "Send",
-        recordVoice: "Start Recording",
-        stopVoice: "Stop",
-        sendVoice: "Publish",
-        reRecordVoice: "Re-record",
-        addEvent: "Add Event",
-        logs: "Logs",
-        toggleLogs: "Logs",
-        addQuestion: "Add Question",
-        editQuestion: "Edit",
-        deleteQuestion: "Delete",
-        confirmDelete: "Please type the chat name to confirm deletion:",
-        enterChatName: "Enter Chat Name",
-        tutorial: "Tutorial",
-        next: "Next",
-        selectChat: "Select Chat",
-        typeMessage: "Type a message",
-        loginPrompt: "Please log in or sign up to continue.",
-        signupSuccess: "Signup successful! Please verify your email.",
-        loginSuccess: "Login successful!",
-        logoutSuccess: "Logout successful!",
-        eventAdded: "Event added successfully!",
-        eventCancelled: "Event addition cancelled.",
-        errorOccurred: "An error occurred. Please try again.",
-        upcomingEvents: "Upcoming Events (Next 15 Days)",
-        noUpcomingEvents: "No upcoming events.",
-        manageQuestions: "Manage Questions",
-        questionType: "Question Type:",
-        toggle: "Toggle",
-        slider: "Slider",
-        questionLabel: "Question Label:",
-        sliderMin: "Slider Minimum Value:",
-        sliderMax: "Slider Maximum Value:",
-        hasComment: "Requires Comment?",
-        promote: "Promote",
-        demote: "Demote"
-      },
-      fr: {
-        appTitle: "Caty Health Tracker",
-        selectLanguage: "Sélectionner la langue",
-        apiKeyLabel: "Clé API :",
-        authDomainLabel: "Domaine d'authentification :",
-        databaseURLLabel: "URL de la base de données :",
-        projectIdLabel: "ID du projet :",
-        storageBucketLabel: "Bucket de stockage :",
-        messagingSenderIdLabel: "ID de l'expéditeur de messages :",
-        appIdLabel: "ID de l'application :",
-        or: "OU",
-        login: "Connexion",
-        signup: "Inscription",
-        close: "Fermer",
-        email: "Email",
-        password: "Mot de passe",
-        createChat: "Créer un chat",
-        shareChat: "Partager le chat",
-        exportChatExcel: "Exporter le chat en Excel",
-        deleteChat: "Supprimer le chat",
-        realTimeRadar: "Radar de santé en temps réel",
-        dailyHealthChecklist: "Checklist santé quotidienne",
-        healthMetrics: "Métriques de santé au fil du temps",
-        summaryRadar: "Radar de synthèse au fil du temps",
-        save: "Enregistrer",
-        send: "Envoyer",
-        recordVoice: "Démarrer l'enregistrement",
-        stopVoice: "Arrêter",
-        sendVoice: "Publier",
-        reRecordVoice: "Re-enregistrer",
-        addEvent: "Ajouter un événement",
-        logs: "Journaux",
-        toggleLogs: "Journaux",
-        addQuestion: "Ajouter une question",
-        editQuestion: "Modifier",
-        deleteQuestion: "Supprimer",
-        confirmDelete: "Veuillez taper le nom du chat pour confirmer la suppression :",
-        enterChatName: "Entrez le nom du chat",
-        tutorial: "Tutoriel",
-        next: "Suivant",
-        selectChat: "Sélectionner un chat",
-        typeMessage: "Tapez un message",
-        loginPrompt: "Veuillez vous connecter ou vous inscrire pour continuer.",
-        signupSuccess: "Inscription réussie ! Veuillez vérifier votre email.",
-        loginSuccess: "Connexion réussie !",
-        logoutSuccess: "Déconnexion réussie !",
-        eventAdded: "Événement ajouté avec succès !",
-        eventCancelled: "Ajout d'événement annulé.",
-        errorOccurred: "Une erreur s'est produite. Veuillez réessayer.",
-        upcomingEvents: "Événements à venir (15 prochains jours)",
-        noUpcomingEvents: "Aucun événement à venir.",
-        manageQuestions: "Gérer les Questions",
-        questionType: "Type de question :",
-        toggle: "Toggle",
-        slider: "Slider",
-        questionLabel: "Libellé de la question :",
-        sliderMin: "Valeur minimale du slider :",
-        sliderMax: "Valeur maximale du slider :",
-        hasComment: "Requiert un commentaire ?",
-        promote: "Promouvoir",
-        demote: "Rétrograder"
-      }
+      en: { appTitle: "Caty Health Tracker", realTimeRadar: "Real-Time Health Radar", dailyHealthChecklist: "Daily Health Checklist", healthMetrics: "Health Metrics Over Time", summaryRadar: "Summary Radar Over Time", save: "Save", send: "Send", recordVoice: "Start Recording", stopVoice: "Stop", sendVoice: "Publish", reRecordVoice: "Re-record", addEvent: "Add Event", logs: "Logs", toggleLogs: "Logs", addQuestion: "Add Question", editQuestion: "Edit", deleteQuestion: "Delete", confirmDelete: "Please type the chat name to confirm deletion:", enterChatName: "Enter Chat Name", tutorial: "Tutorial", next: "Next", selectChat: "Select Chat", typeMessage: "Type a message", loginPrompt: "Please log in or sign up to continue.", signupSuccess: "Signup successful! Please verify your email.", loginSuccess: "Login successful!", logoutSuccess: "Logout successful!", eventAdded: "Event added successfully!", eventCancelled: "Event addition cancelled.", errorOccurred: "An error occurred. Please try again.", upcomingEvents: "Upcoming Events (Next 15 Days)", noUpcomingEvents: "No upcoming events.", manageQuestions: "Manage Questions", questionType: "Question Type:", toggle: "Toggle", slider: "Slider", questionLabel: "Question Label:", sliderMin: "Slider Minimum Value:", sliderMax: "Slider Maximum Value:", hasComment: "Requires Comment?", promote: "Promote", demote: "Demote" },
+      fr: { appTitle: "Caty Health Tracker", realTimeRadar: "Radar de santé en temps réel", dailyHealthChecklist: "Checklist santé quotidienne", healthMetrics: "Métriques de santé au fil du temps", summaryRadar: "Radar de synthèse au fil du temps", save: "Enregistrer", send: "Envoyer", recordVoice: "Démarrer l'enregistrement", stopVoice: "Arrêter", sendVoice: "Publier", reRecordVoice: "Re-enregistrer", addEvent: "Ajouter un événement", logs: "Journaux", toggleLogs: "Journaux", addQuestion: "Ajouter une question", editQuestion: "Modifier", deleteQuestion: "Supprimer", confirmDelete: "Veuillez taper le nom du chat pour confirmer la suppression :", enterChatName: "Entrez le nom du chat", tutorial: "Tutoriel", next: "Suivant", selectChat: "Sélectionner un chat", typeMessage: "Tapez un message", loginPrompt: "Veuillez vous connecter ou vous inscrire pour continuer.", signupSuccess: "Inscription réussie ! Veuillez vérifier votre email.", loginSuccess: "Connexion réussie !", logoutSuccess: "Déconnexion réussie !", eventAdded: "Événement ajouté avec succès !", eventCancelled: "Ajout d'événement annulé.", errorOccurred: "Une erreur s'est produite. Veuillez réessayer.", upcomingEvents: "Événements à venir (15 prochains jours)", noUpcomingEvents: "Aucun événement à venir.", manageQuestions: "Gérer les Questions", questionType: "Type de question :", toggle: "Toggle", slider: "Slider", questionLabel: "Libellé de la question :", sliderMin: "Valeur minimale du slider :", sliderMax: "Valeur maximale du slider :", hasComment: "Requiert un commentaire ?", promote: "Promouvoir", demote: "Rétrograder" }
     };
     let currentLanguage = localStorage.getItem('selectedLanguage') || 'en';
     let firebaseConfigStored = null;
@@ -770,6 +296,7 @@
     let isRecording = false;
     let recordedVoice = null;
     let audioChunks = [];
+    let tutorialStep = 0;
     const tutorialSteps = {
       en: [
         { title: "Welcome", text: "Welcome to Caty Health Tracker! Follow the steps to get started." },
@@ -792,10 +319,7 @@
         { title: "Gérer les Questions", text: "Modifiez la liste des questions spécifiques à ce chat." }
       ]
     };
-    let tutorialStep = 0;
     const offlineQueue = [];
-
-    // Logging Function
     function logMessage(type, message) {
       const logContainer = document.getElementById("logs");
       if (!logContainer) return;
@@ -806,8 +330,6 @@
       logContainer.scrollTop = logContainer.scrollHeight;
       console[type === 'error' ? 'error' : type === 'warning' ? 'warn' : 'log'](`Log (${type}): ${message}`);
     }
-
-    // Language Change Function
     function changeLanguage(lang) {
       currentLanguage = lang;
       localStorage.setItem('selectedLanguage', lang);
@@ -826,13 +348,9 @@
         renderQuestionsList();
       }
     }
-
-    // Get Translation Function
     function getTranslation(key) {
       return languages[currentLanguage][key] || key;
     }
-
-    // Close Modal Function
     function closeModal(modalId) {
       document.getElementById(modalId).style.display = "none";
       if (modalId === 'deleteChatModal') {
@@ -843,8 +361,6 @@
         input.value = "";
       }
     }
-
-    // Submit Language Selection
     function submitLanguage() {
       const lang = document.getElementById("initialLanguageSelector").value;
       if (!lang) {
@@ -855,8 +371,6 @@
       closeModal('languageModal');
       document.getElementById("firebaseConfigModal").style.display = "flex";
     }
-
-    // Submit Firebase Configuration
     function submitFirebaseConfig() {
       const apiKey = document.getElementById("apiKey").value.trim();
       const authDomain = document.getElementById("authDomain").value.trim();
@@ -873,8 +387,6 @@
       const config = { apiKey, authDomain, databaseURL, projectId, storageBucket, messagingSenderId, appId };
       initializeFirebaseWithConfig(config);
     }
-
-    // Initialize Firebase with Config
     function initializeFirebaseWithConfig(config) {
       try {
         if (firebase.apps.length) {
@@ -902,8 +414,6 @@
         alert(getTranslation('errorOccurred'));
       }
     }
-
-    // Initialize Firebase on Load
     function initializeFirebase() {
       const config = JSON.parse(localStorage.getItem("firebaseConfig"));
       if (config) {
@@ -945,8 +455,6 @@
         logMessage("warning", "Firebase configuration not found. Prompting to configure.");
       }
     }
-
-    // Load User Chats from Firebase
     function loadUserChats() {
       const user = firebase.auth().currentUser;
       if (!user) return;
@@ -968,8 +476,6 @@
         logMessage("error", `Firebase Realtime Database error: ${error}`);
       });
     }
-
-    // Render Chat Selector
     function renderChatSelector() {
       const selector = document.getElementById("chatSelector");
       selector.innerHTML = `<option value="" disabled selected>${getTranslation('selectChat')}</option>` + 
@@ -979,8 +485,6 @@
         selectChat();
       }
     }
-
-    // Select Chat Function
     function selectChat() {
       const selector = document.getElementById("chatSelector");
       currentChatIndex = parseInt(selector.value, 10);
@@ -1008,14 +512,10 @@
       updateDeleteChatButton();
       logMessage("info", `Switched to chat "${catsData[currentChatIndex].name}".`);
     }
-
-    // Update Delete Chat Button Visibility
     function updateDeleteChatButton() {
       const deleteBtn = document.getElementById("deleteChatBtn");
       deleteBtn.style.display = catsData.length > 0 ? "inline-block" : "none";
     }
-
-    // Clear All Sections
     function clearSections() {
       [realtimeRadar, timeSeriesChart, summaryRadarChart].forEach(chart => { if (chart) chart.destroy(); });
       document.getElementById("quizForm").innerHTML = "";
@@ -1023,8 +523,6 @@
       document.getElementById("calendar").innerHTML = "";
       document.getElementById("upcomingEventsList").innerHTML = "";
     }
-
-    // Default Forms
     const forms = {
       default: [
         { label: "Has the cat eaten today?", type: "toggle" },
@@ -1050,13 +548,8 @@
         { label: "Is the cat showing signs of jaundice?", type: "toggle" }
       ]
     };
-
-    // Render Quiz
     function renderQuiz() {
-      if (!catsData.length) {
-        logMessage("warning", "No chat available to display the quiz.");
-        return;
-      }
+      if (!catsData.length) return;
       const quizContainer = document.getElementById("quizForm");
       const form = catsData[currentChatIndex].form || forms["default"];
       const lastEntry = catsData[currentChatIndex].history && catsData[currentChatIndex].history.length > 0 ? catsData[currentChatIndex].history[catsData[currentChatIndex].history.length - 1].answers : [];
@@ -1080,18 +573,12 @@
           `;
         } else if (q.type === "slider") {
           let value = Math.floor((q.min + q.max) / 2);
-          if (lastEntry[i] !== undefined) {
-            value = lastEntry[i];
-          }
+          if (lastEntry[i] !== undefined) { value = lastEntry[i]; }
           let valueClass = "good";
           const mid = (q.min + q.max) / 2;
-          if (value <= mid) {
-            valueClass = "good";
-          } else if (value > mid && value < q.max) {
-            valueClass = "warning";
-          } else {
-            valueClass = "bad";
-          }
+          if (value <= mid) { valueClass = "good"; }
+          else if (value > mid && value < q.max) { valueClass = "warning"; }
+          else { valueClass = "bad"; }
           return `
             <div class="slider-container">
               <label for="slider${i}">${q.label}</label>
@@ -1105,23 +592,17 @@
         return "";
       }).join('');
     }
-
-    // Toggle Answer Visibility
     function toggleAnswer(index, isChecked) {
       const form = catsData[currentChatIndex].form || forms["default"];
       const question = form[index];
       if (question.hasComment) {
         const commentField = document.getElementById(`comment${index}`);
         commentField.style.display = isChecked ? "block" : "none";
-        if (!isChecked) {
-          commentField.value = "";
-        }
+        if (!isChecked) { commentField.value = ""; }
       }
       renderRealtimeRadar();
       renderSummaryRadarChart();
     }
-
-    // Update Slider Value Display
     function updateSliderValue(index, value) {
       const valueSpan = document.getElementById(`sliderValue${index}`);
       valueSpan.textContent = value;
@@ -1130,21 +611,12 @@
       const min = parseInt(q.min, 10);
       const max = parseInt(q.max, 10);
       const mid = (min + max) / 2;
-      if (value <= mid) {
-        valueSpan.classList.add("good");
-        valueSpan.classList.remove("warning", "bad");
-      } else if (value > mid && value < max) {
-        valueSpan.classList.add("warning");
-        valueSpan.classList.remove("good", "bad");
-      } else {
-        valueSpan.classList.add("bad");
-        valueSpan.classList.remove("good", "warning");
-      }
+      if (value <= mid) { valueSpan.classList.add("good"); valueSpan.classList.remove("warning", "bad"); }
+      else if (value > mid && value < max) { valueSpan.classList.add("warning"); valueSpan.classList.remove("good", "bad"); }
+      else { valueSpan.classList.add("bad"); valueSpan.classList.remove("good", "warning"); }
       renderRealtimeRadar();
       renderSummaryRadarChart();
     }
-
-    // Get Current Answers
     function currentAnswers() {
       if (!catsData.length) return [];
       const form = catsData[currentChatIndex].form || forms["default"];
@@ -1164,19 +636,12 @@
       });
       return answers;
     }
-
-    // Save Answers to Firebase
     function saveAnswers() {
-      if (!catsData.length) {
-        logMessage("warning", "No chat available to save answers.");
-        return;
-      }
+      if (!catsData.length) { logMessage("warning", "No chat available to save answers."); return; }
       const answers = currentAnswers();
       const timestamp = Date.now();
       const historyEntry = { timestamp, answers };
-      if (!catsData[currentChatIndex].history) {
-        catsData[currentChatIndex].history = [];
-      }
+      if (!catsData[currentChatIndex].history) { catsData[currentChatIndex].history = []; }
       catsData[currentChatIndex].history.push(historyEntry);
       saveChatToDatabase(catsData[currentChatIndex]);
       renderTimeSeriesChart();
@@ -1184,19 +649,13 @@
       renderSummaryRadarChart();
       logMessage("info", "Answers saved successfully.");
     }
-
-    // Save Chat to Firebase
     function saveChatToDatabase(chat) {
       const user = firebase.auth().currentUser;
-      if (!user) return;
+      if (!user) return Promise.reject("No authenticated user.");
       const userId = user.uid;
       const dbRef = firebase.database().ref(`/users/${userId}/chats/${chat.code}`);
-      dbRef.set(chat)
-        .then(() => logMessage("info", "Chat data saved to database."))
-        .catch(error => logMessage("error", `Error saving chat data: ${error}`));
+      return dbRef.set(chat).then(() => logMessage("info", "Chat data saved to database."));
     }
-
-    // Render Real-Time Radar Chart
     function renderRealtimeRadar() {
       if (!catsData.length) return;
       const answers = currentAnswers();
@@ -1206,24 +665,10 @@
       const ctx = document.getElementById("realtimeRadar").getContext("2d");
       realtimeRadar = new Chart(ctx, {
         type: "radar",
-        data: {
-          labels,
-          datasets: [{
-            label: "Current Health",
-            data,
-            backgroundColor: "rgba(255, 99, 132, 0.2)",
-            borderColor: "rgba(255, 99, 132, 1)",
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: { r: { beginAtZero: true, max: 10 } }
-        }
+        data: { labels, datasets: [{ label: "Current Health", data, backgroundColor: "rgba(255, 99, 132, 0.2)", borderColor: "rgba(255, 99, 132, 1)", borderWidth: 1 }] },
+        options: { responsive: true, scales: { r: { beginAtZero: true, max: 10 } } }
       });
     }
-
-    // Render Time Series Chart
     function renderTimeSeriesChart() {
       if (!catsData.length || !catsData[currentChatIndex].history) return;
       const history = catsData[currentChatIndex].history;
@@ -1244,108 +689,57 @@
         options: { responsive: true, scales: { y: { beginAtZero: true, max: 10 } } }
       });
     }
-
-    // Render Summary Radar Chart
     function renderSummaryRadarChart() {
       if (!catsData.length || !catsData[currentChatIndex].history) return;
       const history = catsData[currentChatIndex].history;
       const labels = catsData[currentChatIndex].form.map(q => q.label);
-      const data = labels.map((_, i) =>
-        history.map(entry => entry.answers[i] || 0)
-          .reduce((sum, value) => sum + value, 0) / history.length
-      );
+      const data = labels.map((_, i) => history.map(entry => entry.answers[i] || 0).reduce((sum, value) => sum + value, 0) / history.length);
       if (summaryRadarChart) { summaryRadarChart.destroy(); }
       const ctx = document.getElementById("summaryRadarChart").getContext("2d");
       summaryRadarChart = new Chart(ctx, {
         type: "radar",
-        data: {
-          labels,
-          datasets: [{
-            label: "Summary",
-            data,
-            backgroundColor: "rgba(54, 162, 235, 0.2)",
-            borderColor: "rgba(54, 162, 235, 1)",
-            borderWidth: 1
-          }]
-        },
+        data: { labels, datasets: [{ label: "Summary", data, backgroundColor: "rgba(54, 162, 235, 0.2)", borderColor: "rgba(54, 162, 235, 1)", borderWidth: 1 }] },
         options: { responsive: true, scales: { r: { beginAtZero: true, max: 10 } } }
       });
     }
-
-    // Create New Chat
     function createChat() {
       const name = prompt("Enter Chat Name:");
-      if (!name) {
-        logMessage("warning", "No name entered for new chat.");
-        return;
-      }
+      if (!name) { logMessage("warning", "No name entered for new chat."); return; }
       const code = generateSecureCode();
       const user = firebase.auth().currentUser;
-      if (!user) {
-        logMessage("warning", "User attempted to create chat without authentication.");
-        return;
-      }
-      const newChat = { 
-        name: name.trim(), 
-        code, 
-        history: [], 
-        form: JSON.parse(JSON.stringify(forms["default"])),
-        members: { [user.uid]: { email: user.email, role: "admin" } },
-        calendar: []
-      };
+      if (!user) { logMessage("warning", "User attempted to create chat without authentication."); return; }
+      const newChat = { name: name.trim(), code, history: [], form: JSON.parse(JSON.stringify(forms["default"])), members: { [user.uid]: { email: user.email, role: "admin" } }, calendar: [] };
       catsData.push(newChat);
-      saveChatToDatabase(newChat);
-      renderChatSelector();
-      selectChat();
-      updateDeleteChatButton();
-      logMessage("info", `New chat "${name}" created successfully.`);
+      saveChatToDatabase(newChat).then(() => {
+        renderChatSelector();
+        selectChat();
+        updateDeleteChatButton();
+        logMessage("info", `New chat "${name}" created successfully.`);
+      });
     }
-
-    // Generate Secure Code for Sharing
     function generateSecureCode() {
       return Math.random().toString(36).substring(2, 15).toUpperCase() + Math.random().toString(36).substring(2, 15).toUpperCase();
     }
-
-    // Share Chat via URL
     function shareChat() {
-      if (!catsData.length) {
-        logMessage("warning", "No chat available to share.");
-        return;
-      }
+      if (!catsData.length) { logMessage("warning", "No chat available to share."); return; }
       const currentChat = catsData[currentChatIndex];
-      const shareCode = generateSecureCode();
-      const sharedChat = { ...currentChat };
-      delete sharedChat.history;
-      firebase.database().ref(`/sharedChats/${shareCode}`).set(sharedChat)
-        .then(() => {
-          const shareURL = `${window.location.origin}${window.location.pathname}?share=${shareCode}`;
-          navigator.clipboard.writeText(shareURL).then(() => {
-            logMessage("info", `Chat "${currentChat.name}" shared via URL.`);
-            alert("Chat share URL copied to clipboard!");
-          }).catch(err => {
-            logMessage("error", `Failed to copy share URL: ${err}`);
-            alert("Failed to copy share URL.");
-          });
-        })
-        .catch(err => {
-          logMessage("error", `Failed to share chat: ${err}`);
-          alert("Failed to share chat.");
-        });
+      const shareCode = currentChat.code;
+      const shareURL = `${window.location.origin}${window.location.pathname}?share=${shareCode}`;
+      navigator.clipboard.writeText(shareURL).then(() => {
+        logMessage("info", `Chat "${currentChat.name}" shared via URL.`);
+        alert("Chat share URL copied to clipboard!");
+      }).catch(err => {
+        logMessage("error", `Failed to copy share URL: ${err}`);
+        alert("Failed to copy share URL.");
+      });
     }
-
-    // Delete Chat
     function deleteChat() {
       if (!catsData.length) return;
       const currentChat = catsData[currentChatIndex];
       const user = firebase.auth().currentUser;
-      if (!user || !currentChat.members[user.uid] || currentChat.members[user.uid].role !== "admin") {
-        logMessage("warning", "User attempted to delete a chat without admin permissions.");
-        return;
-      }
+      if (!user || !currentChat.members[user.uid] || currentChat.members[user.uid].role !== "admin") return;
       document.getElementById("deleteChatModal").style.display = "flex";
     }
-
-    // Confirm Delete Chat
     function confirmDeleteChat() {
       const currentChat = catsData[currentChatIndex];
       const confirmation = document.getElementById("confirmChatName").value.trim();
@@ -1353,30 +747,21 @@
       const errorMsg = document.getElementById("deleteError");
       if (confirmation === currentChat.name) {
         const user = firebase.auth().currentUser;
-        if (!user) {
-          logMessage("warning", "User attempted to delete chat without authentication.");
-          return;
-        }
-        firebase.database().ref(`/users/${user.uid}/chats/${currentChat.code}`).remove()
-          .then(() => {
-            logMessage("info", `Chat "${currentChat.name}" deleted successfully.`);
-            catsData.splice(currentChatIndex, 1);
-            renderChatSelector();
-            clearSections();
-            closeModal("deleteChatModal");
-            updateDeleteChatButton();
-          })
-          .catch(err => {
-            logMessage("error", `Error deleting chat "${currentChat.name}": ${err}`);
-          });
+        if (!user) return;
+        firebase.database().ref(`/users/${user.uid}/chats/${currentChat.code}`).remove().then(() => {
+          logMessage("info", `Chat "${currentChat.name}" deleted successfully.`);
+          catsData.splice(currentChatIndex, 1);
+          renderChatSelector();
+          clearSections();
+          closeModal("deleteChatModal");
+          updateDeleteChatButton();
+        }).catch(err => { logMessage("error", `Error deleting chat "${currentChat.name}": ${err}`); });
       } else {
         logMessage("warning", "Chat name confirmation failed.");
         inputField.classList.add("error");
         errorMsg.style.display = "block";
       }
     }
-
-    // Show Add Event Modal
     function showAddEventModal() {
       document.getElementById("addEventModal").style.display = "flex";
       document.getElementById("eventTitle").value = "";
@@ -1388,47 +773,23 @@
         document.getElementById("eventDateTime").value = formattedDate;
       }
     }
-
-    // Add Event to Calendar
     function addEvent() {
       const title = document.getElementById("eventTitle").value.trim();
       const dateTime = document.getElementById("eventDateTime").value;
       const description = document.getElementById("eventDescription").value.trim();
-      if (!title || !dateTime) {
-        logMessage("warning", "No event title or date/time entered.");
-        alert(getTranslation('errorOccurred'));
-        return;
-      }
+      if (!title || !dateTime) { logMessage("warning", "No event title or date/time entered."); alert(getTranslation('errorOccurred')); return; }
       const eventDate = new Date(dateTime);
-      if (isNaN(eventDate.getTime())) {
-        logMessage("warning", "Invalid date/time entered.");
-        alert(getTranslation('errorOccurred'));
-        return;
-      }
-      const formattedDate = eventDate.toLocaleString();
-      const user = firebase.auth().currentUser;
-      if (!user) {
-        logMessage("warning", "User attempted to add event without authentication.");
-        alert(getTranslation('loginPrompt'));
-        return;
-      }
-      const chatCode = catsData[currentChatIndex].code;
-      const event = { title, description, date: formattedDate };
+      if (isNaN(eventDate.getTime())) { logMessage("warning", "Invalid date/time entered."); alert(getTranslation('errorOccurred')); return; }
+      const id = 'event-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+      const event = { id, title, description, date: eventDate.toISOString() };
       catsData[currentChatIndex].calendar.push(event);
-      saveChatToDatabase(catsData[currentChatIndex])
-        .then(() => {
-          renderCalendar();
-          closeModal("addEventModal");
-          logMessage("info", `Event "${title}" added to calendar.`);
-          alert(getTranslation('eventAdded'));
-        })
-        .catch(err => {
-          logMessage("error", `Failed to add event: ${err}`);
-          alert(getTranslation('errorOccurred'));
-        });
+      saveChatToDatabase(catsData[currentChatIndex]).then(() => {
+        renderCalendar();
+        closeModal("addEventModal");
+        logMessage("info", `Event "${title}" added to calendar.`);
+        alert(getTranslation('eventAdded'));
+      }).catch(err => { logMessage("error", `Failed to add event: ${err}`); alert(getTranslation('errorOccurred')); });
     }
-
-    // Render Calendar
     function renderCalendar() {
       if (!catsData.length) return;
       const calendarContainer = document.getElementById("calendar");
@@ -1451,7 +812,15 @@
           dayDiv.classList.add("has-event");
           const tooltip = document.createElement("div");
           tooltip.classList.add("tooltip");
-          tooltip.innerHTML = `<strong>Events:</strong><br>${dayEvents.map(event => `<em>${event.title}</em>: ${event.description}`).join('<br>')}`;
+          tooltip.innerHTML = `<strong>Events:</strong><br>${dayEvents.map(event => `
+            <div class="tooltip-event" data-event-id="${event.id}">
+              <em>${event.title}</em>: ${event.description}
+              <div class="event-actions">
+                <button class="edit-event-btn">Edit</button>
+                <button class="delete-event-btn">Delete</button>
+              </div>
+            </div>
+          `).join('<br>')}`;
           dayDiv.appendChild(tooltip);
         }
         dayDiv.onclick = () => {
@@ -1462,8 +831,6 @@
       }
       logMessage("info", "Calendar rendered.");
     }
-
-    // Render Upcoming Events
     function renderUpcomingEvents() {
       if (!catsData.length) return;
       const upcomingList = document.getElementById("upcomingEventsList");
@@ -1482,65 +849,40 @@
       }
       upcomingEvents.forEach(event => {
         const li = document.createElement("li");
-        li.innerHTML = `<strong>${event.title}</strong><br>${event.description}<br><em>${event.date}</em>`;
+        li.innerHTML = `<strong>${event.title}</strong><br>${event.description}<br><em>${new Date(event.date).toLocaleString()}</em>`;
         upcomingList.appendChild(li);
       });
     }
-
-    // Toggle Logs Visibility
     function toggleLogs() {
       const logs = document.getElementById("logsContainer");
       logs.style.display = (logs.style.display === "none" || logs.style.display === "") ? "flex" : "none";
     }
-
-    // Authentication Function
     function authenticate() {
       const authTitle = document.getElementById("authTitle").innerText;
       const email = document.getElementById("authEmail").value.trim();
       const password = document.getElementById("authPassword").value;
-      if (!email || !password) {
-        logMessage("warning", "Authentication fields left empty.");
-        alert(getTranslation('errorOccurred'));
-        return;
-      }
+      if (!email || !password) { logMessage("warning", "Authentication fields left empty."); alert(getTranslation('errorOccurred')); return; }
       if (authTitle === getTranslation('login')) {
-        firebase.auth().signInWithEmailAndPassword(email, password)
-          .then((userCredential) => {
-            if (!userCredential.user.emailVerified) {
-              logMessage("warning", "User attempted to login without verifying email.");
-              alert("Please verify your email before logging in.");
-              firebase.auth().signOut();
-              return;
-            }
-            logMessage("info", `User "${userCredential.user.email}" logged in.`);
-            alert(getTranslation('loginSuccess'));
-            closeModal("authModal");
-          })
-          .catch((error) => {
-            logMessage("error", `Login error: ${error.message}`);
-            alert(`Error: ${error.message}`);
-          });
+        firebase.auth().signInWithEmailAndPassword(email, password).then((userCredential) => {
+          if (!userCredential.user.emailVerified) { logMessage("warning", "User attempted to login without verifying email."); alert("Please verify your email before logging in."); firebase.auth().signOut(); return; }
+          logMessage("info", `User "${userCredential.user.email}" logged in.`);
+          alert(getTranslation('loginSuccess'));
+          closeModal("authModal");
+        }).catch((error) => { logMessage("error", `Login error: ${error.message}`); alert(`Error: ${error.message}`); });
       } else {
         if (password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password) || !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
           alert("Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.");
           logMessage("warning", "User entered weak password during signup.");
           return;
         }
-        firebase.auth().createUserWithEmailAndPassword(email, password)
-          .then((userCredential) => {
-            userCredential.user.sendEmailVerification();
-            logMessage("info", `User "${userCredential.user.email}" signed up.`);
-            alert(getTranslation('signupSuccess'));
-            closeModal("authModal");
-          })
-          .catch((error) => {
-            logMessage("error", `Signup error: ${error.message}`);
-            alert(`Error: ${error.message}`);
-          });
+        firebase.auth().createUserWithEmailAndPassword(email, password).then((userCredential) => {
+          userCredential.user.sendEmailVerification();
+          logMessage("info", `User "${userCredential.user.email}" signed up.`);
+          alert(getTranslation('signupSuccess'));
+          closeModal("authModal");
+        }).catch((error) => { logMessage("error", `Signup error: ${error.message}`); alert(`Error: ${error.message}`); });
       }
     }
-
-    // Toggle Authentication Mode (Login/Signup)
     function toggleAuthMode() {
       const authTitle = document.getElementById("authTitle").innerText;
       const signupText = getTranslation('signup');
@@ -1555,19 +897,9 @@
         document.querySelector("button[onclick='toggleAuthMode()']").innerText = signupText;
       }
     }
-
-    // Logout Function
     function logout() {
-      firebase.auth().signOut().then(() => {
-        logMessage("info", "User logged out.");
-        alert(getTranslation('logoutSuccess'));
-      }).catch((error) => {
-        logMessage("error", `Logout error: ${error.message}`);
-        alert(`Error: ${error.message}`);
-      });
+      firebase.auth().signOut().then(() => { logMessage("info", "User logged out."); alert(getTranslation('logoutSuccess')); }).catch((error) => { logMessage("error", `Logout error: ${error.message}`); alert(`Error: ${error.message}`); });
     }
-
-    // Render Chat Messages
     function renderChat() {
       if (!catsData.length) return;
       const messagesContainer = document.getElementById("messages");
@@ -1575,7 +907,7 @@
       const user = firebase.auth().currentUser;
       if (!user) return;
       const chatCode = catsData[currentChatIndex].code;
-      const chatRef = firebase.database().ref(`/users/${user.uid}/chats/${chatCode}/messages`);
+      const chatRef = firebase.database().ref(`/chats/${chatCode}/messages`);
       chatRef.on('child_added', snapshot => {
         const msg = snapshot.val();
         const messageDiv = document.createElement("div");
@@ -1586,22 +918,14 @@
         messageDiv.appendChild(avatarDiv);
         const textDiv = document.createElement("div");
         textDiv.classList.add("text");
-        if (msg.type === "text") {
-          textDiv.textContent = msg.content;
-        } else if (msg.type === "voice") {
-          const audio = document.createElement("audio");
-          audio.src = msg.content;
-          audio.controls = true;
-          textDiv.appendChild(audio);
-        }
+        if (msg.type === "text") { textDiv.textContent = msg.content; }
+        else if (msg.type === "voice") { const audio = document.createElement("audio"); audio.src = msg.content; audio.controls = true; textDiv.appendChild(audio); }
         messageDiv.appendChild(textDiv);
         messagesContainer.appendChild(messageDiv);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
       });
       renderChatMembers();
     }
-
-    // Render Chat Members
     function renderChatMembers() {
       const user = firebase.auth().currentUser;
       if (!user) return;
@@ -1629,68 +953,36 @@
         usersList.appendChild(li);
       }
     }
-
-    // Add Question
     function addQuestion() {
       const user = firebase.auth().currentUser;
-      if (!user) {
-        logMessage("warning", "User attempted to add a question without authentication.");
-        alert(getTranslation('loginPrompt'));
-        return;
-      }
+      if (!user) { logMessage("warning", "User attempted to add a question without authentication."); alert(getTranslation('loginPrompt')); return; }
       const isAdmin = catsData[currentChatIndex].members[user.uid].role === "admin";
-      if (!isAdmin) {
-        logMessage("warning", "User attempted to add a question without admin permissions.");
-        return;
-      }
+      if (!isAdmin) { logMessage("warning", "User attempted to add a question without admin permissions."); return; }
       const questionLabel = prompt(getTranslation('questionLabel'));
-      if (!questionLabel) {
-        logMessage("warning", "No question label entered.");
-        return;
-      }
+      if (!questionLabel) { logMessage("warning", "No question label entered."); return; }
       const questionType = prompt(`${getTranslation('questionType')} (${getTranslation('toggle')}/${getTranslation('slider')}):`);
-      if (!['toggle', 'slider'].includes(questionType)) {
-        logMessage("warning", "Invalid question type entered.");
-        alert("Invalid question type. Please enter 'toggle' or 'slider'.");
-        return;
-      }
+      if (!['toggle', 'slider'].includes(questionType)) { logMessage("warning", "Invalid question type entered."); alert("Invalid question type. Please enter 'toggle' or 'slider'."); return; }
       let min = null, max = null;
       if (questionType === 'slider') {
         min = parseInt(prompt(getTranslation('sliderMin')), 10);
         max = parseInt(prompt(getTranslation('sliderMax')), 10);
-        if (isNaN(min) || isNaN(max) || min >= max) {
-          logMessage("warning", "Invalid slider min/max values entered.");
-          alert("Invalid slider min/max values.");
-          return;
-        }
+        if (isNaN(min) || isNaN(max) || min >= max) { logMessage("warning", "Invalid slider min/max values entered."); alert("Invalid slider min/max values."); return; }
       }
       const hasComment = confirm(getTranslation('hasComment'));
       const newQuestion = { label: questionLabel, type: questionType };
-      if (questionType === 'slider') {
-        newQuestion.min = min;
-        newQuestion.max = max;
-      }
-      if (hasComment) {
-        newQuestion.hasComment = true;
-      }
+      if (questionType === 'slider') { newQuestion.min = min; newQuestion.max = max; }
+      if (hasComment) { newQuestion.hasComment = true; }
       catsData[currentChatIndex].form.push(newQuestion);
-      saveChatToDatabase(catsData[currentChatIndex])
-        .then(() => {
-          renderQuiz();
-          renderRealtimeRadar();
-          renderTimeSeriesChart();
-          renderSummaryRadarChart();
-          renderQuestionsList();
-          logMessage("info", `Question added: "${questionLabel}".`);
-          alert("Question added successfully!");
-        })
-        .catch(err => {
-          logMessage("error", `Failed to add question: ${err}`);
-          alert("Failed to add question.");
-        });
+      saveChatToDatabase(catsData[currentChatIndex]).then(() => {
+        renderQuiz();
+        renderRealtimeRadar();
+        renderTimeSeriesChart();
+        renderSummaryRadarChart();
+        renderQuestionsList();
+        logMessage("info", `Question added: "${questionLabel}".`);
+        alert("Question added successfully!");
+      }).catch(err => { logMessage("error", `Failed to add question: ${err}`); alert("Failed to add question."); });
     }
-
-    // Render Questions List
     function renderQuestionsList() {
       const questionsList = document.getElementById("questionsList");
       questionsList.innerHTML = '';
@@ -1707,129 +999,74 @@
         questionsList.appendChild(li);
       });
     }
-
-    // Edit Question
     function editQuestion(index) {
       const user = firebase.auth().currentUser;
-      if (!user) {
-        logMessage("warning", "User attempted to edit a question without authentication.");
-        alert(getTranslation('loginPrompt'));
-        return;
-      }
+      if (!user) { logMessage("warning", "User attempted to edit a question without authentication."); alert(getTranslation('loginPrompt')); return; }
       const isAdmin = catsData[currentChatIndex].members[user.uid].role === "admin";
-      if (!isAdmin) {
-        logMessage("warning", "User attempted to edit a question without admin permissions.");
-        return;
-      }
+      if (!isAdmin) { logMessage("warning", "User attempted to edit a question without admin permissions."); return; }
       const form = catsData[currentChatIndex].form || forms["default"];
       const question = form[index];
       const newLabel = prompt(getTranslation('questionLabel'), question.label);
-      if (!newLabel) {
-        logMessage("warning", "No question label entered during edit.");
-        return;
-      }
+      if (!newLabel) { logMessage("warning", "No question label entered during edit."); return; }
       const newType = prompt(`${getTranslation('questionType')} (${getTranslation('toggle')}/${getTranslation('slider')}):`, question.type);
-      if (!['toggle', 'slider'].includes(newType)) {
-        logMessage("warning", "Invalid question type entered during edit.");
-        alert("Invalid question type. Please enter 'toggle' or 'slider'.");
-        return;
-      }
+      if (!['toggle', 'slider'].includes(newType)) { logMessage("warning", "Invalid question type entered during edit."); alert("Invalid question type. Please enter 'toggle' or 'slider'."); return; }
       let min = null, max = null;
       if (newType === 'slider') {
         min = parseInt(prompt(getTranslation('sliderMin'), question.min), 10);
         max = parseInt(prompt(getTranslation('sliderMax'), question.max), 10);
-        if (isNaN(min) || isNaN(max) || min >= max) {
-          logMessage("warning", "Invalid slider min/max values entered during edit.");
-          alert("Invalid slider min/max values.");
-          return;
-        }
+        if (isNaN(min) || isNaN(max) || min >= max) { logMessage("warning", "Invalid slider min/max values entered during edit."); alert("Invalid slider min/max values."); return; }
       }
       const hasComment = confirm(getTranslation('hasComment'));
       const updatedQuestion = { label: newLabel, type: newType };
-      if (newType === 'slider') {
-        updatedQuestion.min = min;
-        updatedQuestion.max = max;
-      }
-      if (hasComment) {
-        updatedQuestion.hasComment = true;
-      }
+      if (newType === 'slider') { updatedQuestion.min = min; updatedQuestion.max = max; }
+      if (hasComment) { updatedQuestion.hasComment = true; }
       catsData[currentChatIndex].form[index] = updatedQuestion;
-      saveChatToDatabase(catsData[currentChatIndex])
-        .then(() => {
+      saveChatToDatabase(catsData[currentChatIndex]).then(() => {
+        renderQuiz();
+        renderRealtimeRadar();
+        renderTimeSeriesChart();
+        renderSummaryRadarChart();
+        renderQuestionsList();
+        logMessage("info", `Question edited: "${newLabel}".`);
+        alert("Question edited successfully!");
+      }).catch(err => { logMessage("error", `Failed to edit question: ${err}`); alert("Failed to edit question."); });
+    }
+    function deleteQuestion(index) {
+      const user = firebase.auth().currentUser;
+      if (!user) { logMessage("warning", "User attempted to delete a question without authentication."); alert(getTranslation('loginPrompt')); return; }
+      const isAdmin = catsData[currentChatIndex].members[user.uid].role === "admin";
+      if (!isAdmin) { logMessage("warning", "User attempted to delete a question without admin permissions."); return; }
+      if (confirm("Are you sure you want to delete this question?")) {
+        const form = catsData[currentChatIndex].form || forms["default"];
+        const removedQuestion = form.splice(index, 1)[0];
+        saveChatToDatabase(catsData[currentChatIndex]).then(() => {
           renderQuiz();
           renderRealtimeRadar();
           renderTimeSeriesChart();
           renderSummaryRadarChart();
           renderQuestionsList();
-          logMessage("info", `Question edited: "${newLabel}".`);
-          alert("Question edited successfully!");
-        })
-        .catch(err => {
-          logMessage("error", `Failed to edit question: ${err}`);
-          alert("Failed to edit question.");
-        });
-    }
-
-    // Delete Question
-    function deleteQuestion(index) {
-      const user = firebase.auth().currentUser;
-      if (!user) {
-        logMessage("warning", "User attempted to delete a question without authentication.");
-        alert(getTranslation('loginPrompt'));
-        return;
-      }
-      const isAdmin = catsData[currentChatIndex].members[user.uid].role === "admin";
-      if (!isAdmin) {
-        logMessage("warning", "User attempted to delete a question without admin permissions.");
-        return;
-      }
-      if (confirm("Are you sure you want to delete this question?")) {
-        const form = catsData[currentChatIndex].form || forms["default"];
-        const removedQuestion = form.splice(index, 1)[0];
-        saveChatToDatabase(catsData[currentChatIndex])
-          .then(() => {
-            renderQuiz();
-            renderRealtimeRadar();
-            renderTimeSeriesChart();
-            renderSummaryRadarChart();
-            renderQuestionsList();
-            logMessage("info", `Question deleted: "${removedQuestion.label}".`);
-            alert("Question deleted successfully!");
-          })
-          .catch(err => {
-            logMessage("error", `Failed to delete question: ${err}`);
-            alert("Failed to delete question.");
-          });
+          logMessage("info", `Question deleted: "${removedQuestion.label}".`);
+          alert("Question deleted successfully!");
+        }).catch(err => { logMessage("error", `Failed to delete question: ${err}`); alert("Failed to delete question."); });
       }
     }
-
-    // Send Message Function
     function sendMessage() {
       if (!catsData.length) return;
       const messageInput = document.getElementById("messageInput");
       const message = messageInput.value.trim();
       if (!message) return;
       const user = firebase.auth().currentUser;
-      if (!user) {
-        logMessage("warning", "User attempted to send message without authentication.");
-        alert(getTranslation('loginPrompt'));
-        return;
-      }
+      if (!user) { logMessage("warning", "User attempted to send message without authentication."); alert(getTranslation('loginPrompt')); return; }
       const chatCode = catsData[currentChatIndex].code;
-      const chatRef = firebase.database().ref(`/users/${user.uid}/chats/${chatCode}/messages`).push();
+      const chatRef = firebase.database().ref(`/chats/${chatCode}/messages`).push();
       chatRef.set({ user: user.email, type: "text", content: message, timestamp: Date.now() });
       messageInput.value = "";
     }
-
-    // Toggle Recording Function
     function toggleRecording() {
       const recordButton = document.getElementById("recordButton");
       const stopRecordButton = document.getElementById("stopRecordButton");
       if (!isRecording) {
-        if (!navigator.mediaDevices) {
-          logMessage("error", "Media devices not supported.");
-          return;
-        }
+        if (!navigator.mediaDevices) { logMessage("error", "Media devices not supported."); return; }
         navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
           mediaRecorder = new MediaRecorder(stream);
           mediaRecorder.start();
@@ -1840,12 +1077,7 @@
           mediaRecorder.onstop = () => {
             const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
             const reader = new FileReader();
-            reader.onloadend = () => {
-              recordedVoice = reader.result;
-              document.getElementById("sendVoiceButton").style.display = "inline-block";
-              document.getElementById("reRecordButton").style.display = "inline-block";
-              logMessage("info", "Recording stopped and ready to send.");
-            };
+            reader.onloadend = () => { recordedVoice = reader.result; document.getElementById("sendVoiceButton").style.display = "inline-block"; document.getElementById("reRecordButton").style.display = "inline-block"; logMessage("info", "Recording stopped and ready to send."); };
             reader.readAsDataURL(audioBlob);
             audioChunks = [];
             isRecording = false;
@@ -1853,140 +1085,63 @@
             stopRecordButton.style.display = "none";
           };
           logMessage("info", "Recording started.");
-        }).catch(err => {
-          logMessage("error", `Microphone access denied: ${err}`);
-          alert("Microphone access denied.");
-        });
+        }).catch(err => { logMessage("error", `Microphone access denied: ${err}`); alert("Microphone access denied."); });
       }
     }
-
-    // Stop Recording Function
     function stopRecording() {
-      if (mediaRecorder && isRecording) {
-        mediaRecorder.stop();
-        logMessage("info", "Recording stopped.");
-      }
+      if (mediaRecorder && isRecording) { mediaRecorder.stop(); logMessage("info", "Recording stopped."); }
     }
-
-    // Send Voice Message
     function sendVoice() {
-      if (!recordedVoice) {
-        alert("No voice recording available to send.");
-        return;
-      }
+      if (!recordedVoice) { alert("No voice recording available to send."); return; }
       const user = firebase.auth().currentUser;
-      if (!user) {
-        logMessage("warning", "User attempted to send voice message without authentication.");
-        alert(getTranslation('loginPrompt'));
-        return;
-      }
+      if (!user) { logMessage("warning", "User attempted to send voice message without authentication."); alert(getTranslation('loginPrompt')); return; }
       const chatCode = catsData[currentChatIndex].code;
-      const chatRef = firebase.database().ref(`/users/${user.uid}/chats/${chatCode}/messages`).push();
-      chatRef.set({ user: user.email, type: "voice", content: recordedVoice, timestamp: Date.now() })
-        .then(() => {
-          logMessage("info", "Voice message sent successfully.");
-          alert("Voice message sent!");
-          recordedVoice = null;
-          document.getElementById("sendVoiceButton").style.display = "none";
-          document.getElementById("reRecordButton").style.display = "none";
-        })
-        .catch(err => {
-          logMessage("error", `Failed to send voice message: ${err}`);
-          alert("Failed to send voice message.");
-        });
+      const chatRef = firebase.database().ref(`/chats/${chatCode}/messages`).push();
+      chatRef.set({ user: user.email, type: "voice", content: recordedVoice, timestamp: Date.now() }).then(() => {
+        logMessage("info", "Voice message sent successfully.");
+        alert("Voice message sent!");
+        recordedVoice = null;
+        document.getElementById("sendVoiceButton").style.display = "none";
+        document.getElementById("reRecordButton").style.display = "none";
+      }).catch(err => { logMessage("error", `Failed to send voice message: ${err}`); alert("Failed to send voice message."); });
     }
-
-    // Re-record Voice Message
     function reRecordVoice() {
       recordedVoice = null;
       document.getElementById("sendVoiceButton").style.display = "none";
       document.getElementById("reRecordButton").style.display = "none";
       logMessage("info", "Voice recording cleared. Ready to re-record.");
     }
-
-    // Open Manage Questions Modal
     function openManageQuestionsModal() {
       renderQuestionsList();
       document.getElementById("manageQuestionsModal").style.display = "flex";
     }
-
-    // Promote User to Admin
     function promoteUser(uid) {
       const user = firebase.auth().currentUser;
-      if (!user) {
-        logMessage("warning", "User attempted to promote without authentication.");
-        alert(getTranslation('loginPrompt'));
-        return;
-      }
+      if (!user) return;
       const isAdmin = catsData[currentChatIndex].members[user.uid].role === "admin";
-      if (!isAdmin) {
-        logMessage("warning", "User attempted to promote without admin permissions.");
-        return;
-      }
+      if (!isAdmin) return;
       catsData[currentChatIndex].members[uid].role = "admin";
-      saveChatToDatabase(catsData[currentChatIndex])
-        .then(() => {
-          renderChatMembers();
-          logMessage("info", "User promoted to admin.");
-          alert("User promoted to admin.");
-        })
-        .catch(err => {
-          logMessage("error", `Failed to promote user: ${err}`);
-          alert("Failed to promote user.");
-        });
+      saveChatToDatabase(catsData[currentChatIndex]).then(() => { renderChatMembers(); logMessage("info", "User promoted to admin."); alert("User promoted to admin."); }).catch(err => { logMessage("error", `Failed to promote user: ${err}`); alert("Failed to promote user."); });
     }
-
-    // Demote User to Regular User
     function demoteUser(uid) {
       const user = firebase.auth().currentUser;
-      if (!user) {
-        logMessage("warning", "User attempted to demote without authentication.");
-        alert(getTranslation('loginPrompt'));
-        return;
-      }
+      if (!user) return;
       const isAdmin = catsData[currentChatIndex].members[user.uid].role === "admin";
-      if (!isAdmin) {
-        logMessage("warning", "User attempted to demote without admin permissions.");
-        return;
-      }
+      if (!isAdmin) return;
       const admins = Object.values(catsData[currentChatIndex].members).filter(member => member.role === "admin");
-      if (admins.length <= 1 && catsData[currentChatIndex].members[uid].role === "admin") {
-        logMessage("warning", "Attempt to demote the last admin.");
-        alert("There must be at least one admin for this chat.");
-        return;
-      }
+      if (admins.length <= 1 && catsData[currentChatIndex].members[uid].role === "admin") { logMessage("warning", "Attempt to demote the last admin."); alert("There must be at least one admin for this chat."); return; }
       catsData[currentChatIndex].members[uid].role = "user";
-      saveChatToDatabase(catsData[currentChatIndex])
-        .then(() => {
-          renderChatMembers();
-          logMessage("info", "User demoted to user.");
-          alert("User demoted to user.");
-        })
-        .catch(err => {
-          logMessage("error", `Failed to demote user: ${err}`);
-          alert("Failed to demote user.");
-        });
+      saveChatToDatabase(catsData[currentChatIndex]).then(() => { renderChatMembers(); logMessage("info", "User demoted to user."); alert("User demoted to user."); }).catch(err => { logMessage("error", `Failed to demote user: ${err}`); alert("Failed to demote user."); });
     }
-
-    // Export Chat to Excel
     function exportChatExcel() {
       if (!catsData.length) return;
       const currentChat = catsData[currentChatIndex];
       const data = currentChat.history.map(entry => {
-        const row = {
-          Date: new Date(entry.timestamp).toLocaleDateString(),
-          Time: new Date(entry.timestamp).toLocaleTimeString()
-        };
+        const row = { Date: new Date(entry.timestamp).toLocaleDateString(), Time: new Date(entry.timestamp).toLocaleTimeString() };
         entry.answers.forEach((ans, i) => {
           const question = currentChat.form[i] ? currentChat.form[i].label : `Question ${i+1}`;
-          if (typeof ans === "object") {
-            row[question] = ans.value;
-            if (ans.comment) {
-              row[`${question} Comment`] = ans.comment;
-            }
-          } else {
-            row[question] = ans;
-          }
+          if (typeof ans === "object") { row[question] = ans.value; if (ans.comment) { row[`${question} Comment`] = ans.comment; } }
+          else { row[question] = ans; }
         });
         return row;
       });
@@ -1996,148 +1151,54 @@
       XLSX.writeFile(workbook, `${currentChat.name}.xlsx`);
       logMessage("info", `Chat "${currentChat.name}" exported as Excel.`);
     }
-
-    // Render Summary Radar Chart
-    function renderSummaryRadarChart() {
-      if (!catsData.length || !catsData[currentChatIndex].history) return;
-      const history = catsData[currentChatIndex].history;
-      const labels = catsData[currentChatIndex].form.map(q => q.label);
-      const data = labels.map((_, i) =>
-        history.map(entry => entry.answers[i] || 0)
-          .reduce((sum, value) => sum + value, 0) / history.length
-      );
-      if (summaryRadarChart) { summaryRadarChart.destroy(); }
-      const ctx = document.getElementById("summaryRadarChart").getContext("2d");
-      summaryRadarChart = new Chart(ctx, {
-        type: "radar",
-        data: {
-          labels,
-          datasets: [{
-            label: "Summary",
-            data,
-            backgroundColor: "rgba(54, 162, 235, 0.2)",
-            borderColor: "rgba(54, 162, 235, 1)",
-            borderWidth: 1
-          }]
-        },
-        options: { responsive: true, scales: { r: { beginAtZero: true, max: 10 } } }
-      });
-    }
-
-    // Show Tutorial Modal
     function showTutorial() {
       tutorialStep = 0;
       updateTutorialModal();
       document.getElementById("tutorialModal").style.display = "flex";
       logMessage("info", "Tutorial started.");
     }
-
-    // Next Tutorial Step
     function nextTutorialStep() {
-      if (tutorialStep < tutorialSteps[currentLanguage].length - 1) {
-        tutorialStep++;
-        updateTutorialModal();
-      } else {
-        closeModal("tutorialModal");
-        logMessage("info", "Tutorial completed.");
-      }
+      if (tutorialStep < tutorialSteps[currentLanguage].length - 1) { tutorialStep++; updateTutorialModal(); }
+      else { closeModal("tutorialModal"); logMessage("info", "Tutorial completed."); }
     }
-
-    // Update Tutorial Modal Content
     function updateTutorialModal() {
       document.getElementById("tutorialTitle").innerText = tutorialSteps[currentLanguage][tutorialStep].title;
       document.getElementById("tutorialText").innerText = tutorialSteps[currentLanguage][tutorialStep].text;
     }
-
-    // Check for Shared Chat via URL
     function checkShareURL(user) {
       const urlParams = new URLSearchParams(window.location.search);
       const shareCode = urlParams.get('share');
       if (shareCode) {
-        const sharedChatRef = firebase.database().ref(`/sharedChats/${shareCode}`);
+        const sharedChatRef = firebase.database().ref(`/chats/${shareCode}`);
         sharedChatRef.once('value').then(snapshot => {
           if (snapshot.exists()) {
             const sharedChat = snapshot.val();
             const existingIndex = catsData.findIndex(c => c.code === sharedChat.code);
             if (existingIndex === -1) {
               sharedChat.members = { ...sharedChat.members, [user.uid]: { email: user.email, role: "user" } };
-              saveToFirebase(`/users/${user.uid}/chats/${sharedChat.code}`, sharedChat)
-                .then(() => {
-                  catsData.push(sharedChat);
-                  renderChatSelector();
-                  selectChat();
-                  updateDeleteChatButton();
-                  renderQuestionsList();
-                  renderQuiz();
-                  renderRealtimeRadar();
-                  renderTimeSeriesChart();
-                  renderSummaryRadarChart();
-                  renderChat();
-                  renderCalendar();
-                  renderUpcomingEvents();
-                  logMessage("info", `Shared chat "${sharedChat.name}" added to user.`);
-                  alert("Shared chat added successfully!");
-                  const newURL = window.location.origin + window.location.pathname;
-                  window.history.replaceState({}, document.title, newURL);
-                })
-                .catch(err => {
-                  logMessage("error", `Failed to add shared chat: ${err}`);
-                  alert("Failed to add shared chat.");
-                });
-            } else {
-              logMessage("warning", `Attempt to add already linked chat "${sharedChat.name}".`);
-              alert("Chat is already linked.");
-            }
-          } else {
-            logMessage("warning", `No shared chat found with code "${shareCode}".`);
-            alert("No shared chat found with the provided code.");
-          }
-        }).catch(err => {
-          logMessage("error", `Error retrieving shared chat: ${err}`);
-          alert("Error retrieving shared chat.");
-        });
+              catsData.push(sharedChat);
+              saveChatToDatabase(sharedChat).then(() => {
+                renderChatSelector();
+                selectChat();
+                updateDeleteChatButton();
+                renderQuestionsList();
+                renderQuiz();
+                renderRealtimeRadar();
+                renderTimeSeriesChart();
+                renderSummaryRadarChart();
+                renderChat();
+                renderCalendar();
+                renderUpcomingEvents();
+                logMessage("info", `Shared chat "${sharedChat.name}" added to user.`);
+                alert("Shared chat added successfully!");
+                const newURL = window.location.origin + window.location.pathname;
+                window.history.replaceState({}, document.title, newURL);
+              }).catch(err => { logMessage("error", `Failed to add shared chat: ${err}`); alert("Failed to add shared chat."); });
+            } else { logMessage("warning", `Attempt to add already linked chat "${sharedChat.name}".`); alert("Chat is already linked."); }
+          } else { logMessage("warning", `No shared chat found with code "${shareCode}".`); alert("No shared chat found with the provided code."); }
+        }).catch(err => { logMessage("error", `Error retrieving shared chat: ${err}`); alert("Error retrieving shared chat."); });
       }
     }
-
-    // Render Calendar (Ensuring Proper CSS is Applied)
-    function renderCalendar() {
-      if (!catsData.length) return;
-      const calendarContainer = document.getElementById("calendar");
-      calendarContainer.innerHTML = '';
-      const calendar = catsData[currentChatIndex].calendar || [];
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = today.getMonth();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dayDiv = document.createElement("div");
-        dayDiv.classList.add("calendar-day");
-        const date = new Date(year, month, day);
-        dayDiv.textContent = day;
-        const dayEvents = calendar.filter(event => {
-          const eventDate = new Date(event.date);
-          return eventDate.getDate() === day && eventDate.getMonth() === month && eventDate.getFullYear() === year;
-        });
-        if (dayEvents.length > 0) {
-          dayDiv.classList.add("has-event");
-          const tooltip = document.createElement("div");
-          tooltip.classList.add("tooltip");
-          tooltip.innerHTML = `<strong>Events:</strong><br>${dayEvents.map(event => `<em>${event.title}</em>: ${event.description}`).join('<br>')}`;
-          dayDiv.appendChild(tooltip);
-        }
-        dayDiv.onclick = () => {
-          window.selectedDate = date;
-          showAddEventModal();
-        };
-        calendarContainer.appendChild(dayDiv);
-      }
-      logMessage("info", "Calendar rendered.");
-    }
-
-    // Prevent Duplicate Function Definitions
-    // All functions are defined once above
-
-    // Render Chat Members (Ensured Unique)
     function renderChatMembers() {
       const user = firebase.auth().currentUser;
       if (!user) return;
@@ -2165,33 +1226,66 @@
         usersList.appendChild(li);
       }
     }
-
-    // Handle Page Load
-    window.onload = () => {
-      setTimeout(() => {
-        document.getElementById("splash").classList.add("fade-out");
-        setTimeout(() => {
-          document.getElementById("splash").style.display = "none";
-          initializeFirebase();
-        }, 1000);
-      }, 3000);
-      renderUpcomingEvents();
-    };
-
-    // Toggle Password Visibility
+    function linkExistingChat() {
+      const shareCode = document.getElementById("linkChatCode").value.trim();
+      if (!shareCode) { logMessage("warning", "No share code entered."); return; }
+      const user = firebase.auth().currentUser;
+      if (!user) { logMessage("warning", "User attempted to link chat without authentication."); alert(getTranslation('loginPrompt')); return; }
+      const chatRef = firebase.database().ref(`/chats/${shareCode}`);
+      chatRef.once('value').then(snapshot => {
+        if (snapshot.exists()) {
+          const sharedChat = snapshot.val();
+          const existingIndex = catsData.findIndex(c => c.code === sharedChat.code);
+          if (existingIndex === -1) {
+            sharedChat.members = { ...sharedChat.members, [user.uid]: { email: user.email, role: "user" } };
+            catsData.push(sharedChat);
+            saveChatToDatabase(sharedChat).then(() => {
+              renderChatSelector();
+              selectChat();
+              updateDeleteChatButton();
+              renderQuestionsList();
+              renderQuiz();
+              renderRealtimeRadar();
+              renderTimeSeriesChart();
+              renderSummaryRadarChart();
+              renderChat();
+              renderCalendar();
+              renderUpcomingEvents();
+              logMessage("info", `Linked to shared chat "${sharedChat.name}".`);
+              alert("Linked to shared chat successfully!");
+              closeModal("linkChatModal");
+            }).catch(err => { logMessage("error", `Failed to link shared chat: ${err}`); alert("Failed to link shared chat."); });
+          } else { logMessage("warning", `Chat "${sharedChat.name}" is already linked.`); alert("Chat is already linked."); }
+        } else { logMessage("warning", `No chat found with code "${shareCode}".`); alert("No chat found with the provided code."); }
+      }).catch(err => { logMessage("error", `Error linking chat: ${err}`); alert("Error linking chat."); });
+    }
+    function renderQuestionsList() {
+      const questionsList = document.getElementById("questionsList");
+      questionsList.innerHTML = '';
+      const form = catsData[currentChatIndex].form || forms["default"];
+      form.forEach((q, index) => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <span>${q.label} (${q.type})${q.type === 'slider' ? ` [${q.min} - ${q.max}]` : ''}${q.hasComment ? ' 🔍' : ''}</span>
+          <div class="question-actions">
+            <button onclick="editQuestion(${index})">${getTranslation('editQuestion')}</button>
+            <button onclick="deleteQuestion(${index})">${getTranslation('deleteQuestion')}</button>
+          </div>
+        `;
+        questionsList.appendChild(li);
+      });
+    }
+    function openManageQuestionsModal() {
+      renderQuestionsList();
+      document.getElementById("manageQuestionsModal").style.display = "flex";
+    }
     function togglePasswordVisibility(id) {
       const passwordInput = document.getElementById(id);
       passwordInput.type = passwordInput.type === "password" ? "text" : "password";
     }
-
-    // Additional Helper Functions
-    // (Ensure no duplicates and all functionalities are intact)
-
     function updateModalTranslations() {
-      // Mettez à jour les textes des modals en fonction de la langue actuelle
       const modals = document.querySelectorAll('.modal-content');
       modals.forEach(modal => {
-        // Parcours des éléments ayant des attributs `data-key`
         modal.querySelectorAll('[data-key]').forEach(element => {
           const key = element.getAttribute('data-key');
           if (languages[currentLanguage][key]) {
@@ -2204,625 +1298,99 @@
         });
       });
     }
-    
-  </script>
-  
-  
-  
- <script>
-// Patch 1: Navigation in the Shared Calendar (left and right)
-document.addEventListener('DOMContentLoaded', () => {
-    const calendarContainer = document.querySelector('.calendar-container');
-    const prevButton = document.createElement('button');
-    const nextButton = document.createElement('button');
-
-    prevButton.textContent = '<';
-    nextButton.textContent = '>';
-
-    prevButton.classList.add('calendar-nav-button');
-    nextButton.classList.add('calendar-nav-button');
-
-    calendarContainer.prepend(prevButton);
-    calendarContainer.append(nextButton);
-
-    prevButton.addEventListener('click', () => {
-        renderCalendar('previous'); // Move to previous period
-    });
-
-    nextButton.addEventListener('click', () => {
-        renderCalendar('next'); // Move to next period
-    });
-});
-</script>
-
-<script>
-// Patch 2: Event modification and deletion via modal on hover tooltip
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.calendar-event').forEach(event => {
-        event.addEventListener('mouseover', () => {
-            const tooltip = document.createElement('div');
-            tooltip.className = 'event-tooltip';
-            tooltip.innerHTML = `
-                <button class="edit-event-btn">Edit</button>
-                <button class="delete-event-btn">Delete</button>
-            `;
-            event.appendChild(tooltip);
-
-            tooltip.querySelector('.edit-event-btn').addEventListener('click', () => {
-                openModalToEditEvent(event.dataset.eventId); // Implement this function
-            });
-
-            tooltip.querySelector('.delete-event-btn').addEventListener('click', () => {
-                deleteEvent(event.dataset.eventId); // Implement this function
-            });
-
-            event.addEventListener('mouseleave', () => {
-                tooltip.remove();
-            });
-        });
-    });
-});
-</script>
-
-
-
-<script>
-// Patch 4: Correcting dates in health metrics graph
-document.addEventListener('DOMContentLoaded', () => {
-    const healthMetricsGraph = document.querySelector('.health-metrics-graph');
-    if (healthMetricsGraph) {
-        const dateElements = healthMetricsGraph.querySelectorAll('.date');
-        dateElements.forEach(dateElement => {
-            const rawDate = dateElement.dataset.rawDate;
-            const parsedDate = new Date(rawDate);
-
-            if (!isNaN(parsedDate.getTime())) {
-                dateElement.textContent = parsedDate.toLocaleDateString();
-            } else {
-                dateElement.textContent = 'Invalid Date';
+    document.addEventListener('DOMContentLoaded', () => {
+      const observer = new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
+          mutation.addedNodes.forEach(node => {
+            if (node.classList && node.classList.contains('tooltip')) {
+              const dayNumber = node.parentElement.textContent.trim();
+              const today = new Date();
+              const year = today.getFullYear();
+              const month = today.getMonth();
+              const day = parseInt(dayNumber, 10);
+              const eventsForDay = catsData[currentChatIndex].calendar.filter(event => {
+                const eventDate = new Date(event.date);
+                return eventDate.getDate() === day && eventDate.getMonth() === month && eventDate.getFullYear() === year;
+              });
+              node.innerHTML = `
+                <strong>Events:</strong><br>
+                ${eventsForDay.map(event => `
+                  <div class="tooltip-event" data-event-id="${event.id}">
+                    <em>${event.title}</em>: ${event.description}
+                    <div class="event-actions">
+                      <button class="edit-event-btn">Edit</button>
+                      <button class="delete-event-btn">Delete</button>
+                    </div>
+                  </div>
+                `).join('<br>')}
+              `;
             }
-        });
-    }
-});
-</script>
-
-<!-- Patch Script: Enhanced Tooltip Event Management -->
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // Function to find the index of an event in the calendar array
-    function findEventIndex(event) {
-      const calendar = catsData[currentChatIndex].calendar;
-      return calendar.findIndex(e => 
-        e.title === event.title && 
-        e.description === event.description && 
-        new Date(e.date).toISOString() === new Date(event.date).toISOString()
-      );
-    }
-
-    // Function to create editable tooltip content
-    function createEditableTooltip(dayEvents) {
-      return `
-        <strong>Events:</strong><br>
-        ${dayEvents.map((event, idx) => `
-          <div class="tooltip-event" data-event-index="${idx}">
-            <em>${event.title}</em>: ${event.description}
-            <div class="event-actions">
-              <button class="edit-event-btn">Edit</button>
-              <button class="delete-event-btn">Delete</button>
-            </div>
-          </div>
-        `).join('<br>')}
-      `;
-    }
-
-    // Initialize MutationObserver to watch for tooltip additions
-    const observer = new MutationObserver(mutations => {
-      mutations.forEach(mutation => {
-        mutation.addedNodes.forEach(node => {
-          if (node.classList && node.classList.contains('tooltip')) {
-            // Retrieve the corresponding day's events
-            const dayNumber = node.parentElement.textContent.trim();
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = today.getMonth();
-            const day = parseInt(dayNumber, 10);
-            const eventsForDay = catsData[currentChatIndex].calendar.filter(event => {
-              const eventDate = new Date(event.date);
-              return eventDate.getDate() === day &&
-                     eventDate.getMonth() === month &&
-                     eventDate.getFullYear() === year;
-            });
-
-            // Update tooltip with editable content
-            node.innerHTML = createEditableTooltip(eventsForDay);
-          }
-        });
-      });
-    });
-
-    // Start observing the calendar container for tooltip changes
-    const calendarContainer = document.querySelector('.calendar-container');
-    observer.observe(calendarContainer, { childList: true, subtree: true });
-
-    // Event delegation for Edit and Delete buttons within tooltips
-    calendarContainer.addEventListener('click', (e) => {
-      if (e.target.classList.contains('edit-event-btn')) {
-        const tooltipEventDiv = e.target.closest('.tooltip-event');
-        const eventIndex = parseInt(tooltipEventDiv.dataset.eventIndex, 10);
-        const event = catsData[currentChatIndex].calendar[eventIndex];
-        openEditEventModal(eventIndex, event);
-      }
-
-      if (e.target.classList.contains('delete-event-btn')) {
-        const tooltipEventDiv = e.target.closest('.tooltip-event');
-        const eventIndex = parseInt(tooltipEventDiv.dataset.eventIndex, 10);
-        confirmDeleteEvent(eventIndex);
-      }
-    });
-
-    // Function to open the Edit Event Modal with pre-filled data
-    function openEditEventModal(index, event) {
-      const modal = document.getElementById("editEventModal");
-      modal.style.display = "flex";
-      modal.dataset.eventIndex = index;
-
-      document.getElementById("editEventTitle").value = event.title;
-      const eventDate = new Date(event.date);
-      // Format date to 'YYYY-MM-DDTHH:MM' for datetime-local input
-      const formattedDate = eventDate.toISOString().slice(0,16);
-      document.getElementById("editEventDateTime").value = formattedDate;
-      document.getElementById("editEventDescription").value = event.description;
-    }
-
-    // Function to save the edited event
-    window.saveEditedEvent = function() {
-      const modal = document.getElementById("editEventModal");
-      const index = parseInt(modal.dataset.eventIndex, 10);
-      const updatedTitle = document.getElementById("editEventTitle").value.trim();
-      const updatedDateTime = document.getElementById("editEventDateTime").value;
-      const updatedDescription = document.getElementById("editEventDescription").value.trim();
-
-      if (!updatedTitle || !updatedDateTime) {
-        alert("Event title and date/time are required.");
-        return;
-      }
-
-      const updatedDate = new Date(updatedDateTime);
-      if (isNaN(updatedDate.getTime())) {
-        alert("Invalid date/time format.");
-        return;
-      }
-
-      // Update the event in the calendar array
-      catsData[currentChatIndex].calendar[index] = {
-        title: updatedTitle,
-        date: updatedDate.toISOString(),
-        description: updatedDescription
-      };
-
-      // Save the updated chat to Firebase
-      saveChatToDatabase(catsData[currentChatIndex])
-        .then(() => {
-          logMessage("info", `Event "${updatedTitle}" edited successfully.`);
-          alert("Event edited successfully!");
-          closeModal("editEventModal");
-          renderCalendar(); // Re-render the calendar to reflect changes
-        })
-        .catch(err => {
-          logMessage("error", `Failed to edit event: ${err}`);
-          alert("Failed to edit event. Please try again.");
-        });
-    }
-
-    // Function to confirm and delete an event
-    function confirmDeleteEvent(index) {
-      const event = catsData[currentChatIndex].calendar[index];
-      const confirmation = confirm(`Are you sure you want to delete the event "${event.title}"?`);
-      if (confirmation) {
-        // Remove the event from the calendar array
-        catsData[currentChatIndex].calendar.splice(index, 1);
-
-        // Save the updated chat to Firebase
-        saveChatToDatabase(catsData[currentChatIndex])
-          .then(() => {
-            logMessage("info", `Event "${event.title}" deleted successfully.`);
-            alert("Event deleted successfully!");
-            renderCalendar(); // Re-render the calendar to reflect changes
-          })
-          .catch(err => {
-            logMessage("error", `Failed to delete event: ${err}`);
-            alert("Failed to delete event. Please try again.");
           });
-      }
-    }
-
-    // Optional: Close Edit Event Modal when clicking outside the modal content
-    window.onclick = function(event) {
-      const editModal = document.getElementById("editEventModal");
-      if (event.target == editModal) {
-        editModal.style.display = "none";
-      }
-    }
-
-  });
-</script>
-
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const translateElements = () => {
-      document.querySelectorAll('[data-key]').forEach(el => {
-        const key = el.getAttribute('data-key');
-        if (languages[currentLanguage][key]) {
-          if (el.placeholder) {
-            el.placeholder = languages[currentLanguage][key];
-          } else {
-            el.textContent = languages[currentLanguage][key];
+        });
+      });
+      const calendarContainer = document.querySelector('.calendar-container');
+      observer.observe(calendarContainer, { childList: true, subtree: true });
+      calendarContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('edit-event-btn')) {
+          const eventId = e.target.closest('.tooltip-event').dataset.eventId;
+          const event = catsData[currentChatIndex].calendar.find(ev => ev.id === eventId);
+          if (event) {
+            document.getElementById("editEventTitle").value = event.title;
+            document.getElementById("editEventDateTime").value = new Date(event.date).toISOString().slice(0,16);
+            document.getElementById("editEventDescription").value = event.description;
+            document.getElementById("editEventModal").dataset.editEventId = eventId;
+            document.getElementById("editEventModal").style.display = "flex";
           }
         }
-      });
-    };
-
-    translateElements();
-
-    const observer = new MutationObserver(mutations => {
-      mutations.forEach(mutation => {
-        mutation.addedNodes.forEach(node => {
-          if (node.nodeType === 1) {
-            if (node.hasAttribute('data-key')) {
-              const key = node.getAttribute('data-key');
-              if (languages[currentLanguage][key]) {
-                if (node.placeholder) {
-                  node.placeholder = languages[currentLanguage][key];
-                } else {
-                  node.textContent = languages[currentLanguage][key];
-                }
-              }
+        if (e.target.classList.contains('delete-event-btn')) {
+          const eventId = e.target.closest('.tooltip-event').dataset.eventId;
+          const event = catsData[currentChatIndex].calendar.find(ev => ev.id === eventId);
+          if (event && confirm(`Are you sure you want to delete the event "${event.title}"?`)) {
+            const index = catsData[currentChatIndex].calendar.findIndex(ev => ev.id === eventId);
+            if (index !== -1) {
+              catsData[currentChatIndex].calendar.splice(index, 1);
+              saveChatToDatabase(catsData[currentChatIndex]).then(() => { renderCalendar(); logMessage("info", `Event "${event.title}" deleted successfully.`); alert("Event deleted successfully."); }).catch(err => { logMessage("error", `Failed to delete event: ${err}`); alert("Failed to delete event."); });
             }
-            node.querySelectorAll('[data-key]').forEach(el => {
-              const key = el.getAttribute('data-key');
-              if (languages[currentLanguage][key]) {
-                if (el.placeholder) {
-                  el.placeholder = languages[currentLanguage][key];
-                } else {
-                  el.textContent = languages[currentLanguage][key];
-                }
-              }
-            });
           }
-        });
-      });
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    window.changeLanguage = function(lang) {
-      currentLanguage = lang;
-      localStorage.setItem('selectedLanguage', lang);
-      translateElements();
-    };
-  });
-</script>
-
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    catsData.forEach(chat => {
-      chat.calendar.forEach(event => {
-        if (!event.id) {
-          event.id = 'event-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
         }
       });
-    });
-
-    window.renderCalendar = function(mode = 'current') {
-      if (!catsData.length) return;
-      const calendarContainer = document.getElementById("calendar");
-      calendarContainer.innerHTML = '';
-      const calendar = catsData[currentChatIndex].calendar || [];
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = today.getMonth();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dayDiv = document.createElement("div");
-        dayDiv.classList.add("calendar-day");
-        const date = new Date(year, month, day);
-        dayDiv.textContent = day;
-        const dayEvents = calendar.filter(event => {
-          const eventDate = new Date(event.date);
-          return eventDate.getDate() === day && eventDate.getMonth() === month && eventDate.getFullYear() === year;
-        });
-        if (dayEvents.length > 0) {
-          dayDiv.classList.add("has-event");
-          const tooltip = document.createElement("div");
-          tooltip.classList.add("tooltip");
-          tooltip.innerHTML = `<strong>Events:</strong><br>${dayEvents.map(event => `
-            <div class="tooltip-event" data-event-id="${event.id}">
-              <em>${event.title}</em>: ${event.description}
-              <div class="event-actions">
-                <button class="edit-event-btn">Edit</button>
-                <button class="delete-event-btn">Delete</button>
-              </div>
-            </div>
-          `).join('<br>')}`;
-          dayDiv.appendChild(tooltip);
-        }
-        dayDiv.onclick = () => {
-          window.selectedDate = date;
-          showAddEventModal();
-        };
-        calendarContainer.appendChild(dayDiv);
-      }
-      logMessage("info", "Calendar rendered.");
-    };
-
-    document.querySelector('.calendar-container').addEventListener('click', (e) => {
-      if (e.target.classList.contains('edit-event-btn')) {
-        const eventId = e.target.closest('.tooltip-event').dataset.eventId;
+      window.saveEditedEvent = function() {
+        const modal = document.getElementById("editEventModal");
+        const eventId = modal.dataset.editEventId;
+        const updatedTitle = document.getElementById("editEventTitle").value.trim();
+        const updatedDateTime = document.getElementById("editEventDateTime").value;
+        const updatedDescription = document.getElementById("editEventDescription").value.trim();
+        if (!updatedTitle || !updatedDateTime) { alert("Event title and date/time are required."); return; }
+        const updatedDate = new Date(updatedDateTime);
+        if (isNaN(updatedDate.getTime())) { alert("Invalid date/time format."); return; }
         const event = catsData[currentChatIndex].calendar.find(ev => ev.id === eventId);
         if (event) {
-          document.getElementById("editEventTitle").value = event.title;
-          document.getElementById("editEventDateTime").value = new Date(event.date).toISOString().slice(0,16);
-          document.getElementById("editEventDescription").value = event.description;
-          document.getElementById("editEventModal").dataset.editEventId = eventId;
-          document.getElementById("editEventModal").style.display = "flex";
+          event.title = updatedTitle;
+          event.date = updatedDate.toISOString();
+          event.description = updatedDescription;
+          saveChatToDatabase(catsData[currentChatIndex]).then(() => { renderCalendar(); closeModal("editEventModal"); logMessage("info", `Event "${updatedTitle}" edited successfully.`); alert("Event edited successfully!"); }).catch(err => { logMessage("error", `Failed to edit event: ${err}`); alert("Failed to edit event."); });
         }
-      }
-      if (e.target.classList.contains('delete-event-btn')) {
-        const eventId = e.target.closest('.tooltip-event').dataset.eventId;
-        const event = catsData[currentChatIndex].calendar.find(ev => ev.id === eventId);
-        if (event && confirm(`Are you sure you want to delete the event "${event.title}"?`)) {
-          const index = catsData[currentChatIndex].calendar.findIndex(ev => ev.id === eventId);
-          if (index !== -1) {
-            catsData[currentChatIndex].calendar.splice(index, 1);
-            saveChatToDatabase(catsData[currentChatIndex]).then(() => {
-              renderCalendar();
-              logMessage("info", `Event "${event.title}" deleted successfully.`);
-              alert("Event deleted successfully.");
-            }).catch(err => {
-              logMessage("error", `Failed to delete event: ${err}`);
-              alert("Failed to delete event.");
-            });
-          }
-        }
-      }
-    });
-
-    window.saveEditedEvent = function() {
-      const modal = document.getElementById("editEventModal");
-      const eventId = modal.dataset.editEventId;
-      const updatedTitle = document.getElementById("editEventTitle").value.trim();
-      const updatedDateTime = document.getElementById("editEventDateTime").value;
-      const updatedDescription = document.getElementById("editEventDescription").value.trim();
-      if (!updatedTitle || !updatedDateTime) {
-        alert("Event title and date/time are required.");
-        return;
-      }
-      const updatedDate = new Date(updatedDateTime);
-      if (isNaN(updatedDate.getTime())) {
-        alert("Invalid date/time format.");
-        return;
-      }
-      const event = catsData[currentChatIndex].calendar.find(ev => ev.id === eventId);
-      if (event) {
-        event.title = updatedTitle;
-        event.date = updatedDate.toISOString();
-        event.description = updatedDescription;
-        saveChatToDatabase(catsData[currentChatIndex]).then(() => {
-          renderCalendar();
-          closeModal("editEventModal");
-          logMessage("info", `Event "${updatedTitle}" edited successfully.`);
-          alert("Event edited successfully!");
-        }).catch(err => {
-          logMessage("error", `Failed to edit event: ${err}`);
-          alert("Failed to edit event.");
-        });
-      }
-    };
-
-    window.addEventListener('load', () => {
-      window.addEventEvent = function() {
-        const title = document.getElementById("eventTitle").value.trim();
-        const dateTime = document.getElementById("eventDateTime").value;
-        const description = document.getElementById("eventDescription").value.trim();
-        if (!title || !dateTime) {
-          logMessage("warning", "No event title or date/time entered.");
-          alert(getTranslation('errorOccurred'));
-          return;
-        }
-        const eventDate = new Date(dateTime);
-        if (isNaN(eventDate.getTime())) {
-          logMessage("warning", "Invalid date/time entered.");
-          alert(getTranslation('errorOccurred'));
-          return;
-        }
-        const id = 'event-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-        const event = { id, title, description, date: eventDate.toISOString() };
-        catsData[currentChatIndex].calendar.push(event);
-        saveChatToDatabase(catsData[currentChatIndex]).then(() => {
-          renderCalendar();
-          closeModal("addEventModal");
-          logMessage("info", `Event "${title}" added to calendar.`);
-          alert(getTranslation('eventAdded'));
-        }).catch(err => {
-          logMessage("error", `Failed to add event: ${err}`);
-          alert(getTranslation('errorOccurred'));
-        });
       };
     });
-
-    window.onclick = function(event) {
-      const editModal = document.getElementById("editEventModal");
-      if (event.target == editModal) {
-        editModal.style.display = "none";
-      }
-    }
-  });
-</script>
-
-<script>
-  // Corrected saveChatToDatabase function
-  function saveChatToDatabase(chat) {
-    const user = firebase.auth().currentUser;
-    if (!user) return Promise.reject("No authenticated user.");
-    const userId = user.uid;
-    const dbRef = firebase.database().ref(`/users/${userId}/chats/${chat.code}`);
-    return dbRef.set(chat);
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    catsData.forEach(chat => {
-      chat.calendar.forEach(event => {
-        if (!event.id) {
-          event.id = 'event-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-        }
-      });
-    });
-
-    window.renderCalendar = function(mode = 'current') {
-      if (!catsData.length) return;
-      const calendarContainer = document.getElementById("calendar");
-      calendarContainer.innerHTML = '';
-      const calendar = catsData[currentChatIndex].calendar || [];
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = today.getMonth();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dayDiv = document.createElement("div");
-        dayDiv.classList.add("calendar-day");
-        const date = new Date(year, month, day);
-        dayDiv.textContent = day;
-        const dayEvents = calendar.filter(event => {
-          const eventDate = new Date(event.date);
-          return eventDate.getDate() === day && eventDate.getMonth() === month && eventDate.getFullYear() === year;
-        });
-        if (dayEvents.length > 0) {
-          dayDiv.classList.add("has-event");
-          const tooltip = document.createElement("div");
-          tooltip.classList.add("tooltip");
-          tooltip.innerHTML = `<strong>Events:</strong><br>${dayEvents.map(event => `
-            <div class="tooltip-event" data-event-id="${event.id}">
-              <em>${event.title}</em>: ${event.description}
-              <div class="event-actions">
-                <button class="edit-event-btn">Edit</button>
-                <button class="delete-event-btn">Delete</button>
-              </div>
-            </div>
-          `).join('<br>')}`;
-          dayDiv.appendChild(tooltip);
-        }
-        dayDiv.onclick = () => {
-          window.selectedDate = date;
-          showAddEventModal();
-        };
-        calendarContainer.appendChild(dayDiv);
-      }
-      logMessage("info", "Calendar rendered.");
+    window.onload = () => {
+      setTimeout(() => {
+        document.getElementById("splash").classList.add("fade-out");
+        setTimeout(() => { document.getElementById("splash").style.display = "none"; initializeFirebase(); }, 1000);
+      }, 3000);
+      renderUpcomingEvents();
     };
-
-    document.querySelector('.calendar-container').addEventListener('click', (e) => {
-      if (e.target.classList.contains('edit-event-btn')) {
-        const eventId = e.target.closest('.tooltip-event').dataset.eventId;
-        const event = catsData[currentChatIndex].calendar.find(ev => ev.id === eventId);
-        if (event) {
-          document.getElementById("editEventTitle").value = event.title;
-          document.getElementById("editEventDateTime").value = new Date(event.date).toISOString().slice(0,16);
-          document.getElementById("editEventDescription").value = event.description;
-          document.getElementById("editEventModal").dataset.editEventId = eventId;
-          document.getElementById("editEventModal").style.display = "flex";
-        }
-      }
-      if (e.target.classList.contains('delete-event-btn')) {
-        const eventId = e.target.closest('.tooltip-event').dataset.eventId;
-        const event = catsData[currentChatIndex].calendar.find(ev => ev.id === eventId);
-        if (event && confirm(`Are you sure you want to delete the event "${event.title}"?`)) {
-          const index = catsData[currentChatIndex].calendar.findIndex(ev => ev.id === eventId);
-          if (index !== -1) {
-            catsData[currentChatIndex].calendar.splice(index, 1);
-            saveChatToDatabase(catsData[currentChatIndex]).then(() => {
-              renderCalendar();
-              logMessage("info", `Event "${event.title}" deleted successfully.`);
-              alert("Event deleted successfully.");
-            }).catch(err => {
-              logMessage("error", `Failed to delete event: ${err}`);
-              alert("Failed to delete event.");
-            });
-          }
-        }
-      }
-    });
-
-    window.saveEditedEvent = function() {
-      const modal = document.getElementById("editEventModal");
-      const eventId = modal.dataset.editEventId;
-      const updatedTitle = document.getElementById("editEventTitle").value.trim();
-      const updatedDateTime = document.getElementById("editEventDateTime").value;
-      const updatedDescription = document.getElementById("editEventDescription").value.trim();
-      if (!updatedTitle || !updatedDateTime) {
-        alert("Event title and date/time are required.");
-        return;
-      }
-      const updatedDate = new Date(updatedDateTime);
-      if (isNaN(updatedDate.getTime())) {
-        alert("Invalid date/time format.");
-        return;
-      }
-      const event = catsData[currentChatIndex].calendar.find(ev => ev.id === eventId);
-      if (event) {
-        event.title = updatedTitle;
-        event.date = updatedDate.toISOString();
-        event.description = updatedDescription;
-        saveChatToDatabase(catsData[currentChatIndex]).then(() => {
-          renderCalendar();
-          closeModal("editEventModal");
-          logMessage("info", `Event "${updatedTitle}" edited successfully.`);
-          alert("Event edited successfully!");
-        }).catch(err => {
-          logMessage("error", `Failed to edit event: ${err}`);
-          alert("Failed to edit event.");
-        });
-      }
-    };
-
-    window.addEventListener('load', () => {
-      window.addEventEvent = function() {
-        const title = document.getElementById("eventTitle").value.trim();
-        const dateTime = document.getElementById("eventDateTime").value;
-        const description = document.getElementById("eventDescription").value.trim();
-        if (!title || !dateTime) {
-          logMessage("warning", "No event title or date/time entered.");
-          alert(getTranslation('errorOccurred'));
-          return;
-        }
-        const eventDate = new Date(dateTime);
-        if (isNaN(eventDate.getTime())) {
-          logMessage("warning", "Invalid date/time entered.");
-          alert(getTranslation('errorOccurred'));
-          return;
-        }
-        const id = 'event-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-        const event = { id, title, description, date: eventDate.toISOString() };
-        catsData[currentChatIndex].calendar.push(event);
-        saveChatToDatabase(catsData[currentChatIndex]).then(() => {
-          renderCalendar();
-          closeModal("addEventModal");
-          logMessage("info", `Event "${title}" added to calendar.`);
-          alert(getTranslation('eventAdded'));
-        }).catch(err => {
-          logMessage("error", `Failed to add event: ${err}`);
-          alert(getTranslation('errorOccurred'));
-        });
-      };
-    });
-
-    window.onclick = function(event) {
-      const editModal = document.getElementById("editEventModal");
-      if (event.target == editModal) {
-        editModal.style.display = "none";
-      }
+    function addEvent() {
+      const title = document.getElementById("eventTitle").value.trim();
+      const dateTime = document.getElementById("eventDateTime").value;
+      const description = document.getElementById("eventDescription").value.trim();
+      if (!title || !dateTime) { logMessage("warning", "No event title or date/time entered."); alert(getTranslation('errorOccurred')); return; }
+      const eventDate = new Date(dateTime);
+      if (isNaN(eventDate.getTime())) { logMessage("warning", "Invalid date/time entered."); alert(getTranslation('errorOccurred')); return; }
+      const id = 'event-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+      const event = { id, title, description, date: eventDate.toISOString() };
+      catsData[currentChatIndex].calendar.push(event);
+      saveChatToDatabase(catsData[currentChatIndex]).then(() => { renderCalendar(); closeModal("addEventModal"); logMessage("info", `Event "${title}" added to calendar.`); alert(getTranslation('eventAdded')); }).catch(err => { logMessage("error", `Failed to add event: ${err}`); alert(getTranslation('errorOccurred')); });
     }
-  });
-</script>
-
+  </script>
 </body>
 </html>
