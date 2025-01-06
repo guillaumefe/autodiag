@@ -899,7 +899,7 @@
           closeModal("firebaseConfigModal");
           document.getElementById("authModal").style.display = "flex";
         }
-      } © (error) {
+      } catch (error) {
         logMessage("error", `Error initializing Firebase: ${error}`);
         alert(getTranslation('errorOccurred'));
       }
