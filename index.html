@@ -422,11 +422,11 @@
 
     <!-- Navigation -->
     <nav>
-      <select id="DiagSelector" onchange="selectDiag()">
+      <select id="DiagSelector" onchange="selectDiagUser()">
         <option value="" disabled selected>Select Diag</option>
       </select>
       <div class="nav-buttons">
-        <button onclick="createDiag()">Create Diag</button>
+        <button onclick="createDiag()">Create a follow-up</button>
         <button onclick="shareDiag()">Share Diag</button>
         <button onclick="exportDiagExcel()">Export Diag Excel</button>
         <button onclick="deleteDiag()" id="deleteDiagBtn" style="display:none;">Delete Diag</button>
@@ -542,7 +542,7 @@
     </div>
   </div>
 
-  <!-- Authentidiagion Modal -->
+  <!-- authentication Modal -->
   <div class="modal" id="authModal">
     <div class="modal-content">
       <h2 id="authTitle">Login</h2>
@@ -654,7 +654,7 @@
         close: "Close",
         email: "Email",
         password: "Password",
-        createDiag: "Create Diag",
+        createDiag: "Create Follow-up",
         shareDiag: "Share Diag",
         exportDiagExcel: "Export Diag Excel",
         deleteDiag: "Delete Diag",
@@ -678,7 +678,7 @@
         enterDiagName: "Enter Diag Name",
         tutorial: "Tutorial",
         next: "Next",
-        selectDiag: "Select Diag",
+        selectDiagUser: "Select Diag",
         typeMessage: "Type a message",
         loginPrompt: "Please log in or sign up to continue.",
         signupSuccess: "Signup successful! Please verify your email.",
@@ -740,7 +740,7 @@
         enterDiagName: "Entrez le nom du Diag",
         tutorial: "Tutoriel",
         next: "Suivant",
-        selectDiag: "Sélectionner un Diag",
+        selectDiagUser: "Sélectionner un patient",
         typeMessage: "Tapez un message",
         loginPrompt: "Veuillez vous connecter ou vous inscrire pour continuer.",
         signupSuccess: "Inscription réussie ! Veuillez vérifier votre email.",
@@ -775,7 +775,7 @@
     const tutorialSteps = {
       en: [
         { title: "Welcome", text: "Welcome to Autodiag Health Tracker! Follow the steps to get started." },
-        { title: "Create a Diag", text: "Click on 'Create Diag' to add a new Diag." },
+        { title: "Create a Diag", text: "Click on 'Create Follow-up' to add a new follow-up." },
         { title: "Fill the Checklist", text: "Fill out the daily checklist to monitor your diag's health." },
         { title: "Real-Time Radar", text: "The radar updates in real-time based on your responses." },
         { title: "Health Metrics", text: "View health metrics over time in the charts." },
@@ -974,16 +974,16 @@
     // Render Diag Selector
     function renderDiagSelector() {
       const selector = document.getElementById("DiagSelector");
-      selector.innerHTML = `<option value="" disabled selected>${getTranslation('selectDiag')}</option>` + 
+      selector.innerHTML = `<option value="" disabled selected>${getTranslation('selectDiagUser')}</option>` + 
         diagsData.map((Diag, i) => `<option value="${i}">${Diag.name}</option>`).join("");
       if (diagsData.length > 0) {
         selector.value = currentDiagIndex;
-        selectDiag();
+        selectDiagUser();
       }
     }
 
     // Select Diag Function
-    function selectDiag() {
+    function selectDiagUser() {
       const selector = document.getElementById("DiagSelector");
       currentDiagIndex = parseInt(selector.value, 10);
       if (isNaN(currentDiagIndex) || currentDiagIndex < 0 || currentDiagIndex >= diagsData.length) {
@@ -1276,7 +1276,7 @@
       const code = generateSecureCode();
       const user = firebase.auth().currentUser;
       if (!user) {
-        logMessage("warning", "User attempted to create Diag without authentidiagion.");
+        logMessage("warning", "User attempted to create a follow-up without authentication.");
         return;
       }
       const newDiag = { 
@@ -1290,7 +1290,7 @@
       diagsData.push(newDiag);
       saveDiagToDatabase(newDiag);
       renderDiagSelector();
-      selectDiag();
+      selectDiagUser();
       updateDeleteDiagButton();
       logMessage("info", `New Diag "${name}" created successfully.`);
     }
@@ -1348,7 +1348,7 @@
       if (confirmation === currentDiag.name) {
         const user = firebase.auth().currentUser;
         if (!user) {
-          logMessage("warning", "User attempted to delete Diag without authentidiagion.");
+          logMessage("warning", "User attempted to delete Diag without authentication.");
           return;
         }
         firebase.database().ref(`/users/${user.uid}/Diags/${currentDiag.code}`).remove()
@@ -1402,7 +1402,7 @@
       const formattedDate = eventDate.toLocaleString();
       const user = firebase.auth().currentUser;
       if (!user) {
-        logMessage("warning", "User attempted to add event without authentidiagion.");
+        logMessage("warning", "User attempted to add event without authentication.");
         alert(getTranslation('loginPrompt'));
         return;
       }
@@ -1487,13 +1487,13 @@
       logs.style.display = (logs.style.display === "none" || logs.style.display === "") ? "flex" : "none";
     }
 
-    // Authentidiagion Function
+    // authentication Function
     function authentidiage() {
       const authTitle = document.getElementById("authTitle").innerText;
       const email = document.getElementById("authEmail").value.trim();
       const password = document.getElementById("authPassword").value;
       if (!email || !password) {
-        logMessage("warning", "Authentidiagion fields left empty.");
+        logMessage("warning", "authentication fields left empty.");
         alert(getTranslation('errorOccurred'));
         return;
       }
@@ -1534,7 +1534,7 @@
       }
     }
 
-    // Toggle Authentidiagion Mode (Login/Signup)
+    // Toggle authentication Mode (Login/Signup)
     function toggleAuthMode() {
       const authTitle = document.getElementById("authTitle").innerText;
       const signupText = getTranslation('signup');
@@ -1628,7 +1628,7 @@
     function addQuestion() {
       const user = firebase.auth().currentUser;
       if (!user) {
-        logMessage("warning", "User attempted to add a question without authentidiagion.");
+        logMessage("warning", "User attempted to add a question without authentication.");
         alert(getTranslation('loginPrompt'));
         return;
       }
@@ -1706,7 +1706,7 @@
     function editQuestion(index) {
       const user = firebase.auth().currentUser;
       if (!user) {
-        logMessage("warning", "User attempted to edit a question without authentidiagion.");
+        logMessage("warning", "User attempted to edit a question without authentication.");
         alert(getTranslation('loginPrompt'));
         return;
       }
@@ -1768,7 +1768,7 @@
     function deleteQuestion(index) {
       const user = firebase.auth().currentUser;
       if (!user) {
-        logMessage("warning", "User attempted to delete a question without authentidiagion.");
+        logMessage("warning", "User attempted to delete a question without authentication.");
         alert(getTranslation('loginPrompt'));
         return;
       }
@@ -1805,7 +1805,7 @@
       if (!message) return;
       const user = firebase.auth().currentUser;
       if (!user) {
-        logMessage("warning", "User attempted to send message without authentidiagion.");
+        logMessage("warning", "User attempted to send message without authentication.");
         alert(getTranslation('loginPrompt'));
         return;
       }
@@ -1870,7 +1870,7 @@
       }
       const user = firebase.auth().currentUser;
       if (!user) {
-        logMessage("warning", "User attempted to send voice message without authentidiagion.");
+        logMessage("warning", "User attempted to send voice message without authentication.");
         alert(getTranslation('loginPrompt'));
         return;
       }
@@ -1908,7 +1908,7 @@
     function promoteUser(uid) {
       const user = firebase.auth().currentUser;
       if (!user) {
-        logMessage("warning", "User attempted to promote without authentidiagion.");
+        logMessage("warning", "User attempted to promote without authentication.");
         alert(getTranslation('loginPrompt'));
         return;
       }
@@ -1934,7 +1934,7 @@
     function demoteUser(uid) {
       const user = firebase.auth().currentUser;
       if (!user) {
-        logMessage("warning", "User attempted to demote without authentidiagion.");
+        logMessage("warning", "User attempted to demote without authentication.");
         alert(getTranslation('loginPrompt'));
         return;
       }
@@ -2059,7 +2059,7 @@
                 .then(() => {
                   diagsData.push(sharedDiag);
                   renderDiagSelector();
-                  selectDiag();
+                  selectDiagUser();
                   updateDeleteDiagButton();
                   renderQuestionsList();
                   renderQuiz();
