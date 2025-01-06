@@ -582,10 +582,10 @@
     <div class="modal-content">
       <h2>Delete Diag</h2>
       <p>Please type the Diag name to confirm deletion:</p>
-      <input type="text" id="confirmDiagName" placeholder="Enter Diag Name">
+      <input type="text" id="confirmDiagName" placeholder="Enter patient's first name">
       <button onclick="confirmDeleteDiag()">Delete</button>
       <button onclick="closeModal('deleteDiagModal')">Close</button>
-      <span id="deleteError" style="color: red; display: none;">Diag name does not match.</span>
+      <span id="deleteError" style="color: red; display: none;">Patient does not match.</span>
     </div>
   </div>
 
@@ -674,11 +674,11 @@
         addQuestion: "Add Question",
         editQuestion: "Edit",
         deleteQuestion: "Delete",
-        confirmDelete: "Please type the Diag name to confirm deletion:",
-        enterDiagName: "Enter Diag Name",
+        confirmDelete: "Please type the patient name to confirm deletion:",
+        enterDiagName: "Enter patient's first name",
         tutorial: "Tutorial",
         next: "Next",
-        selectDiagUser: "Select Diag",
+        selectDiagUser: "Select Patient",
         typeMessage: "Type a message",
         loginPrompt: "Please log in or sign up to continue.",
         signupSuccess: "Signup successful! Please verify your email.",
@@ -704,12 +704,12 @@
         appTitle: "Autodiag Health Tracker",
         selectLanguage: "Sélectionner la langue",
         apiKeyLabel: "Clé API :",
-        authDomainLabel: "Domaine d'authentifidiagion :",
+        authDomainLabel: "Domaine d'authentification :",
         databaseURLLabel: "URL de la base de données :",
         projectIdLabel: "ID du projet :",
         storageBucketLabel: "Bucket de stockage :",
         messagingSenderIdLabel: "ID de l'expéditeur de messages :",
-        appIdLabel: "ID de l'applidiagion :",
+        appIdLabel: "ID de l'application :",
         or: "OU",
         login: "Connexion",
         signup: "Inscription",
@@ -736,8 +736,8 @@
         addQuestion: "Ajouter une question",
         editQuestion: "Modifier",
         deleteQuestion: "Supprimer",
-        confirmDelete: "Veuillez taper le nom du Diag pour confirmer la suppression :",
-        enterDiagName: "Entrez le nom du Diag",
+        confirmDelete: "Veuillez taper le prénom du patient pour confirmer la suppression :",
+        enterDiagName: "Entrez le prénom du patient",
         tutorial: "Tutoriel",
         next: "Suivant",
         selectDiagUser: "Sélectionner un patient",
@@ -775,8 +775,8 @@
     const tutorialSteps = {
       en: [
         { title: "Welcome", text: "Welcome to Autodiag Health Tracker! Follow the steps to get started." },
-        { title: "Create a Diag", text: "Click on 'Create Follow-up' to add a new follow-up." },
-        { title: "Fill the Checklist", text: "Fill out the daily checklist to monitor your diag's health." },
+        { title: "Create a follow-up", text: "Click on 'Create Follow-up' to add a new follow-up." },
+        { title: "Fill the Checklist", text: "Fill out the daily checklist to monitor the patient health." },
         { title: "Real-Time Radar", text: "The radar updates in real-time based on your responses." },
         { title: "Health Metrics", text: "View health metrics over time in the charts." },
         { title: "Export to Excel", text: "Export the Diag data to Excel for easy sharing and analysis." },
@@ -923,14 +923,14 @@
                 document.getElementById("logoutBtn").style.display = "inline-block";
                 document.getElementById("app").style.display = "flex";
                 document.getElementById("authModal").style.display = "none";
-                logMessage("info", `User "${user.email}" authentidiaged.`);
+                logMessage("info", `User "${user.email}" authenticated.`);
                 loadUserDiags();
                 checkShareURL(user);
               } else {
                 document.getElementById("logoutBtn").style.display = "none";
                 document.getElementById("app").style.display = "none";
                 document.getElementById("authModal").style.display = "flex";
-                logMessage("info", "No user authentidiaged.");
+                logMessage("info", "No user authenticated.");
                 diagsData.length = 0;
                 renderDiagSelector();
                 clearSections();
