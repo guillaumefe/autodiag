@@ -887,7 +887,7 @@
             logMessage("info", "Firebase configuration initialized.");
             closeModal("firebaseConfigModal");
             document.getElementById("authModal").style.display = "flex";
-          }).diagch(err => {
+          }).catch(err => {
             logMessage("error", `Error resetting Firebase: ${err}`);
             alert(getTranslation('errorOccurred'));
           });
@@ -899,7 +899,7 @@
           closeModal("firebaseConfigModal");
           document.getElementById("authModal").style.display = "flex";
         }
-      } diagch (error) {
+      } © (error) {
         logMessage("error", `Error initializing Firebase: ${error}`);
         alert(getTranslation('errorOccurred'));
       }
@@ -937,7 +937,7 @@
               }
             });
           });
-        } diagch (error) {
+        } catch (error) {
           logMessage("error", `Error initializing Firebase: ${error}`);
           alert(getTranslation('errorOccurred'));
           document.getElementById("firebaseConfigModal").style.display = "flex";
@@ -1187,7 +1187,7 @@
       const dbRef = firebase.database().ref(`/users/${userId}/Diags/${Diag.code}`);
       dbRef.set(Diag)
         .then(() => logMessage("info", "Diag data saved to database."))
-        .diagch(error => logMessage("error", `Error saving Diag data: ${error}`));
+        .catch(error => logMessage("error", `Error saving Diag data: ${error}`));
     }
 
     // Render Real-Time Radar Chart
@@ -1316,12 +1316,12 @@
           navigator.clipboard.writeText(shareURL).then(() => {
             logMessage("info", `Diag "${currentDiag.name}" shared via URL.`);
             alert("Diag share URL copied to clipboard!");
-          }).diagch(err => {
+          }).catch(err => {
             logMessage("error", `Failed to copy share URL: ${err}`);
             alert("Failed to copy share URL.");
           });
         })
-        .diagch(err => {
+        .catch(err => {
           logMessage("error", `Failed to share Diag: ${err}`);
           alert("Failed to share Diag.");
         });
@@ -1360,7 +1360,7 @@
             closeModal("deleteDiagModal");
             updateDeleteDiagButton();
           })
-          .diagch(err => {
+          .catch(err => {
             logMessage("error", `Error deleting Diag "${currentDiag.name}": ${err}`);
           });
       } else {
@@ -1416,7 +1416,7 @@
           logMessage("info", `Event "${title}" added to calendar.`);
           alert(getTranslation('eventAdded'));
         })
-        .diagch(err => {
+        .catch(err => {
           logMessage("error", `Failed to add event: ${err}`);
           alert(getTranslation('errorOccurred'));
         });
@@ -1510,7 +1510,7 @@
             alert(getTranslation('loginSuccess'));
             closeModal("authModal");
           })
-          .diagch((error) => {
+          .catch((error) => {
             logMessage("error", `Login error: ${error.message}`);
             alert(`Error: ${error.message}`);
           });
@@ -1527,7 +1527,7 @@
             alert(getTranslation('signupSuccess'));
             closeModal("authModal");
           })
-          .diagch((error) => {
+          .catch((error) => {
             logMessage("error", `Signup error: ${error.message}`);
             alert(`Error: ${error.message}`);
           });
@@ -1555,7 +1555,7 @@
       firebase.auth().signOut().then(() => {
         logMessage("info", "User logged out.");
         alert(getTranslation('logoutSuccess'));
-      }).diagch((error) => {
+      }).catch((error) => {
         logMessage("error", `Logout error: ${error.message}`);
         alert(`Error: ${error.message}`);
       });
@@ -1678,7 +1678,7 @@
           logMessage("info", `Question added: "${questionLabel}".`);
           alert("Question added successfully!");
         })
-        .diagch(err => {
+        .catch(err => {
           logMessage("error", `Failed to add question: ${err}`);
           alert("Failed to add question.");
         });
@@ -1758,7 +1758,7 @@
           logMessage("info", `Question edited: "${newLabel}".`);
           alert("Question edited successfully!");
         })
-        .diagch(err => {
+        .catch(err => {
           logMessage("error", `Failed to edit question: ${err}`);
           alert("Failed to edit question.");
         });
@@ -1790,7 +1790,7 @@
             logMessage("info", `Question deleted: "${removedQuestion.label}".`);
             alert("Question deleted successfully!");
           })
-          .diagch(err => {
+          .catch(err => {
             logMessage("error", `Failed to delete question: ${err}`);
             alert("Failed to delete question.");
           });
@@ -1847,7 +1847,7 @@
             stopRecordButton.style.display = "none";
           };
           logMessage("info", "Recording started.");
-        }).diagch(err => {
+        }).catch(err => {
           logMessage("error", `Microphone access denied: ${err}`);
           alert("Microphone access denied.");
         });
@@ -1884,7 +1884,7 @@
           document.getElementById("sendVoiceButton").style.display = "none";
           document.getElementById("reRecordButton").style.display = "none";
         })
-        .diagch(err => {
+        .catch(err => {
           logMessage("error", `Failed to send voice message: ${err}`);
           alert("Failed to send voice message.");
         });
@@ -1924,7 +1924,7 @@
           logMessage("info", "User promoted to admin.");
           alert("User promoted to admin.");
         })
-        .diagch(err => {
+        .catch(err => {
           logMessage("error", `Failed to promote user: ${err}`);
           alert("Failed to promote user.");
         });
@@ -1956,7 +1956,7 @@
           logMessage("info", "User demoted to user.");
           alert("User demoted to user.");
         })
-        .diagch(err => {
+        .catch(err => {
           logMessage("error", `Failed to demote user: ${err}`);
           alert("Failed to demote user.");
         });
@@ -2074,7 +2074,7 @@
                   const newURL = window.lodiagion.origin + window.lodiagion.pathname;
                   window.history.replaceState({}, document.title, newURL);
                 })
-                .diagch(err => {
+                .catch(err => {
                   logMessage("error", `Failed to add shared Diag: ${err}`);
                   alert("Failed to add shared Diag.");
                 });
@@ -2086,7 +2086,7 @@
             logMessage("warning", `No shared Diag found with code "${shareCode}".`);
             alert("No shared Diag found with the provided code.");
           }
-        }).diagch(err => {
+        }).catch(err => {
           logMessage("error", `Error retrieving shared Diag: ${err}`);
           alert("Error retrieving shared Diag.");
         });
@@ -2402,7 +2402,7 @@ document.addEventListener('DOMContentLoaded', () => {
           closeModal("editEventModal");
           renderCalendar(); // Re-render the calendar to reflect changes
         })
-        .diagch(err => {
+        .catch(err => {
           logMessage("error", `Failed to edit event: ${err}`);
           alert("Failed to edit event. Please try again.");
         });
@@ -2423,7 +2423,7 @@ document.addEventListener('DOMContentLoaded', () => {
             alert("Event deleted successfully!");
             renderCalendar(); // Re-render the calendar to reflect changes
           })
-          .diagch(err => {
+          .catch(err => {
             logMessage("error", `Failed to delete event: ${err}`);
             alert("Failed to delete event. Please try again.");
           });
@@ -2572,7 +2572,7 @@ document.addEventListener('DOMContentLoaded', () => {
               renderCalendar();
               logMessage("info", `Event "${event.title}" deleted successfully.`);
               alert("Event deleted successfully.");
-            }).diagch(err => {
+            }).catch(err => {
               logMessage("error", `Failed to delete event: ${err}`);
               alert("Failed to delete event.");
             });
@@ -2606,7 +2606,7 @@ document.addEventListener('DOMContentLoaded', () => {
           closeModal("editEventModal");
           logMessage("info", `Event "${updatedTitle}" edited successfully.`);
           alert("Event edited successfully!");
-        }).diagch(err => {
+        }).catch(err => {
           logMessage("error", `Failed to edit event: ${err}`);
           alert("Failed to edit event.");
         });
@@ -2637,7 +2637,7 @@ document.addEventListener('DOMContentLoaded', () => {
           closeModal("addEventModal");
           logMessage("info", `Event "${title}" added to calendar.`);
           alert(getTranslation('eventAdded'));
-        }).diagch(err => {
+        }).catch(err => {
           logMessage("error", `Failed to add event: ${err}`);
           alert(getTranslation('errorOccurred'));
         });
@@ -2737,7 +2737,7 @@ document.addEventListener('DOMContentLoaded', () => {
               renderCalendar();
               logMessage("info", `Event "${event.title}" deleted successfully.`);
               alert("Event deleted successfully.");
-            }).diagch(err => {
+            }).catch(err => {
               logMessage("error", `Failed to delete event: ${err}`);
               alert("Failed to delete event.");
             });
@@ -2771,7 +2771,7 @@ document.addEventListener('DOMContentLoaded', () => {
           closeModal("editEventModal");
           logMessage("info", `Event "${updatedTitle}" edited successfully.`);
           alert("Event edited successfully!");
-        }).diagch(err => {
+        }).catch(err => {
           logMessage("error", `Failed to edit event: ${err}`);
           alert("Failed to edit event.");
         });
@@ -2802,7 +2802,7 @@ document.addEventListener('DOMContentLoaded', () => {
           closeModal("addEventModal");
           logMessage("info", `Event "${title}" added to calendar.`);
           alert(getTranslation('eventAdded'));
-        }).diagch(err => {
+        }).catch(err => {
           logMessage("error", `Failed to add event: ${err}`);
           alert(getTranslation('errorOccurred'));
         });
