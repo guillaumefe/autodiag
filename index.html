@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Caty Health Tracker</title>
+  <title>Autodiag Health Tracker</title>
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
@@ -110,7 +110,7 @@
     }
 
     /* Sections */
-    .chart-container, .quiz-container, .chat-container, .calendar-container, .summary-chart-container {
+    .chart-container, .quiz-container, .Diag-container, .calendar-container, .summary-chart-container {
       background: white;
       padding: 1em;
       border-radius: 5px;
@@ -120,7 +120,7 @@
       width: 100%;
       height: 300px;
     }
-    .chat-container { display: flex; flex-direction: column; height: 400px; }
+    .Diag-container { display: flex; flex-direction: column; height: 400px; }
     .connected-users { margin-bottom: 1em; }
     .connected-users h3 { margin-bottom: 0.5em; }
     .connected-users ul { list-style: none; max-height: 100px; overflow-y: auto; }
@@ -136,9 +136,9 @@
     .message .text::after { content: ""; position: absolute; top: 10px; width: 0; height: 0; border: 10px solid transparent; }
     .message.user .text::after { right: -20px; border-left-color: #dcf8c6; }
     .message .text::after { left: -20px; border-right-color: #fff; }
-    .chat-input { display: flex; gap: 0.5em; }
-    .chat-input input { flex-grow: 1; padding: 0.5em; border: 1px solid #ccc; border-radius: 5px; }
-    .chat-input button { padding: 0.5em 1em; border: none; background-color: #76c7c0; color: white; cursor: pointer; border-radius: 5px; }
+    .Diag-input { display: flex; gap: 0.5em; }
+    .Diag-input input { flex-grow: 1; padding: 0.5em; border: 1px solid #ccc; border-radius: 5px; }
+    .Diag-input button { padding: 0.5em 1em; border: none; background-color: #76c7c0; color: white; cursor: pointer; border-radius: 5px; }
     .voice-buttons { display: flex; justify-content: space-between; margin-top: 0.5em; }
     .voice-buttons button { padding: 0.5em; border: none; background-color: #2196f3; color: white; cursor: pointer; border-radius: 5px; flex: 1; margin: 0 0.25em; }
     footer { background-color: #ff6f61; color: white; text-align: center; padding: 0.5em; flex-shrink: 0; }
@@ -405,14 +405,14 @@
 <body>
   <!-- Splash Screen -->
   <div class="splash-container" id="splash">
-    <div class="brand">Caty</div>
+    <div class="brand">Autodiag</div>
   </div>
 
   <!-- Main App Container -->
   <div class="app-container" id="app">
     <!-- Header -->
     <header>
-      <span data-key="appTitle">Caty Health Tracker</span>
+      <span data-key="appTitle">Autodiag Health Tracker</span>
       <select id="languageSelector" class="language-selector" onchange="changeLanguage(this.value)">
         <option value="" disabled selected>Select Language</option>
         <option value="en">EN</option>
@@ -422,14 +422,14 @@
 
     <!-- Navigation -->
     <nav>
-      <select id="chatSelector" onchange="selectChat()">
-        <option value="" disabled selected>Select Chat</option>
+      <select id="DiagSelector" onchange="selectDiag()">
+        <option value="" disabled selected>Select Diag</option>
       </select>
       <div class="nav-buttons">
-        <button onclick="createChat()">Create Chat</button>
-        <button onclick="shareChat()">Share Chat</button>
-        <button onclick="exportChatExcel()">Export Chat Excel</button>
-        <button onclick="deleteChat()" id="deleteChatBtn" style="display:none;">Delete Chat</button>
+        <button onclick="createDiag()">Create Diag</button>
+        <button onclick="shareDiag()">Share Diag</button>
+        <button onclick="exportDiagExcel()">Export Diag Excel</button>
+        <button onclick="deleteDiag()" id="deleteDiagBtn" style="display:none;">Delete Diag</button>
         <button onclick="openManageQuestionsModal()" id="manageQuestions" style="display:none;">Manage Questions</button>
         <button onclick="logout()" style="display:none;" id="logoutBtn">Logout</button>
       </div>
@@ -463,15 +463,15 @@
           <canvas id="summaryRadarChart"></canvas>
         </section>
 
-        <!-- Chat Section -->
-        <section class="chat-container" id="chatSection" style="display:none;">
-          <h2>Chat</h2>
+        <!-- Diag Section -->
+        <section class="Diag-container" id="DiagSection" style="display:none;">
+          <h2>Diag</h2>
           <div class="connected-users">
             <h3>Connected Users:</h3>
             <ul id="usersList"></ul>
           </div>
           <div class="messages" id="messages"></div>
-          <div class="chat-input">
+          <div class="Diag-input">
             <input type="text" id="messageInput" placeholder="Type a message">
             <button onclick="sendMessage()">Send</button>
           </div>
@@ -504,7 +504,7 @@
     </main>
 
     <!-- Footer -->
-    <footer>Made with ❤️ for your beloved cats</footer>
+    <footer>Made with ❤️ for your beloved ones</footer>
   </div>
 
   <!-- Modals -->
@@ -542,7 +542,7 @@
     </div>
   </div>
 
-  <!-- Authentication Modal -->
+  <!-- Authentidiagion Modal -->
   <div class="modal" id="authModal">
     <div class="modal-content">
       <h2 id="authTitle">Login</h2>
@@ -551,19 +551,19 @@
         <input type="password" id="authPassword" placeholder="Password">
         <span class="toggle-password" onclick="togglePasswordVisibility('authPassword')">👁️</span>
       </div>
-      <button onclick="authenticate()">Login</button>
+      <button onclick="authentidiage()">Login</button>
       <button onclick="toggleAuthMode()">Sign Up</button>
       <button onclick="closeModal('authModal')">Close</button>
     </div>
   </div>
 
-  <!-- Link Existing Chat Modal -->
-  <div class="modal" id="linkChatModal">
+  <!-- Link Existing Diag Modal -->
+  <div class="modal" id="linkDiagModal">
     <div class="modal-content">
-      <h2>Link to Existing Chat</h2>
-      <input type="text" id="linkChatCode" placeholder="Enter Chat Code">
-      <button onclick="linkExistingChat()">Link Chat</button>
-      <button onclick="closeModal('linkChatModal')">Close</button>
+      <h2>Link to Existing Diag</h2>
+      <input type="text" id="linkDiagCode" placeholder="Enter Diag Code">
+      <button onclick="linkExistingDiag()">Link Diag</button>
+      <button onclick="closeModal('linkDiagModal')">Close</button>
     </div>
   </div>
 
@@ -577,15 +577,15 @@
     </div>
   </div>
 
-  <!-- Delete Chat Confirmation Modal -->
-  <div class="modal" id="deleteChatModal">
+  <!-- Delete Diag Confirmation Modal -->
+  <div class="modal" id="deleteDiagModal">
     <div class="modal-content">
-      <h2>Delete Chat</h2>
-      <p>Please type the chat name to confirm deletion:</p>
-      <input type="text" id="confirmChatName" placeholder="Enter Chat Name">
-      <button onclick="confirmDeleteChat()">Delete</button>
-      <button onclick="closeModal('deleteChatModal')">Close</button>
-      <span id="deleteError" style="color: red; display: none;">Chat name does not match.</span>
+      <h2>Delete Diag</h2>
+      <p>Please type the Diag name to confirm deletion:</p>
+      <input type="text" id="confirmDiagName" placeholder="Enter Diag Name">
+      <button onclick="confirmDeleteDiag()">Delete</button>
+      <button onclick="closeModal('deleteDiagModal')">Close</button>
+      <span id="deleteError" style="color: red; display: none;">Diag name does not match.</span>
     </div>
   </div>
 
@@ -639,7 +639,7 @@
     // Language Translations
     const languages = {
       en: {
-        appTitle: "Caty Health Tracker",
+        appTitle: "Autodiag Health Tracker",
         selectLanguage: "Select Language",
         apiKeyLabel: "API Key:",
         authDomainLabel: "Auth Domain:",
@@ -654,10 +654,10 @@
         close: "Close",
         email: "Email",
         password: "Password",
-        createChat: "Create Chat",
-        shareChat: "Share Chat",
-        exportChatExcel: "Export Chat Excel",
-        deleteChat: "Delete Chat",
+        createDiag: "Create Diag",
+        shareDiag: "Share Diag",
+        exportDiagExcel: "Export Diag Excel",
+        deleteDiag: "Delete Diag",
         realTimeRadar: "Real-Time Health Radar",
         dailyHealthChecklist: "Daily Health Checklist",
         healthMetrics: "Health Metrics Over Time",
@@ -674,11 +674,11 @@
         addQuestion: "Add Question",
         editQuestion: "Edit",
         deleteQuestion: "Delete",
-        confirmDelete: "Please type the chat name to confirm deletion:",
-        enterChatName: "Enter Chat Name",
+        confirmDelete: "Please type the Diag name to confirm deletion:",
+        enterDiagName: "Enter Diag Name",
         tutorial: "Tutorial",
         next: "Next",
-        selectChat: "Select Chat",
+        selectDiag: "Select Diag",
         typeMessage: "Type a message",
         loginPrompt: "Please log in or sign up to continue.",
         signupSuccess: "Signup successful! Please verify your email.",
@@ -701,25 +701,25 @@
         demote: "Demote"
       },
       fr: {
-        appTitle: "Caty Health Tracker",
+        appTitle: "Autodiag Health Tracker",
         selectLanguage: "Sélectionner la langue",
         apiKeyLabel: "Clé API :",
-        authDomainLabel: "Domaine d'authentification :",
+        authDomainLabel: "Domaine d'authentifidiagion :",
         databaseURLLabel: "URL de la base de données :",
         projectIdLabel: "ID du projet :",
         storageBucketLabel: "Bucket de stockage :",
         messagingSenderIdLabel: "ID de l'expéditeur de messages :",
-        appIdLabel: "ID de l'application :",
+        appIdLabel: "ID de l'applidiagion :",
         or: "OU",
         login: "Connexion",
         signup: "Inscription",
         close: "Fermer",
         email: "Email",
         password: "Mot de passe",
-        createChat: "Créer un chat",
-        shareChat: "Partager le chat",
-        exportChatExcel: "Exporter le chat en Excel",
-        deleteChat: "Supprimer le chat",
+        createDiag: "Créer un Diag",
+        shareDiag: "Partager le Diag",
+        exportDiagExcel: "Exporter le Diag en Excel",
+        deleteDiag: "Supprimer le Diag",
         realTimeRadar: "Radar de santé en temps réel",
         dailyHealthChecklist: "Checklist santé quotidienne",
         healthMetrics: "Métriques de santé au fil du temps",
@@ -736,11 +736,11 @@
         addQuestion: "Ajouter une question",
         editQuestion: "Modifier",
         deleteQuestion: "Supprimer",
-        confirmDelete: "Veuillez taper le nom du chat pour confirmer la suppression :",
-        enterChatName: "Entrez le nom du chat",
+        confirmDelete: "Veuillez taper le nom du Diag pour confirmer la suppression :",
+        enterDiagName: "Entrez le nom du Diag",
         tutorial: "Tutoriel",
         next: "Suivant",
-        selectChat: "Sélectionner un chat",
+        selectDiag: "Sélectionner un Diag",
         typeMessage: "Tapez un message",
         loginPrompt: "Veuillez vous connecter ou vous inscrire pour continuer.",
         signupSuccess: "Inscription réussie ! Veuillez vérifier votre email.",
@@ -765,8 +765,8 @@
     };
     let currentLanguage = localStorage.getItem('selectedLanguage') || 'en';
     let firebaseConfigStored = null;
-    const catsData = [];
-    let currentChatIndex = 0;
+    const diagsData = [];
+    let currentDiagIndex = 0;
     let realtimeRadar, timeSeriesChart, summaryRadarChart;
     let mediaRecorder = null;
     let isRecording = false;
@@ -774,24 +774,24 @@
     let audioChunks = [];
     const tutorialSteps = {
       en: [
-        { title: "Welcome", text: "Welcome to Caty Health Tracker! Follow the steps to get started." },
-        { title: "Create a Chat", text: "Click on 'Create Chat' to add a new chat." },
-        { title: "Fill the Checklist", text: "Fill out the daily checklist to monitor your cat's health." },
+        { title: "Welcome", text: "Welcome to Autodiag Health Tracker! Follow the steps to get started." },
+        { title: "Create a Diag", text: "Click on 'Create Diag' to add a new Diag." },
+        { title: "Fill the Checklist", text: "Fill out the daily checklist to monitor your diag's health." },
         { title: "Real-Time Radar", text: "The radar updates in real-time based on your responses." },
         { title: "Health Metrics", text: "View health metrics over time in the charts." },
-        { title: "Export to Excel", text: "Export the chat data to Excel for easy sharing and analysis." },
-        { title: "Share Chat", text: "Share your chat with others using a secure code." },
-        { title: "Manage Questions", text: "Edit the list of questions specific to this chat." }
+        { title: "Export to Excel", text: "Export the Diag data to Excel for easy sharing and analysis." },
+        { title: "Share Diag", text: "Share your Diag with others using a secure code." },
+        { title: "Manage Questions", text: "Edit the list of questions specific to this Diag." }
       ],
       fr: [
-        { title: "Bienvenue", text: "Bienvenue dans Caty Health Tracker! Suivez les étapes pour commencer." },
-        { title: "Créer un Chat", text: "Cliquez sur 'Créer un chat' pour ajouter un nouveau chat." },
-        { title: "Remplir la Checklist", text: "Remplissez la checklist quotidienne pour surveiller la santé de votre chat." },
+        { title: "Bienvenue", text: "Bienvenue dans Autodiag Health Tracker! Suivez les étapes pour commencer." },
+        { title: "Créer un Diag", text: "Cliquez sur 'Créer un Diag' pour ajouter un nouveau Diag." },
+        { title: "Remplir la Checklist", text: "Remplissez la checklist quotidienne pour surveiller la santé de votre Diag." },
         { title: "Radar en Temps Réel", text: "Le radar se met à jour en temps réel en fonction de vos réponses." },
         { title: "Métriques de Santé", text: "Consultez les métriques de santé au fil du temps dans les graphiques." },
-        { title: "Exporter vers Excel", text: "Exportez les données du chat vers Excel pour un partage et une analyse faciles." },
-        { title: "Partager le Chat", text: "Partagez votre chat avec d'autres utilisateurs via un code sécurisé." },
-        { title: "Gérer les Questions", text: "Modifiez la liste des questions spécifiques à ce chat." }
+        { title: "Exporter vers Excel", text: "Exportez les données du Diag vers Excel pour un partage et une analyse faciles." },
+        { title: "Partager le Diag", text: "Partagez votre Diag avec d'autres utilisateurs via un code sécurisé." },
+        { title: "Gérer les Questions", text: "Modifiez la liste des questions spécifiques à ce Diag." }
       ]
     };
     let tutorialStep = 0;
@@ -837,8 +837,8 @@
     // Close Modal Function
     function closeModal(modalId) {
       document.getElementById(modalId).style.display = "none";
-      if (modalId === 'deleteChatModal') {
-        const input = document.getElementById("confirmChatName");
+      if (modalId === 'deleteDiagModal') {
+        const input = document.getElementById("confirmDiagName");
         const errorMsg = document.getElementById("deleteError");
         input.classList.remove("error");
         errorMsg.style.display = "none";
@@ -887,7 +887,7 @@
             logMessage("info", "Firebase configuration initialized.");
             closeModal("firebaseConfigModal");
             document.getElementById("authModal").style.display = "flex";
-          }).catch(err => {
+          }).diagch(err => {
             logMessage("error", `Error resetting Firebase: ${err}`);
             alert(getTranslation('errorOccurred'));
           });
@@ -899,7 +899,7 @@
           closeModal("firebaseConfigModal");
           document.getElementById("authModal").style.display = "flex";
         }
-      } catch (error) {
+      } diagch (error) {
         logMessage("error", `Error initializing Firebase: ${error}`);
         alert(getTranslation('errorOccurred'));
       }
@@ -923,21 +923,21 @@
                 document.getElementById("logoutBtn").style.display = "inline-block";
                 document.getElementById("app").style.display = "flex";
                 document.getElementById("authModal").style.display = "none";
-                logMessage("info", `User "${user.email}" authenticated.`);
-                loadUserChats();
+                logMessage("info", `User "${user.email}" authentidiaged.`);
+                loadUserDiags();
                 checkShareURL(user);
               } else {
                 document.getElementById("logoutBtn").style.display = "none";
                 document.getElementById("app").style.display = "none";
                 document.getElementById("authModal").style.display = "flex";
-                logMessage("info", "No user authenticated.");
-                catsData.length = 0;
-                renderChatSelector();
+                logMessage("info", "No user authentidiaged.");
+                diagsData.length = 0;
+                renderDiagSelector();
                 clearSections();
               }
             });
           });
-        } catch (error) {
+        } diagch (error) {
           logMessage("error", `Error initializing Firebase: ${error}`);
           alert(getTranslation('errorOccurred'));
           document.getElementById("firebaseConfigModal").style.display = "flex";
@@ -948,50 +948,50 @@
       }
     }
 
-    // Load User Chats from Firebase
-    function loadUserChats() {
+    // Load User Diags from Firebase
+    function loadUserDiags() {
       const user = firebase.auth().currentUser;
       if (!user) return;
       const userId = user.uid;
-      const dbRef = firebase.database().ref(`/users/${userId}/chats`);
+      const dbRef = firebase.database().ref(`/users/${userId}/Diags`);
       dbRef.on('value', snapshot => {
         const data = snapshot.val();
-        catsData.length = 0;
+        diagsData.length = 0;
         if (data) {
-          Object.values(data).forEach(chat => {
-            if (!chat.calendar) chat.calendar = [];
-            catsData.push(chat);
+          Object.values(data).forEach(Diag => {
+            if (!Diag.calendar) Diag.calendar = [];
+            diagsData.push(Diag);
           });
         }
-        renderChatSelector();
-        updateDeleteChatButton();
+        renderDiagSelector();
+        updateDeleteDiagButton();
         logMessage("info", "Data synchronized from Firebase for the user.");
       }, (error) => {
         logMessage("error", `Firebase Realtime Database error: ${error}`);
       });
     }
 
-    // Render Chat Selector
-    function renderChatSelector() {
-      const selector = document.getElementById("chatSelector");
-      selector.innerHTML = `<option value="" disabled selected>${getTranslation('selectChat')}</option>` + 
-        catsData.map((chat, i) => `<option value="${i}">${chat.name}</option>`).join("");
-      if (catsData.length > 0) {
-        selector.value = currentChatIndex;
-        selectChat();
+    // Render Diag Selector
+    function renderDiagSelector() {
+      const selector = document.getElementById("DiagSelector");
+      selector.innerHTML = `<option value="" disabled selected>${getTranslation('selectDiag')}</option>` + 
+        diagsData.map((Diag, i) => `<option value="${i}">${Diag.name}</option>`).join("");
+      if (diagsData.length > 0) {
+        selector.value = currentDiagIndex;
+        selectDiag();
       }
     }
 
-    // Select Chat Function
-    function selectChat() {
-      const selector = document.getElementById("chatSelector");
-      currentChatIndex = parseInt(selector.value, 10);
-      if (isNaN(currentChatIndex) || currentChatIndex < 0 || currentChatIndex >= catsData.length) {
-        logMessage("warning", "Invalid chat index.");
+    // Select Diag Function
+    function selectDiag() {
+      const selector = document.getElementById("DiagSelector");
+      currentDiagIndex = parseInt(selector.value, 10);
+      if (isNaN(currentDiagIndex) || currentDiagIndex < 0 || currentDiagIndex >= diagsData.length) {
+        logMessage("warning", "Invalid Diag index.");
         return;
       }
-      const isConnected = catsData[currentChatIndex].code !== undefined;
-      ["chartsSection", "timeSeriesSection", "summaryChartSection", "quizSection", "chatSection", "calendarSection"].forEach(id => {
+      const isConnected = diagsData[currentDiagIndex].code !== undefined;
+      ["chartsSection", "timeSeriesSection", "summaryChartSection", "quizSection", "DiagSection", "calendarSection"].forEach(id => {
         document.getElementById(id).style.display = isConnected ? "block" : "none";
       });
       if (isConnected) {
@@ -999,7 +999,7 @@
         renderRealtimeRadar();
         renderTimeSeriesChart();
         renderSummaryRadarChart();
-        renderChat();
+        renderDiag();
         renderCalendar();
         renderUpcomingEvents();
         document.getElementById("manageQuestions").style.display = "inline-block";
@@ -1007,14 +1007,14 @@
         clearSections();
         document.getElementById("manageQuestions").style.display = "none";
       }
-      updateDeleteChatButton();
-      logMessage("info", `Switched to chat "${catsData[currentChatIndex].name}".`);
+      updateDeleteDiagButton();
+      logMessage("info", `Switched to Diag "${diagsData[currentDiagIndex].name}".`);
     }
 
-    // Update Delete Chat Button Visibility
-    function updateDeleteChatButton() {
-      const deleteBtn = document.getElementById("deleteChatBtn");
-      deleteBtn.style.display = catsData.length > 0 ? "inline-block" : "none";
+    // Update Delete Diag Button Visibility
+    function updateDeleteDiagButton() {
+      const deleteBtn = document.getElementById("deleteDiagBtn");
+      deleteBtn.style.display = diagsData.length > 0 ? "inline-block" : "none";
     }
 
     // Clear All Sections
@@ -1029,39 +1029,31 @@
     // Default Forms
     const forms = {
       default: [
-        { label: "Has the cat eaten today?", type: "toggle" },
+        { label: "Did you eat today?", type: "toggle" },
         { label: "Number of meals today (0-10)", type: "slider", min: 0, max: 10 },
-        { label: "Has the cat drunk water today?", type: "toggle" },
-        { label: "Has Palladia medication been administered?", type: "toggle" },
-        { label: "Has cortisone medication been administered?", type: "toggle" },
-        { label: "Has the cat vomited recently?", type: "toggle" },
+        { label: "Did you drink water today?", type: "toggle" },
+        { label: "Did you vomit recently?", type: "toggle" },
         { label: "Have you noticed a significant decrease in appetite?", type: "toggle" },
-        { label: "Have you seen urine in the litter box?", type: "toggle" },
-        { label: "Has the cat defecated today?", type: "toggle" },
         { label: "Consistency of stool (1 = liquid, 10 = very hard)", type: "slider", min: 1, max: 10 },
-        { label: "Does the cat seem active as usual?", type: "toggle" },
-        { label: "Is the cat meowing more than usual?", type: "toggle" },
+        { label: "Are you as active as usual?", type: "toggle" },
         { label: "Have you noticed any physical anomalies (weight loss, swelling)?", type: "toggle" },
-        { label: "Does the cat seem to be in pain?", type: "toggle" },
+        { label: "Are you in pain?", type: "toggle" },
         { label: "General activity level (1 = lethargic, 10 = very active)", type: "slider", min: 1, max: 10 },
-        { label: "Does the cat seem to be drinking more than usual?", type: "toggle" },
-        { label: "Is the cat breathing normally?", type: "toggle" },
-        { label: "Is the cat scratching excessively?", type: "toggle" },
-        { label: "Is the cat showing signs of aggression?", type: "toggle" },
-        { label: "Is the cat urinating normally?", type: "toggle" },
-        { label: "Is the cat showing signs of jaundice?", type: "toggle" }
+        { label: "Do you drink more than usual?", type: "toggle" },
+        { label: "Do you breath normally?", type: "toggle" },
+        { label: "Are you urinating normally?", type: "toggle" }
       ]
     };
 
     // Render Quiz
     function renderQuiz() {
-      if (!catsData.length) {
-        logMessage("warning", "No chat available to display the quiz.");
+      if (!diagsData.length) {
+        logMessage("warning", "No Diag available to display the quiz.");
         return;
       }
       const quizContainer = document.getElementById("quizForm");
-      const form = catsData[currentChatIndex].form || forms["default"];
-      const lastEntry = catsData[currentChatIndex].history && catsData[currentChatIndex].history.length > 0 ? catsData[currentChatIndex].history[catsData[currentChatIndex].history.length - 1].answers : [];
+      const form = diagsData[currentDiagIndex].form || forms["default"];
+      const lastEntry = diagsData[currentDiagIndex].history && diagsData[currentDiagIndex].history.length > 0 ? diagsData[currentDiagIndex].history[diagsData[currentDiagIndex].history.length - 1].answers : [];
       quizContainer.innerHTML = form.map((q, i) => {
         if (q.type === "toggle") {
           let checked = false;
@@ -1110,7 +1102,7 @@
 
     // Toggle Answer Visibility
     function toggleAnswer(index, isChecked) {
-      const form = catsData[currentChatIndex].form || forms["default"];
+      const form = diagsData[currentDiagIndex].form || forms["default"];
       const question = form[index];
       if (question.hasComment) {
         const commentField = document.getElementById(`comment${index}`);
@@ -1127,7 +1119,7 @@
     function updateSliderValue(index, value) {
       const valueSpan = document.getElementById(`sliderValue${index}`);
       valueSpan.textContent = value;
-      const form = catsData[currentChatIndex].form || forms["default"];
+      const form = diagsData[currentDiagIndex].form || forms["default"];
       const q = form[index];
       const min = parseInt(q.min, 10);
       const max = parseInt(q.max, 10);
@@ -1148,8 +1140,8 @@
 
     // Get Current Answers
     function currentAnswers() {
-      if (!catsData.length) return [];
-      const form = catsData[currentChatIndex].form || forms["default"];
+      if (!diagsData.length) return [];
+      const form = diagsData[currentDiagIndex].form || forms["default"];
       const answers = form.map((q, i) => {
         if (q.type === "toggle") {
           const toggle = document.querySelector(`input[data-index="${i}"]`);
@@ -1169,41 +1161,41 @@
 
     // Save Answers to Firebase
     function saveAnswers() {
-      if (!catsData.length) {
-        logMessage("warning", "No chat available to save answers.");
+      if (!diagsData.length) {
+        logMessage("warning", "No Diag available to save answers.");
         return;
       }
       const answers = currentAnswers();
       const timestamp = Date.now();
       const historyEntry = { timestamp, answers };
-      if (!catsData[currentChatIndex].history) {
-        catsData[currentChatIndex].history = [];
+      if (!diagsData[currentDiagIndex].history) {
+        diagsData[currentDiagIndex].history = [];
       }
-      catsData[currentChatIndex].history.push(historyEntry);
-      saveChatToDatabase(catsData[currentChatIndex]);
+      diagsData[currentDiagIndex].history.push(historyEntry);
+      saveDiagToDatabase(diagsData[currentDiagIndex]);
       renderTimeSeriesChart();
       renderRealtimeRadar();
       renderSummaryRadarChart();
       logMessage("info", "Answers saved successfully.");
     }
 
-    // Save Chat to Firebase
-    function saveChatToDatabase(chat) {
+    // Save Diag to Firebase
+    function saveDiagToDatabase(Diag) {
       const user = firebase.auth().currentUser;
       if (!user) return;
       const userId = user.uid;
-      const dbRef = firebase.database().ref(`/users/${userId}/chats/${chat.code}`);
-      dbRef.set(chat)
-        .then(() => logMessage("info", "Chat data saved to database."))
-        .catch(error => logMessage("error", `Error saving chat data: ${error}`));
+      const dbRef = firebase.database().ref(`/users/${userId}/Diags/${Diag.code}`);
+      dbRef.set(Diag)
+        .then(() => logMessage("info", "Diag data saved to database."))
+        .diagch(error => logMessage("error", `Error saving Diag data: ${error}`));
     }
 
     // Render Real-Time Radar Chart
     function renderRealtimeRadar() {
-      if (!catsData.length) return;
+      if (!diagsData.length) return;
       const answers = currentAnswers();
       const data = answers.map(a => (typeof a === "object" ? a.value : a));
-      const labels = catsData[currentChatIndex].form.map(q => q.label);
+      const labels = diagsData[currentDiagIndex].form.map(q => q.label);
       if (realtimeRadar) { realtimeRadar.destroy(); }
       const ctx = document.getElementById("realtimeRadar").getContext("2d");
       realtimeRadar = new Chart(ctx, {
@@ -1227,10 +1219,10 @@
 
     // Render Time Series Chart
     function renderTimeSeriesChart() {
-      if (!catsData.length || !catsData[currentChatIndex].history) return;
-      const history = catsData[currentChatIndex].history;
+      if (!diagsData.length || !diagsData[currentDiagIndex].history) return;
+      const history = diagsData[currentDiagIndex].history;
       const labels = history.map(entry => new Date(entry.timestamp).toLocaleString());
-      const form = catsData[currentChatIndex].form || forms["default"];
+      const form = diagsData[currentDiagIndex].form || forms["default"];
       const datasets = form.map((q, i) => ({
         label: q.label,
         data: history.map(entry => entry.answers[i] || 0),
@@ -1249,9 +1241,9 @@
 
     // Render Summary Radar Chart
     function renderSummaryRadarChart() {
-      if (!catsData.length || !catsData[currentChatIndex].history) return;
-      const history = catsData[currentChatIndex].history;
-      const labels = catsData[currentChatIndex].form.map(q => q.label);
+      if (!diagsData.length || !diagsData[currentDiagIndex].history) return;
+      const history = diagsData[currentDiagIndex].history;
+      const labels = diagsData[currentDiagIndex].form.map(q => q.label);
       const data = labels.map((_, i) =>
         history.map(entry => entry.answers[i] || 0)
           .reduce((sum, value) => sum + value, 0) / history.length
@@ -1274,20 +1266,20 @@
       });
     }
 
-    // Create New Chat
-    function createChat() {
-      const name = prompt("Enter Chat Name:");
+    // Create New Diag
+    function createDiag() {
+      const name = prompt("Enter Diag Name:");
       if (!name) {
-        logMessage("warning", "No name entered for new chat.");
+        logMessage("warning", "No name entered for new Diag.");
         return;
       }
       const code = generateSecureCode();
       const user = firebase.auth().currentUser;
       if (!user) {
-        logMessage("warning", "User attempted to create chat without authentication.");
+        logMessage("warning", "User attempted to create Diag without authentidiagion.");
         return;
       }
-      const newChat = { 
+      const newDiag = { 
         name: name.trim(), 
         code, 
         history: [], 
@@ -1295,12 +1287,12 @@
         members: { [user.uid]: { email: user.email, role: "admin" } },
         calendar: []
       };
-      catsData.push(newChat);
-      saveChatToDatabase(newChat);
-      renderChatSelector();
-      selectChat();
-      updateDeleteChatButton();
-      logMessage("info", `New chat "${name}" created successfully.`);
+      diagsData.push(newDiag);
+      saveDiagToDatabase(newDiag);
+      renderDiagSelector();
+      selectDiag();
+      updateDeleteDiagButton();
+      logMessage("info", `New Diag "${name}" created successfully.`);
     }
 
     // Generate Secure Code for Sharing
@@ -1308,71 +1300,71 @@
       return Math.random().toString(36).substring(2, 15).toUpperCase() + Math.random().toString(36).substring(2, 15).toUpperCase();
     }
 
-    // Share Chat via URL
-    function shareChat() {
-      if (!catsData.length) {
-        logMessage("warning", "No chat available to share.");
+    // Share Diag via URL
+    function shareDiag() {
+      if (!diagsData.length) {
+        logMessage("warning", "No Diag available to share.");
         return;
       }
-      const currentChat = catsData[currentChatIndex];
+      const currentDiag = diagsData[currentDiagIndex];
       const shareCode = generateSecureCode();
-      const sharedChat = { ...currentChat };
-      delete sharedChat.history;
-      firebase.database().ref(`/sharedChats/${shareCode}`).set(sharedChat)
+      const sharedDiag = { ...currentDiag };
+      delete sharedDiag.history;
+      firebase.database().ref(`/sharedDiags/${shareCode}`).set(sharedDiag)
         .then(() => {
-          const shareURL = `${window.location.origin}${window.location.pathname}?share=${shareCode}`;
+          const shareURL = `${window.lodiagion.origin}${window.lodiagion.pathname}?share=${shareCode}`;
           navigator.clipboard.writeText(shareURL).then(() => {
-            logMessage("info", `Chat "${currentChat.name}" shared via URL.`);
-            alert("Chat share URL copied to clipboard!");
-          }).catch(err => {
+            logMessage("info", `Diag "${currentDiag.name}" shared via URL.`);
+            alert("Diag share URL copied to clipboard!");
+          }).diagch(err => {
             logMessage("error", `Failed to copy share URL: ${err}`);
             alert("Failed to copy share URL.");
           });
         })
-        .catch(err => {
-          logMessage("error", `Failed to share chat: ${err}`);
-          alert("Failed to share chat.");
+        .diagch(err => {
+          logMessage("error", `Failed to share Diag: ${err}`);
+          alert("Failed to share Diag.");
         });
     }
 
-    // Delete Chat
-    function deleteChat() {
-      if (!catsData.length) return;
-      const currentChat = catsData[currentChatIndex];
+    // Delete Diag
+    function deleteDiag() {
+      if (!diagsData.length) return;
+      const currentDiag = diagsData[currentDiagIndex];
       const user = firebase.auth().currentUser;
-      if (!user || !currentChat.members[user.uid] || currentChat.members[user.uid].role !== "admin") {
-        logMessage("warning", "User attempted to delete a chat without admin permissions.");
+      if (!user || !currentDiag.members[user.uid] || currentDiag.members[user.uid].role !== "admin") {
+        logMessage("warning", "User attempted to delete a Diag without admin permissions.");
         return;
       }
-      document.getElementById("deleteChatModal").style.display = "flex";
+      document.getElementById("deleteDiagModal").style.display = "flex";
     }
 
-    // Confirm Delete Chat
-    function confirmDeleteChat() {
-      const currentChat = catsData[currentChatIndex];
-      const confirmation = document.getElementById("confirmChatName").value.trim();
-      const inputField = document.getElementById("confirmChatName");
+    // Confirm Delete Diag
+    function confirmDeleteDiag() {
+      const currentDiag = diagsData[currentDiagIndex];
+      const confirmation = document.getElementById("confirmDiagName").value.trim();
+      const inputField = document.getElementById("confirmDiagName");
       const errorMsg = document.getElementById("deleteError");
-      if (confirmation === currentChat.name) {
+      if (confirmation === currentDiag.name) {
         const user = firebase.auth().currentUser;
         if (!user) {
-          logMessage("warning", "User attempted to delete chat without authentication.");
+          logMessage("warning", "User attempted to delete Diag without authentidiagion.");
           return;
         }
-        firebase.database().ref(`/users/${user.uid}/chats/${currentChat.code}`).remove()
+        firebase.database().ref(`/users/${user.uid}/Diags/${currentDiag.code}`).remove()
           .then(() => {
-            logMessage("info", `Chat "${currentChat.name}" deleted successfully.`);
-            catsData.splice(currentChatIndex, 1);
-            renderChatSelector();
+            logMessage("info", `Diag "${currentDiag.name}" deleted successfully.`);
+            diagsData.splice(currentDiagIndex, 1);
+            renderDiagSelector();
             clearSections();
-            closeModal("deleteChatModal");
-            updateDeleteChatButton();
+            closeModal("deleteDiagModal");
+            updateDeleteDiagButton();
           })
-          .catch(err => {
-            logMessage("error", `Error deleting chat "${currentChat.name}": ${err}`);
+          .diagch(err => {
+            logMessage("error", `Error deleting Diag "${currentDiag.name}": ${err}`);
           });
       } else {
-        logMessage("warning", "Chat name confirmation failed.");
+        logMessage("warning", "Diag name confirmation failed.");
         inputField.classList.add("error");
         errorMsg.style.display = "block";
       }
@@ -1410,21 +1402,21 @@
       const formattedDate = eventDate.toLocaleString();
       const user = firebase.auth().currentUser;
       if (!user) {
-        logMessage("warning", "User attempted to add event without authentication.");
+        logMessage("warning", "User attempted to add event without authentidiagion.");
         alert(getTranslation('loginPrompt'));
         return;
       }
-      const chatCode = catsData[currentChatIndex].code;
+      const DiagCode = diagsData[currentDiagIndex].code;
       const event = { title, description, date: formattedDate };
-      catsData[currentChatIndex].calendar.push(event);
-      saveChatToDatabase(catsData[currentChatIndex])
+      diagsData[currentDiagIndex].calendar.push(event);
+      saveDiagToDatabase(diagsData[currentDiagIndex])
         .then(() => {
           renderCalendar();
           closeModal("addEventModal");
           logMessage("info", `Event "${title}" added to calendar.`);
           alert(getTranslation('eventAdded'));
         })
-        .catch(err => {
+        .diagch(err => {
           logMessage("error", `Failed to add event: ${err}`);
           alert(getTranslation('errorOccurred'));
         });
@@ -1432,10 +1424,10 @@
 
     // Render Calendar
     function renderCalendar() {
-      if (!catsData.length) return;
+      if (!diagsData.length) return;
       const calendarContainer = document.getElementById("calendar");
       calendarContainer.innerHTML = '';
-      const calendar = catsData[currentChatIndex].calendar || [];
+      const calendar = diagsData[currentDiagIndex].calendar || [];
       const today = new Date();
       const year = today.getFullYear();
       const month = today.getMonth();
@@ -1467,10 +1459,10 @@
 
     // Render Upcoming Events
     function renderUpcomingEvents() {
-      if (!catsData.length) return;
+      if (!diagsData.length) return;
       const upcomingList = document.getElementById("upcomingEventsList");
       upcomingList.innerHTML = '';
-      const calendar = catsData[currentChatIndex].calendar || [];
+      const calendar = diagsData[currentDiagIndex].calendar || [];
       const now = new Date();
       const futureDate = new Date();
       futureDate.setDate(now.getDate() + 15);
@@ -1495,13 +1487,13 @@
       logs.style.display = (logs.style.display === "none" || logs.style.display === "") ? "flex" : "none";
     }
 
-    // Authentication Function
-    function authenticate() {
+    // Authentidiagion Function
+    function authentidiage() {
       const authTitle = document.getElementById("authTitle").innerText;
       const email = document.getElementById("authEmail").value.trim();
       const password = document.getElementById("authPassword").value;
       if (!email || !password) {
-        logMessage("warning", "Authentication fields left empty.");
+        logMessage("warning", "Authentidiagion fields left empty.");
         alert(getTranslation('errorOccurred'));
         return;
       }
@@ -1518,7 +1510,7 @@
             alert(getTranslation('loginSuccess'));
             closeModal("authModal");
           })
-          .catch((error) => {
+          .diagch((error) => {
             logMessage("error", `Login error: ${error.message}`);
             alert(`Error: ${error.message}`);
           });
@@ -1530,30 +1522,30 @@
         }
         firebase.auth().createUserWithEmailAndPassword(email, password)
           .then((userCredential) => {
-            userCredential.user.sendEmailVerification();
+            userCredential.user.sendEmailVerifidiagion();
             logMessage("info", `User "${userCredential.user.email}" signed up.`);
             alert(getTranslation('signupSuccess'));
             closeModal("authModal");
           })
-          .catch((error) => {
+          .diagch((error) => {
             logMessage("error", `Signup error: ${error.message}`);
             alert(`Error: ${error.message}`);
           });
       }
     }
 
-    // Toggle Authentication Mode (Login/Signup)
+    // Toggle Authentidiagion Mode (Login/Signup)
     function toggleAuthMode() {
       const authTitle = document.getElementById("authTitle").innerText;
       const signupText = getTranslation('signup');
       const loginText = getTranslation('login');
       if (authTitle === loginText) {
         document.getElementById("authTitle").innerText = signupText;
-        document.querySelector("button[onclick='authenticate()']").innerText = signupText;
+        document.querySelector("button[onclick='authentidiage()']").innerText = signupText;
         document.querySelector("button[onclick='toggleAuthMode()']").innerText = loginText;
       } else {
         document.getElementById("authTitle").innerText = loginText;
-        document.querySelector("button[onclick='authenticate()']").innerText = loginText;
+        document.querySelector("button[onclick='authentidiage()']").innerText = loginText;
         document.querySelector("button[onclick='toggleAuthMode()']").innerText = signupText;
       }
     }
@@ -1563,22 +1555,22 @@
       firebase.auth().signOut().then(() => {
         logMessage("info", "User logged out.");
         alert(getTranslation('logoutSuccess'));
-      }).catch((error) => {
+      }).diagch((error) => {
         logMessage("error", `Logout error: ${error.message}`);
         alert(`Error: ${error.message}`);
       });
     }
 
-    // Render Chat Messages
-    function renderChat() {
-      if (!catsData.length) return;
+    // Render Diag Messages
+    function renderDiag() {
+      if (!diagsData.length) return;
       const messagesContainer = document.getElementById("messages");
       messagesContainer.innerHTML = "";
       const user = firebase.auth().currentUser;
       if (!user) return;
-      const chatCode = catsData[currentChatIndex].code;
-      const chatRef = firebase.database().ref(`/users/${user.uid}/chats/${chatCode}/messages`);
-      chatRef.on('child_added', snapshot => {
+      const DiagCode = diagsData[currentDiagIndex].code;
+      const DiagRef = firebase.database().ref(`/users/${user.uid}/Diags/${DiagCode}/messages`);
+      DiagRef.on('child_added', snapshot => {
         const msg = snapshot.val();
         const messageDiv = document.createElement("div");
         messageDiv.classList.add("message");
@@ -1600,15 +1592,15 @@
         messagesContainer.appendChild(messageDiv);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
       });
-      renderChatMembers();
+      renderDiagMembers();
     }
 
-    // Render Chat Members
-    function renderChatMembers() {
+    // Render Diag Members
+    function renderDiagMembers() {
       const user = firebase.auth().currentUser;
       if (!user) return;
-      const chatCode = catsData[currentChatIndex].code;
-      const members = catsData[currentChatIndex].members;
+      const DiagCode = diagsData[currentDiagIndex].code;
+      const members = diagsData[currentDiagIndex].members;
       const usersList = document.getElementById("usersList");
       usersList.innerHTML = '';
       for (const uid in members) {
@@ -1636,11 +1628,11 @@
     function addQuestion() {
       const user = firebase.auth().currentUser;
       if (!user) {
-        logMessage("warning", "User attempted to add a question without authentication.");
+        logMessage("warning", "User attempted to add a question without authentidiagion.");
         alert(getTranslation('loginPrompt'));
         return;
       }
-      const isAdmin = catsData[currentChatIndex].members[user.uid].role === "admin";
+      const isAdmin = diagsData[currentDiagIndex].members[user.uid].role === "admin";
       if (!isAdmin) {
         logMessage("warning", "User attempted to add a question without admin permissions.");
         return;
@@ -1675,8 +1667,8 @@
       if (hasComment) {
         newQuestion.hasComment = true;
       }
-      catsData[currentChatIndex].form.push(newQuestion);
-      saveChatToDatabase(catsData[currentChatIndex])
+      diagsData[currentDiagIndex].form.push(newQuestion);
+      saveDiagToDatabase(diagsData[currentDiagIndex])
         .then(() => {
           renderQuiz();
           renderRealtimeRadar();
@@ -1686,7 +1678,7 @@
           logMessage("info", `Question added: "${questionLabel}".`);
           alert("Question added successfully!");
         })
-        .catch(err => {
+        .diagch(err => {
           logMessage("error", `Failed to add question: ${err}`);
           alert("Failed to add question.");
         });
@@ -1696,7 +1688,7 @@
     function renderQuestionsList() {
       const questionsList = document.getElementById("questionsList");
       questionsList.innerHTML = '';
-      const form = catsData[currentChatIndex].form || forms["default"];
+      const form = diagsData[currentDiagIndex].form || forms["default"];
       form.forEach((q, index) => {
         const li = document.createElement("li");
         li.innerHTML = `
@@ -1714,16 +1706,16 @@
     function editQuestion(index) {
       const user = firebase.auth().currentUser;
       if (!user) {
-        logMessage("warning", "User attempted to edit a question without authentication.");
+        logMessage("warning", "User attempted to edit a question without authentidiagion.");
         alert(getTranslation('loginPrompt'));
         return;
       }
-      const isAdmin = catsData[currentChatIndex].members[user.uid].role === "admin";
+      const isAdmin = diagsData[currentDiagIndex].members[user.uid].role === "admin";
       if (!isAdmin) {
         logMessage("warning", "User attempted to edit a question without admin permissions.");
         return;
       }
-      const form = catsData[currentChatIndex].form || forms["default"];
+      const form = diagsData[currentDiagIndex].form || forms["default"];
       const question = form[index];
       const newLabel = prompt(getTranslation('questionLabel'), question.label);
       if (!newLabel) {
@@ -1755,8 +1747,8 @@
       if (hasComment) {
         updatedQuestion.hasComment = true;
       }
-      catsData[currentChatIndex].form[index] = updatedQuestion;
-      saveChatToDatabase(catsData[currentChatIndex])
+      diagsData[currentDiagIndex].form[index] = updatedQuestion;
+      saveDiagToDatabase(diagsData[currentDiagIndex])
         .then(() => {
           renderQuiz();
           renderRealtimeRadar();
@@ -1766,7 +1758,7 @@
           logMessage("info", `Question edited: "${newLabel}".`);
           alert("Question edited successfully!");
         })
-        .catch(err => {
+        .diagch(err => {
           logMessage("error", `Failed to edit question: ${err}`);
           alert("Failed to edit question.");
         });
@@ -1776,19 +1768,19 @@
     function deleteQuestion(index) {
       const user = firebase.auth().currentUser;
       if (!user) {
-        logMessage("warning", "User attempted to delete a question without authentication.");
+        logMessage("warning", "User attempted to delete a question without authentidiagion.");
         alert(getTranslation('loginPrompt'));
         return;
       }
-      const isAdmin = catsData[currentChatIndex].members[user.uid].role === "admin";
+      const isAdmin = diagsData[currentDiagIndex].members[user.uid].role === "admin";
       if (!isAdmin) {
         logMessage("warning", "User attempted to delete a question without admin permissions.");
         return;
       }
       if (confirm("Are you sure you want to delete this question?")) {
-        const form = catsData[currentChatIndex].form || forms["default"];
+        const form = diagsData[currentDiagIndex].form || forms["default"];
         const removedQuestion = form.splice(index, 1)[0];
-        saveChatToDatabase(catsData[currentChatIndex])
+        saveDiagToDatabase(diagsData[currentDiagIndex])
           .then(() => {
             renderQuiz();
             renderRealtimeRadar();
@@ -1798,7 +1790,7 @@
             logMessage("info", `Question deleted: "${removedQuestion.label}".`);
             alert("Question deleted successfully!");
           })
-          .catch(err => {
+          .diagch(err => {
             logMessage("error", `Failed to delete question: ${err}`);
             alert("Failed to delete question.");
           });
@@ -1807,19 +1799,19 @@
 
     // Send Message Function
     function sendMessage() {
-      if (!catsData.length) return;
+      if (!diagsData.length) return;
       const messageInput = document.getElementById("messageInput");
       const message = messageInput.value.trim();
       if (!message) return;
       const user = firebase.auth().currentUser;
       if (!user) {
-        logMessage("warning", "User attempted to send message without authentication.");
+        logMessage("warning", "User attempted to send message without authentidiagion.");
         alert(getTranslation('loginPrompt'));
         return;
       }
-      const chatCode = catsData[currentChatIndex].code;
-      const chatRef = firebase.database().ref(`/users/${user.uid}/chats/${chatCode}/messages`).push();
-      chatRef.set({ user: user.email, type: "text", content: message, timestamp: Date.now() });
+      const DiagCode = diagsData[currentDiagIndex].code;
+      const DiagRef = firebase.database().ref(`/users/${user.uid}/Diags/${DiagCode}/messages`).push();
+      DiagRef.set({ user: user.email, type: "text", content: message, timestamp: Date.now() });
       messageInput.value = "";
     }
 
@@ -1855,7 +1847,7 @@
             stopRecordButton.style.display = "none";
           };
           logMessage("info", "Recording started.");
-        }).catch(err => {
+        }).diagch(err => {
           logMessage("error", `Microphone access denied: ${err}`);
           alert("Microphone access denied.");
         });
@@ -1878,13 +1870,13 @@
       }
       const user = firebase.auth().currentUser;
       if (!user) {
-        logMessage("warning", "User attempted to send voice message without authentication.");
+        logMessage("warning", "User attempted to send voice message without authentidiagion.");
         alert(getTranslation('loginPrompt'));
         return;
       }
-      const chatCode = catsData[currentChatIndex].code;
-      const chatRef = firebase.database().ref(`/users/${user.uid}/chats/${chatCode}/messages`).push();
-      chatRef.set({ user: user.email, type: "voice", content: recordedVoice, timestamp: Date.now() })
+      const DiagCode = diagsData[currentDiagIndex].code;
+      const DiagRef = firebase.database().ref(`/users/${user.uid}/Diags/${DiagCode}/messages`).push();
+      DiagRef.set({ user: user.email, type: "voice", content: recordedVoice, timestamp: Date.now() })
         .then(() => {
           logMessage("info", "Voice message sent successfully.");
           alert("Voice message sent!");
@@ -1892,7 +1884,7 @@
           document.getElementById("sendVoiceButton").style.display = "none";
           document.getElementById("reRecordButton").style.display = "none";
         })
-        .catch(err => {
+        .diagch(err => {
           logMessage("error", `Failed to send voice message: ${err}`);
           alert("Failed to send voice message.");
         });
@@ -1916,23 +1908,23 @@
     function promoteUser(uid) {
       const user = firebase.auth().currentUser;
       if (!user) {
-        logMessage("warning", "User attempted to promote without authentication.");
+        logMessage("warning", "User attempted to promote without authentidiagion.");
         alert(getTranslation('loginPrompt'));
         return;
       }
-      const isAdmin = catsData[currentChatIndex].members[user.uid].role === "admin";
+      const isAdmin = diagsData[currentDiagIndex].members[user.uid].role === "admin";
       if (!isAdmin) {
         logMessage("warning", "User attempted to promote without admin permissions.");
         return;
       }
-      catsData[currentChatIndex].members[uid].role = "admin";
-      saveChatToDatabase(catsData[currentChatIndex])
+      diagsData[currentDiagIndex].members[uid].role = "admin";
+      saveDiagToDatabase(diagsData[currentDiagIndex])
         .then(() => {
-          renderChatMembers();
+          renderDiagMembers();
           logMessage("info", "User promoted to admin.");
           alert("User promoted to admin.");
         })
-        .catch(err => {
+        .diagch(err => {
           logMessage("error", `Failed to promote user: ${err}`);
           alert("Failed to promote user.");
         });
@@ -1942,45 +1934,45 @@
     function demoteUser(uid) {
       const user = firebase.auth().currentUser;
       if (!user) {
-        logMessage("warning", "User attempted to demote without authentication.");
+        logMessage("warning", "User attempted to demote without authentidiagion.");
         alert(getTranslation('loginPrompt'));
         return;
       }
-      const isAdmin = catsData[currentChatIndex].members[user.uid].role === "admin";
+      const isAdmin = diagsData[currentDiagIndex].members[user.uid].role === "admin";
       if (!isAdmin) {
         logMessage("warning", "User attempted to demote without admin permissions.");
         return;
       }
-      const admins = Object.values(catsData[currentChatIndex].members).filter(member => member.role === "admin");
-      if (admins.length <= 1 && catsData[currentChatIndex].members[uid].role === "admin") {
+      const admins = Object.values(diagsData[currentDiagIndex].members).filter(member => member.role === "admin");
+      if (admins.length <= 1 && diagsData[currentDiagIndex].members[uid].role === "admin") {
         logMessage("warning", "Attempt to demote the last admin.");
-        alert("There must be at least one admin for this chat.");
+        alert("There must be at least one admin for this Diag.");
         return;
       }
-      catsData[currentChatIndex].members[uid].role = "user";
-      saveChatToDatabase(catsData[currentChatIndex])
+      diagsData[currentDiagIndex].members[uid].role = "user";
+      saveDiagToDatabase(diagsData[currentDiagIndex])
         .then(() => {
-          renderChatMembers();
+          renderDiagMembers();
           logMessage("info", "User demoted to user.");
           alert("User demoted to user.");
         })
-        .catch(err => {
+        .diagch(err => {
           logMessage("error", `Failed to demote user: ${err}`);
           alert("Failed to demote user.");
         });
     }
 
-    // Export Chat to Excel
-    function exportChatExcel() {
-      if (!catsData.length) return;
-      const currentChat = catsData[currentChatIndex];
-      const data = currentChat.history.map(entry => {
+    // Export Diag to Excel
+    function exportDiagExcel() {
+      if (!diagsData.length) return;
+      const currentDiag = diagsData[currentDiagIndex];
+      const data = currentDiag.history.map(entry => {
         const row = {
           Date: new Date(entry.timestamp).toLocaleDateString(),
           Time: new Date(entry.timestamp).toLocaleTimeString()
         };
         entry.answers.forEach((ans, i) => {
-          const question = currentChat.form[i] ? currentChat.form[i].label : `Question ${i+1}`;
+          const question = currentDiag.form[i] ? currentDiag.form[i].label : `Question ${i+1}`;
           if (typeof ans === "object") {
             row[question] = ans.value;
             if (ans.comment) {
@@ -1994,16 +1986,16 @@
       });
       const worksheet = XLSX.utils.json_to_sheet(data);
       const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Chat Data");
-      XLSX.writeFile(workbook, `${currentChat.name}.xlsx`);
-      logMessage("info", `Chat "${currentChat.name}" exported as Excel.`);
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Diag Data");
+      XLSX.writeFile(workbook, `${currentDiag.name}.xlsx`);
+      logMessage("info", `Diag "${currentDiag.name}" exported as Excel.`);
     }
 
     // Render Summary Radar Chart
     function renderSummaryRadarChart() {
-      if (!catsData.length || !catsData[currentChatIndex].history) return;
-      const history = catsData[currentChatIndex].history;
-      const labels = catsData[currentChatIndex].form.map(q => q.label);
+      if (!diagsData.length || !diagsData[currentDiagIndex].history) return;
+      const history = diagsData[currentDiagIndex].history;
+      const labels = diagsData[currentDiagIndex].form.map(q => q.label);
       const data = labels.map((_, i) =>
         history.map(entry => entry.answers[i] || 0)
           .reduce((sum, value) => sum + value, 0) / history.length
@@ -2051,62 +2043,62 @@
       document.getElementById("tutorialText").innerText = tutorialSteps[currentLanguage][tutorialStep].text;
     }
 
-    // Check for Shared Chat via URL
+    // Check for Shared Diag via URL
     function checkShareURL(user) {
-      const urlParams = new URLSearchParams(window.location.search);
+      const urlParams = new URLSearchParams(window.lodiagion.search);
       const shareCode = urlParams.get('share');
       if (shareCode) {
-        const sharedChatRef = firebase.database().ref(`/sharedChats/${shareCode}`);
-        sharedChatRef.once('value').then(snapshot => {
+        const sharedDiagRef = firebase.database().ref(`/sharedDiags/${shareCode}`);
+        sharedDiagRef.once('value').then(snapshot => {
           if (snapshot.exists()) {
-            const sharedChat = snapshot.val();
-            const existingIndex = catsData.findIndex(c => c.code === sharedChat.code);
+            const sharedDiag = snapshot.val();
+            const existingIndex = diagsData.findIndex(c => c.code === sharedDiag.code);
             if (existingIndex === -1) {
-              sharedChat.members = { ...sharedChat.members, [user.uid]: { email: user.email, role: "user" } };
-              saveToFirebase(`/users/${user.uid}/chats/${sharedChat.code}`, sharedChat)
+              sharedDiag.members = { ...sharedDiag.members, [user.uid]: { email: user.email, role: "user" } };
+              saveToFirebase(`/users/${user.uid}/Diags/${sharedDiag.code}`, sharedDiag)
                 .then(() => {
-                  catsData.push(sharedChat);
-                  renderChatSelector();
-                  selectChat();
-                  updateDeleteChatButton();
+                  diagsData.push(sharedDiag);
+                  renderDiagSelector();
+                  selectDiag();
+                  updateDeleteDiagButton();
                   renderQuestionsList();
                   renderQuiz();
                   renderRealtimeRadar();
                   renderTimeSeriesChart();
                   renderSummaryRadarChart();
-                  renderChat();
+                  renderDiag();
                   renderCalendar();
                   renderUpcomingEvents();
-                  logMessage("info", `Shared chat "${sharedChat.name}" added to user.`);
-                  alert("Shared chat added successfully!");
-                  const newURL = window.location.origin + window.location.pathname;
+                  logMessage("info", `Shared Diag "${sharedDiag.name}" added to user.`);
+                  alert("Shared Diag added successfully!");
+                  const newURL = window.lodiagion.origin + window.lodiagion.pathname;
                   window.history.replaceState({}, document.title, newURL);
                 })
-                .catch(err => {
-                  logMessage("error", `Failed to add shared chat: ${err}`);
-                  alert("Failed to add shared chat.");
+                .diagch(err => {
+                  logMessage("error", `Failed to add shared Diag: ${err}`);
+                  alert("Failed to add shared Diag.");
                 });
             } else {
-              logMessage("warning", `Attempt to add already linked chat "${sharedChat.name}".`);
-              alert("Chat is already linked.");
+              logMessage("warning", `Attempt to add already linked Diag "${sharedDiag.name}".`);
+              alert("Diag is already linked.");
             }
           } else {
-            logMessage("warning", `No shared chat found with code "${shareCode}".`);
-            alert("No shared chat found with the provided code.");
+            logMessage("warning", `No shared Diag found with code "${shareCode}".`);
+            alert("No shared Diag found with the provided code.");
           }
-        }).catch(err => {
-          logMessage("error", `Error retrieving shared chat: ${err}`);
-          alert("Error retrieving shared chat.");
+        }).diagch(err => {
+          logMessage("error", `Error retrieving shared Diag: ${err}`);
+          alert("Error retrieving shared Diag.");
         });
       }
     }
 
     // Render Calendar (Ensuring Proper CSS is Applied)
     function renderCalendar() {
-      if (!catsData.length) return;
+      if (!diagsData.length) return;
       const calendarContainer = document.getElementById("calendar");
       calendarContainer.innerHTML = '';
-      const calendar = catsData[currentChatIndex].calendar || [];
+      const calendar = diagsData[currentDiagIndex].calendar || [];
       const today = new Date();
       const year = today.getFullYear();
       const month = today.getMonth();
@@ -2136,15 +2128,15 @@
       logMessage("info", "Calendar rendered.");
     }
 
-    // Prevent Duplicate Function Definitions
+    // Prevent Duplidiage Function Definitions
     // All functions are defined once above
 
-    // Render Chat Members (Ensured Unique)
-    function renderChatMembers() {
+    // Render Diag Members (Ensured Unique)
+    function renderDiagMembers() {
       const user = firebase.auth().currentUser;
       if (!user) return;
-      const chatCode = catsData[currentChatIndex].code;
-      const members = catsData[currentChatIndex].members;
+      const DiagCode = diagsData[currentDiagIndex].code;
+      const members = diagsData[currentDiagIndex].members;
       const usersList = document.getElementById("usersList");
       usersList.innerHTML = '';
       for (const uid in members) {
@@ -2187,7 +2179,7 @@
     }
 
     // Additional Helper Functions
-    // (Ensure no duplicates and all functionalities are intact)
+    // (Ensure no duplidiages and all functionalities are intact)
 
     function updateModalTranslations() {
       // Mettez à jour les textes des modals en fonction de la langue actuelle
@@ -2238,7 +2230,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <script>
-// Patch 2: Event modification and deletion via modal on hover tooltip
+// Patch 2: Event modifidiagion and deletion via modal on hover tooltip
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.calendar-event').forEach(event => {
         event.addEventListener('mouseover', () => {
@@ -2293,7 +2285,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('DOMContentLoaded', () => {
     // Function to find the index of an event in the calendar array
     function findEventIndex(event) {
-      const calendar = catsData[currentChatIndex].calendar;
+      const calendar = diagsData[currentDiagIndex].calendar;
       return calendar.findIndex(e => 
         e.title === event.title && 
         e.description === event.description && 
@@ -2328,7 +2320,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const year = today.getFullYear();
             const month = today.getMonth();
             const day = parseInt(dayNumber, 10);
-            const eventsForDay = catsData[currentChatIndex].calendar.filter(event => {
+            const eventsForDay = diagsData[currentDiagIndex].calendar.filter(event => {
               const eventDate = new Date(event.date);
               return eventDate.getDate() === day &&
                      eventDate.getMonth() === month &&
@@ -2351,7 +2343,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.target.classList.contains('edit-event-btn')) {
         const tooltipEventDiv = e.target.closest('.tooltip-event');
         const eventIndex = parseInt(tooltipEventDiv.dataset.eventIndex, 10);
-        const event = catsData[currentChatIndex].calendar[eventIndex];
+        const event = diagsData[currentDiagIndex].calendar[eventIndex];
         openEditEventModal(eventIndex, event);
       }
 
@@ -2396,21 +2388,21 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // Update the event in the calendar array
-      catsData[currentChatIndex].calendar[index] = {
+      diagsData[currentDiagIndex].calendar[index] = {
         title: updatedTitle,
         date: updatedDate.toISOString(),
         description: updatedDescription
       };
 
-      // Save the updated chat to Firebase
-      saveChatToDatabase(catsData[currentChatIndex])
+      // Save the updated Diag to Firebase
+      saveDiagToDatabase(diagsData[currentDiagIndex])
         .then(() => {
           logMessage("info", `Event "${updatedTitle}" edited successfully.`);
           alert("Event edited successfully!");
           closeModal("editEventModal");
           renderCalendar(); // Re-render the calendar to reflect changes
         })
-        .catch(err => {
+        .diagch(err => {
           logMessage("error", `Failed to edit event: ${err}`);
           alert("Failed to edit event. Please try again.");
         });
@@ -2418,20 +2410,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to confirm and delete an event
     function confirmDeleteEvent(index) {
-      const event = catsData[currentChatIndex].calendar[index];
+      const event = diagsData[currentDiagIndex].calendar[index];
       const confirmation = confirm(`Are you sure you want to delete the event "${event.title}"?`);
       if (confirmation) {
         // Remove the event from the calendar array
-        catsData[currentChatIndex].calendar.splice(index, 1);
+        diagsData[currentDiagIndex].calendar.splice(index, 1);
 
-        // Save the updated chat to Firebase
-        saveChatToDatabase(catsData[currentChatIndex])
+        // Save the updated Diag to Firebase
+        saveDiagToDatabase(diagsData[currentDiagIndex])
           .then(() => {
             logMessage("info", `Event "${event.title}" deleted successfully.`);
             alert("Event deleted successfully!");
             renderCalendar(); // Re-render the calendar to reflect changes
           })
-          .catch(err => {
+          .diagch(err => {
             logMessage("error", `Failed to delete event: ${err}`);
             alert("Failed to delete event. Please try again.");
           });
@@ -2507,8 +2499,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    catsData.forEach(chat => {
-      chat.calendar.forEach(event => {
+    diagsData.forEach(Diag => {
+      Diag.calendar.forEach(event => {
         if (!event.id) {
           event.id = 'event-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
         }
@@ -2516,10 +2508,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     window.renderCalendar = function(mode = 'current') {
-      if (!catsData.length) return;
+      if (!diagsData.length) return;
       const calendarContainer = document.getElementById("calendar");
       calendarContainer.innerHTML = '';
-      const calendar = catsData[currentChatIndex].calendar || [];
+      const calendar = diagsData[currentDiagIndex].calendar || [];
       const today = new Date();
       const year = today.getFullYear();
       const month = today.getMonth();
@@ -2560,7 +2552,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.calendar-container').addEventListener('click', (e) => {
       if (e.target.classList.contains('edit-event-btn')) {
         const eventId = e.target.closest('.tooltip-event').dataset.eventId;
-        const event = catsData[currentChatIndex].calendar.find(ev => ev.id === eventId);
+        const event = diagsData[currentDiagIndex].calendar.find(ev => ev.id === eventId);
         if (event) {
           document.getElementById("editEventTitle").value = event.title;
           document.getElementById("editEventDateTime").value = new Date(event.date).toISOString().slice(0,16);
@@ -2571,16 +2563,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (e.target.classList.contains('delete-event-btn')) {
         const eventId = e.target.closest('.tooltip-event').dataset.eventId;
-        const event = catsData[currentChatIndex].calendar.find(ev => ev.id === eventId);
+        const event = diagsData[currentDiagIndex].calendar.find(ev => ev.id === eventId);
         if (event && confirm(`Are you sure you want to delete the event "${event.title}"?`)) {
-          const index = catsData[currentChatIndex].calendar.findIndex(ev => ev.id === eventId);
+          const index = diagsData[currentDiagIndex].calendar.findIndex(ev => ev.id === eventId);
           if (index !== -1) {
-            catsData[currentChatIndex].calendar.splice(index, 1);
-            saveChatToDatabase(catsData[currentChatIndex]).then(() => {
+            diagsData[currentDiagIndex].calendar.splice(index, 1);
+            saveDiagToDatabase(diagsData[currentDiagIndex]).then(() => {
               renderCalendar();
               logMessage("info", `Event "${event.title}" deleted successfully.`);
               alert("Event deleted successfully.");
-            }).catch(err => {
+            }).diagch(err => {
               logMessage("error", `Failed to delete event: ${err}`);
               alert("Failed to delete event.");
             });
@@ -2604,17 +2596,17 @@ document.addEventListener('DOMContentLoaded', () => {
         alert("Invalid date/time format.");
         return;
       }
-      const event = catsData[currentChatIndex].calendar.find(ev => ev.id === eventId);
+      const event = diagsData[currentDiagIndex].calendar.find(ev => ev.id === eventId);
       if (event) {
         event.title = updatedTitle;
         event.date = updatedDate.toISOString();
         event.description = updatedDescription;
-        saveChatToDatabase(catsData[currentChatIndex]).then(() => {
+        saveDiagToDatabase(diagsData[currentDiagIndex]).then(() => {
           renderCalendar();
           closeModal("editEventModal");
           logMessage("info", `Event "${updatedTitle}" edited successfully.`);
           alert("Event edited successfully!");
-        }).catch(err => {
+        }).diagch(err => {
           logMessage("error", `Failed to edit event: ${err}`);
           alert("Failed to edit event.");
         });
@@ -2639,13 +2631,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const id = 'event-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
         const event = { id, title, description, date: eventDate.toISOString() };
-        catsData[currentChatIndex].calendar.push(event);
-        saveChatToDatabase(catsData[currentChatIndex]).then(() => {
+        diagsData[currentDiagIndex].calendar.push(event);
+        saveDiagToDatabase(diagsData[currentDiagIndex]).then(() => {
           renderCalendar();
           closeModal("addEventModal");
           logMessage("info", `Event "${title}" added to calendar.`);
           alert(getTranslation('eventAdded'));
-        }).catch(err => {
+        }).diagch(err => {
           logMessage("error", `Failed to add event: ${err}`);
           alert(getTranslation('errorOccurred'));
         });
@@ -2662,18 +2654,18 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <script>
-  // Corrected saveChatToDatabase function
-  function saveChatToDatabase(chat) {
+  // Corrected saveDiagToDatabase function
+  function saveDiagToDatabase(Diag) {
     const user = firebase.auth().currentUser;
-    if (!user) return Promise.reject("No authenticated user.");
+    if (!user) return Promise.reject("No authentidiaged user.");
     const userId = user.uid;
-    const dbRef = firebase.database().ref(`/users/${userId}/chats/${chat.code}`);
-    return dbRef.set(chat);
+    const dbRef = firebase.database().ref(`/users/${userId}/Diags/${Diag.code}`);
+    return dbRef.set(Diag);
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    catsData.forEach(chat => {
-      chat.calendar.forEach(event => {
+    diagsData.forEach(Diag => {
+      Diag.calendar.forEach(event => {
         if (!event.id) {
           event.id = 'event-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
         }
@@ -2681,10 +2673,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     window.renderCalendar = function(mode = 'current') {
-      if (!catsData.length) return;
+      if (!diagsData.length) return;
       const calendarContainer = document.getElementById("calendar");
       calendarContainer.innerHTML = '';
-      const calendar = catsData[currentChatIndex].calendar || [];
+      const calendar = diagsData[currentDiagIndex].calendar || [];
       const today = new Date();
       const year = today.getFullYear();
       const month = today.getMonth();
@@ -2725,7 +2717,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.calendar-container').addEventListener('click', (e) => {
       if (e.target.classList.contains('edit-event-btn')) {
         const eventId = e.target.closest('.tooltip-event').dataset.eventId;
-        const event = catsData[currentChatIndex].calendar.find(ev => ev.id === eventId);
+        const event = diagsData[currentDiagIndex].calendar.find(ev => ev.id === eventId);
         if (event) {
           document.getElementById("editEventTitle").value = event.title;
           document.getElementById("editEventDateTime").value = new Date(event.date).toISOString().slice(0,16);
@@ -2736,16 +2728,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (e.target.classList.contains('delete-event-btn')) {
         const eventId = e.target.closest('.tooltip-event').dataset.eventId;
-        const event = catsData[currentChatIndex].calendar.find(ev => ev.id === eventId);
+        const event = diagsData[currentDiagIndex].calendar.find(ev => ev.id === eventId);
         if (event && confirm(`Are you sure you want to delete the event "${event.title}"?`)) {
-          const index = catsData[currentChatIndex].calendar.findIndex(ev => ev.id === eventId);
+          const index = diagsData[currentDiagIndex].calendar.findIndex(ev => ev.id === eventId);
           if (index !== -1) {
-            catsData[currentChatIndex].calendar.splice(index, 1);
-            saveChatToDatabase(catsData[currentChatIndex]).then(() => {
+            diagsData[currentDiagIndex].calendar.splice(index, 1);
+            saveDiagToDatabase(diagsData[currentDiagIndex]).then(() => {
               renderCalendar();
               logMessage("info", `Event "${event.title}" deleted successfully.`);
               alert("Event deleted successfully.");
-            }).catch(err => {
+            }).diagch(err => {
               logMessage("error", `Failed to delete event: ${err}`);
               alert("Failed to delete event.");
             });
@@ -2769,17 +2761,17 @@ document.addEventListener('DOMContentLoaded', () => {
         alert("Invalid date/time format.");
         return;
       }
-      const event = catsData[currentChatIndex].calendar.find(ev => ev.id === eventId);
+      const event = diagsData[currentDiagIndex].calendar.find(ev => ev.id === eventId);
       if (event) {
         event.title = updatedTitle;
         event.date = updatedDate.toISOString();
         event.description = updatedDescription;
-        saveChatToDatabase(catsData[currentChatIndex]).then(() => {
+        saveDiagToDatabase(diagsData[currentDiagIndex]).then(() => {
           renderCalendar();
           closeModal("editEventModal");
           logMessage("info", `Event "${updatedTitle}" edited successfully.`);
           alert("Event edited successfully!");
-        }).catch(err => {
+        }).diagch(err => {
           logMessage("error", `Failed to edit event: ${err}`);
           alert("Failed to edit event.");
         });
@@ -2804,13 +2796,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const id = 'event-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
         const event = { id, title, description, date: eventDate.toISOString() };
-        catsData[currentChatIndex].calendar.push(event);
-        saveChatToDatabase(catsData[currentChatIndex]).then(() => {
+        diagsData[currentDiagIndex].calendar.push(event);
+        saveDiagToDatabase(diagsData[currentDiagIndex]).then(() => {
           renderCalendar();
           closeModal("addEventModal");
           logMessage("info", `Event "${title}" added to calendar.`);
           alert(getTranslation('eventAdded'));
-        }).catch(err => {
+        }).diagch(err => {
           logMessage("error", `Failed to add event: ${err}`);
           alert(getTranslation('errorOccurred'));
         });
