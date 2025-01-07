@@ -1,24 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Autodiag Health Tracker</title>
+
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+
   <!-- jsPDF and XLSX for export functionalities -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
   <style>
-    /* Reset and Base Styles */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body, html { height: 100%; font-family: Arial, sans-serif; }
-    
-    /* Splash Screen */
+    /* Styles inchangés */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body, html {
+      height: 100%;
+      font-family: Arial, sans-serif;
+    }
     .splash-container {
       width: 100%;
       height: 100%;
@@ -42,21 +51,39 @@
       animation: fall 2s ease-in-out forwards;
     }
     @keyframes fall {
-      0% { transform: translateY(-100vh); opacity: 0; }
-      50% { transform: translateY(0); opacity: 1; }
-      70% { transform: translateY(-20px); }
-      100% { transform: translateY(0); }
+      0% {
+        transform: translateY(-100vh);
+        opacity: 0;
+      }
+      50% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+      70% {
+        transform: translateY(-20px);
+      }
+      100% {
+        transform: translateY(0);
+      }
     }
-    .fade-out { animation: fadeOut 1s forwards; }
+    .fade-out {
+      animation: fadeOut 1s forwards;
+    }
     @keyframes fadeOut {
-      0% { opacity: 1; }
-      100% { opacity: 0; visibility: hidden; }
+      0% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0;
+        visibility: hidden;
+      }
     }
-
-    /* App Container */
-    .app-container { display: none; flex: 1; flex-direction: column; height: 100%; }
-
-    /* Header */
+    .app-container {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      height: 100%;
+    }
     header {
       background-color: #ff6f61;
       color: white;
@@ -68,8 +95,6 @@
       justify-content: space-between;
       align-items: center;
     }
-
-    /* Navigation */
     nav {
       display: flex;
       justify-content: space-between;
@@ -90,8 +115,6 @@
       flex-wrap: wrap;
       gap: 0.5em;
     }
-
-    /* Main Content */
     main {
       display: flex;
       flex: 1;
@@ -108,125 +131,225 @@
       flex-direction: column;
       gap: 2em;
     }
-
-    /* Sections */
-    .chart-container, .quiz-container, .Diag-container, .calendar-container, .summary-chart-container {
+    .chart-container,
+    .quiz-container,
+    .Diag-container,
+    .calendar-container,
+    .summary-chart-container,
+    .useful-docs-container {
       background: white;
       padding: 1em;
       border-radius: 5px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    .chart-container canvas, .summary-chart-container canvas {
+    .chart-container canvas,
+    .summary-chart-container canvas {
       width: 100%;
       height: 300px;
     }
-    .Diag-container { display: flex; flex-direction: column; height: 400px; }
-    .connected-users { margin-bottom: 1em; }
-    .connected-users h3 { margin-bottom: 0.5em; }
-    .connected-users ul { list-style: none; max-height: 100px; overflow-y: auto; }
-    .connected-users li { margin-bottom: 0.3em; display: flex; justify-content: space-between; align-items: center; }
-    .connected-users button { margin-left: 0.5em; padding: 0.2em 0.5em; border: none; background-color: #4caf50; color: white; border-radius: 3px; cursor: pointer; }
-    .messages { height: 55%; flex-grow: 1; overflow-y: auto; border: 1px solid #ccc; padding: 0.5em; margin-bottom: 0.5em; border-radius: 5px; background-color: #fff; }
-    .message { margin-bottom: 0.5em; display: flex; }
-    .message.user { justify-content: flex-end; }
-    .message .avatar { width: 40px; height: 40px; border-radius: 50%; background-color: #bbb; margin-right: 0.5em; }
-    .message.user .avatar { margin-left: 0.5em; margin-right: 0; }
-    .message .text { max-width: 60%; padding: 0.5em 1em; border-radius: 20px; background-color: #fff; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-    .message.user .text { background-color: #dcf8c6; }
-    .message .text::after { content: ""; position: absolute; top: 10px; width: 0; height: 0; border: 10px solid transparent; }
-    .message.user .text::after { right: -20px; border-left-color: #dcf8c6; }
-    .message .text::after { left: -20px; border-right-color: #fff; }
-    .Diag-input { display: flex; gap: 0.5em; }
-    .Diag-input input { flex-grow: 1; padding: 0.5em; border: 1px solid #ccc; border-radius: 5px; }
-    .Diag-input button { padding: 0.5em 1em; border: none; background-color: #76c7c0; color: white; cursor: pointer; border-radius: 5px; }
-    .voice-buttons { display: flex; justify-content: space-between; margin-top: 0.5em; }
-    .voice-buttons button { padding: 0.5em; border: none; background-color: #2196f3; color: white; cursor: pointer; border-radius: 5px; flex: 1; margin: 0 0.25em; }
-    footer { background-color: #ff6f61; color: white; text-align: center; padding: 0.5em; flex-shrink: 0; }
-
-    /* Logs Container */
-    .logs-container {
+    .quiz-container form > div {
+      margin-bottom: 1em;
+    }
+    .question-container {
+      margin-bottom: 1em;
+    }
+    .question-container textarea {
+      margin-top: 0.5em;
       width: 100%;
-      max-width: 300px;
-      background-color: #333;
-      color: #fff;
-      display: none;
-      flex-direction: column;
-      padding: 1em;
-      overflow-y: auto;
-      position: relative;
+      resize: vertical;
     }
-    @media (min-width: 768px) { 
-      .logs-container { width: 30%; max-width: none; } 
-    }
-    .logs-container h3 { margin-bottom: 1em; }
-    .log-entry { font-size: 0.9em; margin-bottom: 0.5em; padding: 0.5em; border-radius: 5px; }
-    .log-entry.info { background-color: #2196f3; }
-    .log-entry.warning { background-color: #ff9800; }
-    .log-entry.error { background-color: #f44336; }
-    .toggle-logs-btn {
-      position: absolute;
-      top: 10px;
-      right: -40px;
-      background-color: #333;
-      color: #fff;
-      border: none;
-      padding: 0.5em;
-      cursor: pointer;
-      border-radius: 5px 0 0 5px;
-      transform: rotate(-90deg);
-      transform-origin: top right;
-      font-size: 0.9em;
-    }
-    @media (max-width: 767px) { 
-      .logs-container { position: fixed; bottom: 0; right: 0; width: 100%; max-width: none; height: 200px; } 
-      .toggle-logs-btn { right: 10px; top: -40px; transform: rotate(0); } 
-    }
-
-    /* Modals */
-    .modal, .manage-questions-modal, .event-modal, .tutorial-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      justify-content: center;
-      align-items: center;
-      z-index: 1001;
-    }
-    .modal-content, .manage-questions-modal-content, .event-modal-content, .tutorial-modal-content {
-      background: white;
-      padding: 2em;
-      border-radius: 10px;
-      width: 90%;
-      max-width: 600px;
-      text-align: center;
+    .slider-container {
       display: flex;
       flex-direction: column;
-      gap: 1em;
-      position: relative;
-      height:95%;
-      overflow:scroll;
+      margin-bottom: 1em;
     }
-    .modal-content label, .event-modal-content label { align-self: flex-start; }
-    .modal-content input, .modal-content select, .modal-content button, .modal-content textarea,
-    .event-modal-content input, .event-modal-content textarea { margin: 0.5em 0; padding: 0.5em; width: 100%; }
-    .manage-questions-modal-content { max-height: 80vh; overflow-y: auto; }
-    .toggle-password {
+    .slider-container label {
+      margin-bottom: 0.5em;
+    }
+    .slider-input {
+      display: flex;
+      align-items: center;
+    }
+    .slider-input input[type="range"] {
+      flex-grow: 1;
+    }
+    .slider-value {
+      width: 50px;
+      text-align: center;
+      font-weight: bold;
+      margin-left: 0.5em;
+    }
+    .slider-value.good {
+      color: green;
+    }
+    .slider-value.warning {
+      color: orange;
+    }
+    .slider-value.bad {
+      color: red;
+    }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider-switch {
       position: absolute;
-      top: 50%;
-      right: 10px;
-      transform: translateY(-50%);
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.4s;
+      border-radius: 24px;
+    }
+    .slider-switch:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider-switch {
+      background-color: #2196F3;
+    }
+    input:checked + .slider-switch:before {
+      transform: translateX(26px);
+    }
+    .Diag-container {
+      display: flex;
+      flex-direction: column;
+      height: 400px;
+    }
+    .connected-users {
+      margin-bottom: 1em;
+    }
+    .connected-users ul {
+      list-style: none;
+      max-height: 100px;
+      overflow-y: auto;
+    }
+    .connected-users li {
+      margin-bottom: 0.3em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .connected-users li button {
+      margin-left: 0.5em;
+      padding: 0.2em 0.5em;
+      border: none;
+      background-color: #4caf50;
+      color: white;
+      border-radius: 3px;
       cursor: pointer;
     }
-
-    /* Calendar Styles */
+    .messages {
+      height: 55%;
+      flex-grow: 1;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 0.5em;
+      margin-bottom: 0.5em;
+      border-radius: 5px;
+      background-color: #fff;
+    }
+    .message {
+      margin-bottom: 0.5em;
+      display: flex;
+    }
+    .message.user {
+      justify-content: flex-end;
+    }
+    .message .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #bbb;
+      margin-right: 0.5em;
+    }
+    .message.user .avatar {
+      margin-left: 0.5em;
+      margin-right: 0;
+    }
+    .message .text {
+      max-width: 60%;
+      padding: 0.5em 1em;
+      border-radius: 20px;
+      background-color: #fff;
+      position: relative;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    .message.user .text {
+      background-color: #dcf8c6;
+    }
+    .message .text::after {
+      content: "";
+      position: absolute;
+      top: 10px;
+      width: 0;
+      height: 0;
+      border: 10px solid transparent;
+    }
+    .message.user .text::after {
+      right: -20px;
+      border-left-color: #dcf8c6;
+    }
+    .message .text::after {
+      left: -20px;
+      border-right-color: #fff;
+    }
+    .Diag-input {
+      display: flex;
+      gap: 0.5em;
+    }
+    .Diag-input input {
+      flex-grow: 1;
+      padding: 0.5em;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .Diag-input button {
+      padding: 0.5em 1em;
+      border: none;
+      background-color: #76c7c0;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .voice-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.5em;
+    }
+    .voice-buttons button {
+      padding: 0.5em;
+      border: none;
+      background-color: #2196f3;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+      flex: 1;
+      margin: 0 0.25em;
+    }
     .calendar-container {
       background-color: white;
       padding: 1em;
       border-radius: 5px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      position: relative;
+      margin-bottom: 1em;
     }
     .calendar {
       display: grid;
@@ -266,151 +389,365 @@
       white-space: nowrap;
       z-index: 10;
     }
+    .tooltip-event {
+      margin-bottom: 0.5em;
+      position: relative;
+    }
+    .event-actions {
+      display: flex;
+      gap: 0.3em;
+      margin-top: 0.3em;
+    }
+    .edit-event-btn {
+      background-color: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      padding: 2px 5px;
+      cursor: pointer;
+      font-size: 0.8em;
+    }
+    .delete-event-btn {
+      background-color: #f44336;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      padding: 2px 5px;
+      cursor: pointer;
+      font-size: 0.8em;
+    }
     .upcoming-events h3 {
       margin-bottom: 0.5em;
     }
-    .upcoming-events ul { list-style: none; padding: 0; }
-    .upcoming-events li { margin-bottom: 0.5em; }
-    
-    /* Slider Styles */
-    .slider-container { display: flex; flex-direction: column; margin-bottom: 1em; }
-    .slider-container label { margin-bottom: 0.5em; }
-    .slider-input { display: flex; align-items: center; }
-    .slider-input input[type="range"] { flex-grow: 1; }
-    .slider-value { width: 50px; text-align: center; font-weight: bold; margin-left: 0.5em; }
-    .slider-value.good { color: green; }
-    .slider-value.warning { color: orange; }
-    .slider-value.bad { color: red; }
-    .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
-    .switch input { opacity: 0; width: 0; height: 0; }
-    .slider-switch { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: 0.4s; border-radius: 24px; }
-    .slider-switch:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: 0.4s; border-radius: 50%; }
-    input:checked + .slider-switch { background-color: #2196F3; }
-    input:checked + .slider-switch:before { transform: translateX(26px); }
+    .upcoming-events ul {
+      list-style: none;
+      padding: 0;
+    }
+    .upcoming-events li {
+      margin-bottom: 0.5em;
+    }
+    .logs-container {
+      width: 100%;
+      max-width: 300px;
+      background-color: #333;
+      color: #fff;
+      display: none;
+      flex-direction: column;
+      padding: 1em;
+      overflow-y: auto;
+      position: relative;
+    }
+    .logs-container h3 {
+      margin-bottom: 1em;
+    }
+    .log-entry {
+      font-size: 0.9em;
+      margin-bottom: 0.5em;
+      padding: 0.5em;
+      border-radius: 5px;
+    }
+    .log-entry.info {
+      background-color: #2196f3;
+    }
+    .log-entry.warning {
+      background-color: #ff9800;
+    }
+    .log-entry.error {
+      background-color: #f44336;
+    }
+    .toggle-logs-btn {
+      background-color: #4a4a4a;
+      color: #fff;
+      border: none;
+      padding: 0.5em;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-bottom: 0.5em;
+    }
+    footer {
+      background-color: #ff6f61;
+      color: white;
+      text-align: center;
+      padding: 0.5em;
+      flex-shrink: 0;
+    }
+    @media (min-width: 768px) {
+      .logs-container {
+        width: 30%;
+        max-width: none;
+      }
+    }
+    @media (max-width: 767px) {
+      header {
+        flex-direction: column;
+      }
+      nav {
+        flex-direction: column;
+      }
+      .nav-buttons {
+        flex-direction: column;
+        width: 100%;
+      }
+      .logs-container {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        width: 100%;
+        max-width: none;
+        height: 200px;
+      }
+      main {
+        flex-direction: column;
+      }
+    }
+    .modal,
+    .manage-questions-modal,
+    .event-modal,
+    .tutorial-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1001;
+    }
+    .modal-content,
+    .manage-questions-modal-content,
+    .event-modal-content,
+    .tutorial-modal-content {
+      background: white;
+      padding: 2em;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 600px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 1em;
+      position: relative;
+      height: 95%;
+      overflow: scroll;
+    }
+    .modal-content label,
+    .event-modal-content label {
+      align-self: flex-start;
+    }
+    .modal-content input,
+    .modal-content select,
+    .modal-content button,
+    .modal-content textarea,
+    .event-modal-content input,
+    .event-modal-content textarea {
+      margin: 0.5em 0;
+      padding: 0.5em;
+      width: 100%;
+    }
+    .manage-questions-modal-content {
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .toggle-password {
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      transform: translateY(-50%);
+      cursor: pointer;
+    }
+    #editEventModal {
+      display: none;
+      position: fixed;
+      z-index: 2000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.5);
+    }
+    .event-modal-content {
+      background-color: #fefefe;
+      margin: 10% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 500px;
+      border-radius: 10px;
+      position: relative;
+    }
+    .event-modal-content h2 {
+      margin-bottom: 20px;
+    }
+    .event-modal-content label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .event-modal-content input,
+    .event-modal-content textarea {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .modal-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .modal-buttons button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .modal-buttons button:first-child {
+      background-color: #4CAF50;
+      color: white;
+    }
+    .modal-buttons button:last-child {
+      background-color: #f44336;
+      color: white;
+    }
+    .event-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+    .event-item button {
+      margin-left: 5px;
+      padding: 2px 5px;
+      font-size: 0.8em;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    .question-list {
+      text-align: left;
+    }
+    .question-list h3 {
+      margin-bottom: 0.5em;
+    }
+    .question-list ul {
+      list-style: none;
+      padding: 0;
+    }
+    .question-list li {
+      padding: 0.5em;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .question-list li:last-child {
+      border-bottom: none;
+    }
+    .question-actions button {
+      margin-left: 0.5em;
+      padding: 0.3em 0.6em;
+      border: none;
+      background-color: #2196F3;
+      color: white;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    .admin-panel {
+      display: none;
+      padding: 1em;
+      background-color: #f3f3f3;
+      border-top: 1px solid #ccc;
+    }
+    .admin-panel h3 {
+      margin-bottom: 1em;
+    }
+    .admin-user {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5em 0;
+      border-bottom: 1px solid #ddd;
+    }
+    .admin-user:last-child {
+      border-bottom: none;
+    }
+    .admin-user button {
+      padding: 0.3em 0.6em;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      background-color: #4caf50;
+      color: white;
+    }
+    .admin-user button.deactivate {
+      background-color: #f44336;
+    }
 
-    /* Question List Styles */
-    .question-list { text-align: left; }
-    .question-list h3 { margin-bottom: 0.5em; }
-    .question-list ul { list-style: none; padding: 0; }
-    .question-list li { padding: 0.5em; border-bottom: 1px solid #ccc; display: flex; justify-content: space-between; align-items: center; }
-    .question-list li:last-child { border-bottom: none; }
-    .question-actions button { margin-left: 0.5em; padding: 0.3em 0.6em; border: none; background-color: #2196F3; color: white; border-radius: 3px; cursor: pointer; }
+    /* Documents Section */
+    .docs-list {
+      list-style: none;
+      padding: 0;
+      margin-top: 1em;
+      margin-bottom: 1em;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .docs-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #ddd;
+      padding: 0.3em 0;
+    }
+    .docs-list li button {
+      margin-left: 0.5em;
+      padding: 0.2em 0.5em;
+      border: none;
+      background-color: #2196f3;
+      color: white;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 0.9em;
+    }
 
-    /* Responsive Adjustments */
-    @media (max-width: 767px) { 
-      header { flex-direction: column; }
-      nav { flex-direction: column; }
-      .nav-buttons { flex-direction: column; width: 100%; }
-      .logs-container { position: fixed; bottom: 0; right: 0; width: 100%; max-width: none; height: 200px; } 
-      .toggle-logs-btn { right: 10px; top: -40px; transform: rotate(0); } 
+    /* Calendar Navigation Buttons */
+    .calendar-nav-button {
+      position: absolute;
+      top: 10px;
+      background-color: rgba(0,0,0,0.1);
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+    .calendar-nav-button.prev {
+      left: 10px;
+    }
+    .calendar-nav-button.next {
+      right: 10px;
+    }
+
+    /* Ensure voice buttons are always visible */
+    .main-content {
+      display: flex;
+      flex-direction: column;
+    }
+    .calendar-container {
+      margin-bottom: 1em;
     }
   </style>
- <!-- Styles pour le Modal d'Édition d'Événement -->
-<style>
-  /* Styles du Modal d'Édition d'Événement */
-  #editEventModal {
-    display: none; /* Caché par défaut */
-    position: fixed;
-    z-index: 2000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.5);
-  }
-
-  .event-modal-content {
-    background-color: #fefefe;
-    margin: 10% auto; /* 10% du haut et centré */
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%; /* Largeur du modal */
-    max-width: 500px;
-    border-radius: 10px;
-    position: relative;
-  }
-
-  .event-modal-content h2 {
-    margin-bottom: 20px;
-  }
-
-  .event-modal-content label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-  }
-
-  .event-modal-content input,
-  .event-modal-content textarea {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-  }
-
-  .modal-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-  }
-
-  .modal-buttons button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-
-  .modal-buttons button:first-child {
-    background-color: #4CAF50;
-    color: white;
-  }
-
-  .modal-buttons button:last-child {
-    background-color: #f44336;
-    color: white;
-  }
-
-  /* Boutons Éditer et Supprimer dans les Tooltips */
-  .event-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 5px;
-  }
-
-  .event-item button {
-    margin-left: 5px;
-    padding: 2px 5px;
-    font-size: 0.8em;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-  }
-
-  .edit-event-btn {
-    background-color: #2196F3;
-    color: white;
-  }
-
-  .delete-event-btn {
-    background-color: #f44336;
-    color: white;
-  }
-</style>
-
 </head>
+
 <body>
-  <!-- Splash Screen -->
   <div class="splash-container" id="splash">
     <div class="brand">Autodiag</div>
   </div>
 
-  <!-- Main App Container -->
   <div class="app-container" id="app">
-    <!-- Header -->
     <header>
       <span data-key="appTitle">Autodiag Health Tracker</span>
       <select id="languageSelector" class="language-selector" onchange="changeLanguage(this.value)">
@@ -419,11 +756,9 @@
         <option value="fr">FR</option>
       </select>
     </header>
-
-    <!-- Navigation -->
     <nav>
       <select id="DiagSelector" onchange="selectDiagUser()">
-        <option value="" disabled selected>Select Diag</option>
+        <option value="" disabled selected>Select Patient</option>
       </select>
       <div class="nav-buttons">
         <button onclick="createDiag()">Create a follow-up</button>
@@ -432,38 +767,42 @@
         <button onclick="deleteDiag()" id="deleteDiagBtn" style="display:none;">Delete Diag</button>
         <button onclick="openManageQuestionsModal()" id="manageQuestions" style="display:none;">Manage Questions</button>
         <button onclick="logout()" style="display:none;" id="logoutBtn">Logout</button>
+        <button class="toggle-logs-btn" onclick="toggleLogs()">Toggle Logs</button>
       </div>
     </nav>
-
-    <!-- Main Content -->
     <main>
       <div class="main-content">
-        <!-- Real-Time Radar Chart -->
+        <section class="useful-docs-container" id="usefulDocsSection" style="display:none;">
+          <h2 data-key="usefulDocuments">Documents</h2>
+          <div>
+            <input type="text" id="docLabelInput" placeholder="Document Label" />
+            <input type="text" id="docLinkInput" placeholder="Document Link (URL)" />
+            <button onclick="addUsefulDoc()">Add Document</button>
+          </div>
+          <ul class="docs-list" id="docsList"></ul>
+        </section>
+
         <section class="chart-container" id="chartsSection" style="display:none;">
           <h2 data-key="realTimeRadar">Real-Time Health Radar</h2>
           <canvas id="realtimeRadar"></canvas>
         </section>
 
-        <!-- Daily Health Checklist -->
         <section class="quiz-container" id="quizSection" style="display:none;">
           <h2 data-key="dailyHealthChecklist">Daily Health Checklist</h2>
           <form id="quizForm"></form>
           <button onclick="saveAnswers()">Save</button>
         </section>
 
-        <!-- Health Metrics Over Time -->
         <section class="chart-container" id="timeSeriesSection" style="display:none;">
           <h2 data-key="healthMetrics">Health Metrics Over Time</h2>
           <canvas id="timeSeriesChart"></canvas>
         </section>
 
-        <!-- Summary Radar Over Time -->
         <section class="summary-chart-container" id="summaryChartSection" style="display:none;">
-          <h2>Summary Radar Over Time</h2>
+          <h2 data-key="summaryRadar">Summary Radar Over Time</h2>
           <canvas id="summaryRadarChart"></canvas>
         </section>
 
-        <!-- Diag Section -->
         <section class="Diag-container" id="DiagSection" style="display:none;">
           <h2>Diag</h2>
           <div class="connected-users">
@@ -472,7 +811,7 @@
           </div>
           <div class="messages" id="messages"></div>
           <div class="Diag-input">
-            <input type="text" id="messageInput" placeholder="Type a message">
+            <input type="text" id="messageInput" placeholder="Type a message" />
             <button onclick="sendMessage()">Send</button>
           </div>
           <div class="voice-buttons">
@@ -483,32 +822,24 @@
           </div>
         </section>
 
-        <!-- Shared Calendar -->
         <section class="calendar-container" id="calendarSection" style="display:none;">
-          <h2>Shared Calendar</h2>
+          <h2 data-key="sharedCalendar">Calendrier Partagé</h2>
           <div class="calendar" id="calendar"></div>
           <div class="upcoming-events">
-            <h3>Upcoming Events (Next 15 Days)</h3>
+            <h3 data-key="upcomingEvents">Événements à venir (15 prochains jours)</h3>
             <ul id="upcomingEventsList"></ul>
           </div>
           <button onclick="showAddEventModal()">Add Event</button>
         </section>
       </div>
-
-      <!-- Logs Container -->
       <div class="logs-container" id="logsContainer">
-        <button class="toggle-logs-btn" onclick="toggleLogs()">Logs</button>
         <h3>Logs</h3>
         <div id="logs"></div>
       </div>
     </main>
-
-    <!-- Footer -->
     <footer>Made with ❤️ for your beloved ones</footer>
   </div>
 
-  <!-- Modals -->
-  <!-- Language Selection Modal -->
   <div class="modal" id="languageModal">
     <div class="modal-content">
       <h2>Select Language</h2>
@@ -520,35 +851,21 @@
     </div>
   </div>
 
-  <!-- Firebase Configuration Modal -->
   <div class="modal" id="firebaseConfigModal">
     <div class="modal-content">
       <h2>Configure Firebase</h2>
-      <label for="apiKey">API Key:</label>
-      <input type="text" id="apiKey" placeholder="Enter API Key">
-      <label for="authDomain">Auth Domain:</label>
-      <input type="text" id="authDomain" placeholder="Enter Auth Domain">
-      <label for="databaseURL">Database URL:</label>
-      <input type="text" id="databaseURL" placeholder="Enter Database URL">
-      <label for="projectId">Project ID:</label>
-      <input type="text" id="projectId" placeholder="Enter Project ID">
-      <label for="storageBucket">Storage Bucket:</label>
-      <input type="text" id="storageBucket" placeholder="Enter Storage Bucket">
-      <label for="messagingSenderId">Messaging Sender ID:</label>
-      <input type="text" id="messagingSenderId" placeholder="Enter Messaging Sender ID">
-      <label for="appId">App ID:</label>
-      <input type="text" id="appId" placeholder="Enter App ID">
-      <button onclick="submitFirebaseConfig()">Submit</button>
+      <p>Import your Firebase config JSON file (exported from Firebase Console):</p>
+      <input type="file" id="firebaseConfigFile" accept=".json" />
+      <button onclick="loadFirebaseConfigFile()">Load</button>
     </div>
   </div>
 
-  <!-- authentication Modal -->
   <div class="modal" id="authModal">
     <div class="modal-content">
       <h2 id="authTitle">Login</h2>
-      <input type="email" id="authEmail" placeholder="Email">
-      <div class="password-container">
-        <input type="password" id="authPassword" placeholder="Password">
+      <input type="email" id="authEmail" placeholder="Email" />
+      <div class="password-container" style="position: relative;">
+        <input type="password" id="authPassword" placeholder="Password" />
         <span class="toggle-password" onclick="togglePasswordVisibility('authPassword')">👁️</span>
       </div>
       <button onclick="authentidiage()">Login</button>
@@ -557,17 +874,15 @@
     </div>
   </div>
 
-  <!-- Link Existing Diag Modal -->
   <div class="modal" id="linkDiagModal">
     <div class="modal-content">
       <h2>Link to Existing Diag</h2>
-      <input type="text" id="linkDiagCode" placeholder="Enter Diag Code">
+      <input type="text" id="linkDiagCode" placeholder="Enter Diag Code" />
       <button onclick="linkExistingDiag()">Link Diag</button>
       <button onclick="closeModal('linkDiagModal')">Close</button>
     </div>
   </div>
 
-  <!-- Tutorial Modal -->
   <div class="modal" id="tutorialModal">
     <div class="modal-content">
       <h2 id="tutorialTitle"></h2>
@@ -577,55 +892,47 @@
     </div>
   </div>
 
-  <!-- Delete Diag Confirmation Modal -->
   <div class="modal" id="deleteDiagModal">
     <div class="modal-content">
       <h2>Delete Diag</h2>
       <p>Please type the Diag name to confirm deletion:</p>
-      <input type="text" id="confirmDiagName" placeholder="Enter patient's first name">
+      <input type="text" id="confirmDiagName" placeholder="Enter patient's first name" />
       <button onclick="confirmDeleteDiag()">Delete</button>
       <button onclick="closeModal('deleteDiagModal')">Close</button>
       <span id="deleteError" style="color: red; display: none;">Patient does not match.</span>
     </div>
   </div>
 
-  <!-- Add Event Modal -->
   <div class="modal" id="addEventModal">
     <div class="modal-content">
-      <h2>Add Event</h2>
-      <input type="text" id="eventTitle" placeholder="Event Title">
-      <input type="datetime-local" id="eventDateTime">
+      <h2 data-key="addEvent">Add Event</h2>
+      <input type="text" id="eventTitle" placeholder="Event Title" />
+      <input type="datetime-local" id="eventDateTime" />
       <textarea id="eventDescription" placeholder="Event Description"></textarea>
       <button onclick="addEvent()">Add</button>
       <button onclick="closeModal('addEventModal')">Cancel</button>
     </div>
   </div>
-  
 
-<!-- Modal pour Éditer un Événement -->
-<div class="modal" id="editEventModal">
-  <div class="event-modal-content">
-    <h2>Éditer l'Événement</h2>
-    <label for="editEventTitle">Titre de l'Événement :</label>
-    <input type="text" id="editEventTitle" placeholder="Entrez le titre de l'événement">
-    
-    <label for="editEventDateTime">Date et Heure de l'Événement :</label>
-    <input type="datetime-local" id="editEventDateTime">
-    
-    <label for="editEventDescription">Description de l'Événement :</label>
-    <textarea id="editEventDescription" placeholder="Entrez la description de l'événement"></textarea>
-    
-    <div class="modal-buttons">
-      <button onclick="saveEditedEvent()">Sauvegarder</button>
-      <button onclick="closeModal('editEventModal')">Annuler</button>
+  <div class="modal" id="editEventModal">
+    <div class="event-modal-content">
+      <h2 data-key="editEvent">Edit Event</h2>
+      <label for="editEventTitle">Event Title:</label>
+      <input type="text" id="editEventTitle" placeholder="Enter event title" />
+      <label for="editEventDateTime">Event Date and Time:</label>
+      <input type="datetime-local" id="editEventDateTime" />
+      <label for="editEventDescription">Event Description:</label>
+      <textarea id="editEventDescription" placeholder="Enter event description"></textarea>
+      <div class="modal-buttons">
+        <button onclick="saveEditedEvent()">Save</button>
+        <button onclick="closeModal('editEventModal')">Cancel</button>
+      </div>
     </div>
   </div>
-</div>
 
-  <!-- Manage Questions Modal -->
   <div class="modal" id="manageQuestionsModal">
     <div class="modal-content">
-      <h2>Manage Questions</h2>
+      <h2 data-key="manageQuestions">Manage Questions</h2>
       <button onclick="addQuestion()">Add Question</button>
       <div class="question-list">
         <h3>Current Questions:</h3>
@@ -635,8 +942,12 @@
     </div>
   </div>
 
+  <div class="admin-panel" id="adminPanel">
+    <h3>Administration Panel</h3>
+    <div id="adminUsersList"></div>
+  </div>
+
   <script>
-    // Language Translations
     const languages = {
       en: {
         appTitle: "Autodiag Health Tracker",
@@ -654,7 +965,7 @@
         close: "Close",
         email: "Email",
         password: "Password",
-        createDiag: "Create Follow-up",
+        createDiag: "Create a follow-up",
         shareDiag: "Share Diag",
         exportDiagExcel: "Export Diag Excel",
         deleteDiag: "Delete Diag",
@@ -670,11 +981,11 @@
         reRecordVoice: "Re-record",
         addEvent: "Add Event",
         logs: "Logs",
-        toggleLogs: "Logs",
+        toggleLogs: "Toggle Logs",
         addQuestion: "Add Question",
         editQuestion: "Edit",
         deleteQuestion: "Delete",
-        confirmDelete: "Please type the patient name to confirm deletion:",
+        confirmDelete: "Please type the Diag name to confirm deletion:",
         enterDiagName: "Enter patient's first name",
         tutorial: "Tutorial",
         next: "Next",
@@ -698,7 +1009,11 @@
         sliderMax: "Slider Maximum Value:",
         hasComment: "Requires Comment?",
         promote: "Promote",
-        demote: "Demote"
+        demote: "Demote",
+        usefulDocuments: "Documents",
+        sharedCalendar: "Shared Calendar",
+        addEventLabel: "Add Event",
+        editEventLabel: "Edit Event"
       },
       fr: {
         appTitle: "Autodiag Health Tracker",
@@ -732,11 +1047,11 @@
         reRecordVoice: "Re-enregistrer",
         addEvent: "Ajouter un événement",
         logs: "Journaux",
-        toggleLogs: "Journaux",
+        toggleLogs: "Activer/Désactiver Journaux",
         addQuestion: "Ajouter une question",
         editQuestion: "Modifier",
         deleteQuestion: "Supprimer",
-        confirmDelete: "Veuillez taper le prénom du patient pour confirmer la suppression :",
+        confirmDelete: "Veuillez taper le nom du Diag pour confirmer la suppression :",
         enterDiagName: "Entrez le prénom du patient",
         tutorial: "Tutoriel",
         next: "Suivant",
@@ -760,10 +1075,14 @@
         sliderMax: "Valeur maximale du slider :",
         hasComment: "Requiert un commentaire ?",
         promote: "Promouvoir",
-        demote: "Rétrograder"
+        demote: "Rétrograder",
+        usefulDocuments: "Documents",
+        sharedCalendar: "Calendrier Partagé",
+        addEventLabel: "Ajouter un événement",
+        editEventLabel: "Modifier l'Événement"
       }
     };
-    let currentLanguage = localStorage.getItem('selectedLanguage') || 'en';
+    let currentLanguage = localStorage.getItem("selectedLanguage") || "en";
     let firebaseConfigStored = null;
     const diagsData = [];
     let currentDiagIndex = 0;
@@ -772,51 +1091,32 @@
     let isRecording = false;
     let recordedVoice = null;
     let audioChunks = [];
-    const tutorialSteps = {
-      en: [
-        { title: "Welcome", text: "Welcome to Autodiag Health Tracker! Follow the steps to get started." },
-        { title: "Create a follow-up", text: "Click on 'Create Follow-up' to add a new follow-up." },
-        { title: "Fill the Checklist", text: "Fill out the daily checklist to monitor the patient health." },
-        { title: "Real-Time Radar", text: "The radar updates in real-time based on your responses." },
-        { title: "Health Metrics", text: "View health metrics over time in the charts." },
-        { title: "Export to Excel", text: "Export the Diag data to Excel for easy sharing and analysis." },
-        { title: "Share Diag", text: "Share your Diag with others using a secure code." },
-        { title: "Manage Questions", text: "Edit the list of questions specific to this Diag." }
-      ],
-      fr: [
-        { title: "Bienvenue", text: "Bienvenue dans Autodiag Health Tracker! Suivez les étapes pour commencer." },
-        { title: "Créer un Diag", text: "Cliquez sur 'Créer un Diag' pour ajouter un nouveau Diag." },
-        { title: "Remplir la Checklist", text: "Remplissez la checklist quotidienne pour surveiller la santé de votre Diag." },
-        { title: "Radar en Temps Réel", text: "Le radar se met à jour en temps réel en fonction de vos réponses." },
-        { title: "Métriques de Santé", text: "Consultez les métriques de santé au fil du temps dans les graphiques." },
-        { title: "Exporter vers Excel", text: "Exportez les données du Diag vers Excel pour un partage et une analyse faciles." },
-        { title: "Partager le Diag", text: "Partagez votre Diag avec d'autres utilisateurs via un code sécurisé." },
-        { title: "Gérer les Questions", text: "Modifiez la liste des questions spécifiques à ce Diag." }
-      ]
-    };
     let tutorialStep = 0;
-    const offlineQueue = [];
 
-    // Logging Function
     function logMessage(type, message) {
       const logContainer = document.getElementById("logs");
       if (!logContainer) return;
       const logEntry = document.createElement("div");
       logEntry.classList.add("log-entry", type);
-      logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      logEntry.textContent = "[" + new Date().toLocaleTimeString() + "] " + message;
       logContainer.appendChild(logEntry);
       logContainer.scrollTop = logContainer.scrollHeight;
-      console[type === 'error' ? 'error' : type === 'warning' ? 'warn' : 'log'](`Log (${type}): ${message}`);
+
+      if (type === "error") console.error("Log (error): " + message);
+      else if (type === "warning") console.warn("Log (warning): " + message);
+      else console.log("Log (info): " + message);
     }
 
-    // Language Change Function
     function changeLanguage(lang) {
       currentLanguage = lang;
-      localStorage.setItem('selectedLanguage', lang);
-      document.querySelectorAll('[data-key]').forEach(element => {
-        const key = element.getAttribute('data-key');
+      localStorage.setItem("selectedLanguage", lang);
+      document.querySelectorAll("[data-key]").forEach((element) => {
+        const key = element.getAttribute("data-key");
         if (languages[lang][key]) {
-          if (element.tagName.toLowerCase() === 'input' || element.tagName.toLowerCase() === 'textarea') {
+          if (
+            element.tagName.toLowerCase() === "input" ||
+            element.tagName.toLowerCase() === "textarea"
+          ) {
             element.placeholder = languages[lang][key];
           } else {
             element.textContent = languages[lang][key];
@@ -827,26 +1127,49 @@
       if (document.getElementById("manageQuestionsModal").style.display === "flex") {
         renderQuestionsList();
       }
+      document.getElementById("usefulDocsSection").querySelector("h2").textContent = languages[lang]["usefulDocuments"];
+      document.getElementById("addEventModal").querySelector("h2").textContent = languages[lang]["addEventLabel"];
+      document.getElementById("editEventModal").querySelector("h2").textContent = languages[lang]["editEventLabel"];
     }
 
-    // Get Translation Function
     function getTranslation(key) {
       return languages[currentLanguage][key] || key;
     }
 
-    // Close Modal Function
+    function updateModalTranslations() {
+      const modals = document.querySelectorAll(".modal-content, .event-modal-content");
+      modals.forEach((modal) => {
+        modal.querySelectorAll("[data-key]").forEach((element) => {
+          const key = element.getAttribute("data-key");
+          if (languages[currentLanguage][key]) {
+            if (
+              element.tagName.toLowerCase() === "input" ||
+              element.tagName.toLowerCase() === "textarea"
+            ) {
+              element.placeholder = languages[currentLanguage][key];
+            } else {
+              element.textContent = languages[currentLanguage][key];
+            }
+          }
+        });
+      });
+    }
+
     function closeModal(modalId) {
       document.getElementById(modalId).style.display = "none";
-      if (modalId === 'deleteDiagModal') {
+      if (modalId === "deleteDiagModal") {
         const input = document.getElementById("confirmDiagName");
         const errorMsg = document.getElementById("deleteError");
         input.classList.remove("error");
         errorMsg.style.display = "none";
         input.value = "";
       }
+      if (modalId === "editEventModal") {
+        const modal = document.getElementById("editEventModal");
+        delete modal.dataset.editEventId;
+      }
     }
 
-    // Submit Language Selection
     function submitLanguage() {
       const lang = document.getElementById("initialLanguageSelector").value;
       if (!lang) {
@@ -854,43 +1177,48 @@
         return;
       }
       changeLanguage(lang);
-      closeModal('languageModal');
+      closeModal("languageModal");
       document.getElementById("firebaseConfigModal").style.display = "flex";
     }
 
-    // Submit Firebase Configuration
-    function submitFirebaseConfig() {
-      const apiKey = document.getElementById("apiKey").value.trim();
-      const authDomain = document.getElementById("authDomain").value.trim();
-      const databaseURL = document.getElementById("databaseURL").value.trim();
-      const projectId = document.getElementById("projectId").value.trim();
-      const storageBucket = document.getElementById("storageBucket").value.trim();
-      const messagingSenderId = document.getElementById("messagingSenderId").value.trim();
-      const appId = document.getElementById("appId").value.trim();
-      if (!apiKey || !authDomain || !databaseURL || !projectId || !storageBucket || !messagingSenderId || !appId) {
-        logMessage("warning", "Incomplete Firebase configuration.");
-        alert(getTranslation('errorOccurred'));
+    function loadFirebaseConfigFile() {
+      const fileInput = document.getElementById("firebaseConfigFile");
+      if (!fileInput.files[0]) {
+        alert("No file selected.");
         return;
       }
-      const config = { apiKey, authDomain, databaseURL, projectId, storageBucket, messagingSenderId, appId };
-      initializeFirebaseWithConfig(config);
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const config = JSON.parse(e.target.result);
+          initializeFirebaseWithConfig(config);
+        } catch (err) {
+          alert("Invalid JSON file.");
+          logMessage("error", "Error parsing JSON config file: " + err);
+        }
+      };
+      reader.readAsText(file);
     }
 
-    // Initialize Firebase with Config
     function initializeFirebaseWithConfig(config) {
       try {
         if (firebase.apps.length) {
-          firebase.app().delete().then(() => {
-            firebase.initializeApp(config);
-            firebaseConfigStored = config;
-            localStorage.setItem("firebaseConfig", JSON.stringify(config));
-            logMessage("info", "Firebase configuration initialized.");
-            closeModal("firebaseConfigModal");
-            document.getElementById("authModal").style.display = "flex";
-          }).catch(err => {
-            logMessage("error", `Error resetting Firebase: ${err}`);
-            alert(getTranslation('errorOccurred'));
-          });
+          firebase
+            .app()
+            .delete()
+            .then(() => {
+              firebase.initializeApp(config);
+              firebaseConfigStored = config;
+              localStorage.setItem("firebaseConfig", JSON.stringify(config));
+              logMessage("info", "Firebase configuration initialized.");
+              closeModal("firebaseConfigModal");
+              document.getElementById("authModal").style.display = "flex";
+            })
+            .catch((err) => {
+              logMessage("error", "Error resetting Firebase: " + err);
+              alert(getTranslation("errorOccurred"));
+            });
         } else {
           firebase.initializeApp(config);
           firebaseConfigStored = config;
@@ -900,12 +1228,11 @@
           document.getElementById("authModal").style.display = "flex";
         }
       } catch (error) {
-        logMessage("error", `Error initializing Firebase: ${error}`);
-        alert(getTranslation('errorOccurred'));
+        logMessage("error", "Error initializing Firebase: " + error);
+        alert(getTranslation("errorOccurred"));
       }
     }
 
-    // Initialize Firebase on Load
     function initializeFirebase() {
       const config = JSON.parse(localStorage.getItem("firebaseConfig"));
       if (config) {
@@ -917,29 +1244,44 @@
           } else {
             logMessage("info", "Firebase was already initialized.");
           }
-          firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(() => {
-            firebase.auth().onAuthStateChanged((user) => {
-              if (user) {
-                document.getElementById("logoutBtn").style.display = "inline-block";
-                document.getElementById("app").style.display = "flex";
-                document.getElementById("authModal").style.display = "none";
-                logMessage("info", `User "${user.email}" authenticated.`);
-                loadUserDiags();
-                checkShareURL(user);
-              } else {
-                document.getElementById("logoutBtn").style.display = "none";
-                document.getElementById("app").style.display = "none";
-                document.getElementById("authModal").style.display = "flex";
-                logMessage("info", "No user authenticated.");
-                diagsData.length = 0;
-                renderDiagSelector();
-                clearSections();
-              }
+          firebase
+            .auth()
+            .setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+            .then(() => {
+              firebase.auth().onAuthStateChanged((user) => {
+                if (user) {
+                  document.getElementById("logoutBtn").style.display = "inline-block";
+                  document.getElementById("app").style.display = "flex";
+                  document.getElementById("authModal").style.display = "none";
+                  logMessage("info", 'User "' + user.email + '" authenticated.');
+                  loadUserDiags();
+                  checkShareURL(user);
+                  isAdmin(user)
+                    .then((admin) => {
+                      if (admin) {
+                        document.getElementById("adminPanel").style.display = "block";
+                        loadAdminUsers();
+                      } else {
+                        document.getElementById("adminPanel").style.display = "none";
+                      }
+                    })
+                    .catch((e) => {
+                      logMessage("error", "Error checking admin status: " + e);
+                    });
+                } else {
+                  document.getElementById("logoutBtn").style.display = "none";
+                  document.getElementById("app").style.display = "none";
+                  document.getElementById("authModal").style.display = "flex";
+                  logMessage("info", "No user authenticated.");
+                  diagsData.length = 0;
+                  renderDiagSelector();
+                  clearSections();
+                }
+              });
             });
-          });
         } catch (error) {
-          logMessage("error", `Error initializing Firebase: ${error}`);
-          alert(getTranslation('errorOccurred'));
+          logMessage("error", "Error initializing Firebase: " + error);
+          alert(getTranslation("errorOccurred"));
           document.getElementById("firebaseConfigModal").style.display = "flex";
         }
       } else {
@@ -948,41 +1290,207 @@
       }
     }
 
-    // Load User Diags from Firebase
+    function isAdmin(user) {
+      if (!user) return Promise.resolve(false);
+      return firebase
+        .database()
+        .ref("/users/" + user.uid + "/role")
+        .once("value")
+        .then((snapshot) => {
+          return snapshot.val() === "admin";
+        });
+    }
+
+    function loadAdminUsers() {
+      firebase
+        .database()
+        .ref("/users")
+        .on("value", (snapshot) => {
+          const users = snapshot.val();
+          const adminUsersList = document.getElementById("adminUsersList");
+          adminUsersList.innerHTML = "";
+          for (const uid in users) {
+            const usr = users[uid];
+            const userDiv = document.createElement("div");
+            userDiv.classList.add("admin-user");
+            const verifiedText = usr.isVerified ? "Oui" : "Non";
+            const verifyBtn = usr.isVerified
+              ? `<button onclick="toggleVerification('${uid}', false)">Désactiver</button>`
+              : `<button onclick="toggleVerification('${uid}', true)">Activer</button>`;
+            userDiv.innerHTML = `
+              <span>${usr.email} - Vérifié: ${verifiedText}</span>
+              <div>${verifyBtn}</div>
+            `;
+            adminUsersList.appendChild(userDiv);
+          }
+        });
+    }
+
+    function toggleVerification(uid, verify) {
+      const updates = {};
+      updates["/users/" + uid + "/isVerified"] = verify;
+      firebase
+        .database()
+        .ref()
+        .update(updates)
+        .then(() => {
+          logMessage("info", "Utilisateur " + uid + " vérifié: " + verify);
+          alert("Utilisateur " + (verify ? "validé" : "désactivé") + " avec succès.");
+        })
+        .catch((err) => {
+          logMessage("error", "Erreur lors de la mise à jour de la vérification: " + err);
+          alert("Erreur lors de la mise à jour de la vérification.");
+        });
+    }
+
+    function authentidiage() {
+      const authTitle = document.getElementById("authTitle").innerText;
+      const email = document.getElementById("authEmail").value.trim();
+      const password = document.getElementById("authPassword").value;
+      if (!email || !password) {
+        logMessage("warning", "authentication fields left empty.");
+        alert(getTranslation("errorOccurred"));
+        return;
+      }
+      if (authTitle === getTranslation("login")) {
+        firebase
+          .auth()
+          .signInWithEmailAndPassword(email, password)
+          .then((userCredential) => {
+            if (!userCredential.user.emailVerified) {
+              logMessage("warning", "User attempted to login without verifying email.");
+              alert("Please verify your email before logging in.");
+              firebase.auth().signOut();
+              return;
+            }
+            logMessage("info", 'User "' + userCredential.user.email + '" logged in.');
+            alert(getTranslation("loginSuccess"));
+            closeModal("authModal");
+          })
+          .catch((error) => {
+            logMessage("error", "Login error: " + error.message);
+            alert("Error: " + error.message);
+          });
+      } else {
+        if (
+          password.length < 8 ||
+          !/[A-Z]/.test(password) ||
+          !/[a-z]/.test(password) ||
+          !/\d/.test(password) ||
+          !/[!@#$%^&*(),.?":{}|<>]/.test(password)
+        ) {
+          alert(
+            "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character."
+          );
+          logMessage("warning", "User entered weak password during signup.");
+          return;
+        }
+        firebase
+          .auth()
+          .createUserWithEmailAndPassword(email, password)
+          .then((userCredential) => {
+            const user = userCredential.user;
+            firebase
+              .database()
+              .ref("/users/" + user.uid)
+              .set({
+                email: user.email,
+                isVerified: false,
+                role: "user",
+                documents: [],
+                calendar: [],
+                form: JSON.parse(JSON.stringify(forms["default"])),
+                history: []
+              })
+              .then(() => {
+                user.sendEmailVerification();
+                logMessage("info", 'User "' + user.email + '" signed up and email verification sent.');
+                alert(getTranslation("signupSuccess"));
+                closeModal("authModal");
+              })
+              .catch((err) => {
+                logMessage("error", "Erreur lors de la création du profil utilisateur: " + err);
+                alert(getTranslation("errorOccurred"));
+              });
+          })
+          .catch((error) => {
+            logMessage("error", "Signup error: " + error.message);
+            alert("Error: " + error.message);
+          });
+      }
+    }
+
+    function toggleAuthMode() {
+      const authTitle = document.getElementById("authTitle").innerText;
+      const signupText = getTranslation("signup");
+      const loginText = getTranslation("login");
+      if (authTitle === loginText) {
+        document.getElementById("authTitle").innerText = signupText;
+        document.querySelector("button[onclick='authentidiage()']").innerText = signupText;
+        document.querySelector("button[onclick='toggleAuthMode()']").innerText = loginText;
+      } else {
+        document.getElementById("authTitle").innerText = loginText;
+        document.querySelector("button[onclick='authentidiage()']").innerText = loginText;
+        document.querySelector("button[onclick='toggleAuthMode()']").innerText = signupText;
+      }
+    }
+
+    function logout() {
+      firebase
+        .auth()
+        .signOut()
+        .then(() => {
+          logMessage("info", "User logged out.");
+          alert(getTranslation("logoutSuccess"));
+        })
+        .catch((error) => {
+          logMessage("error", "Logout error: " + error.message);
+          alert("Error: " + error.message);
+        });
+    }
+
     function loadUserDiags() {
       const user = firebase.auth().currentUser;
       if (!user) return;
       const userId = user.uid;
-      const dbRef = firebase.database().ref(`/users/${userId}/Diags`);
-      dbRef.on('value', snapshot => {
-        const data = snapshot.val();
-        diagsData.length = 0;
-        if (data) {
-          Object.values(data).forEach(Diag => {
-            if (!Diag.calendar) Diag.calendar = [];
-            diagsData.push(Diag);
-          });
+      const dbRef = firebase.database().ref("/users/" + userId + "/Diags");
+      dbRef.on(
+        "value",
+        (snapshot) => {
+          const data = snapshot.val();
+          diagsData.length = 0;
+          if (data) {
+            Object.values(data).forEach((d) => {
+              if (!d.calendar) d.calendar = [];
+              if (!d.documents) d.documents = [];
+              if (!d.history) d.history = [];
+              if (!d.form) d.form = JSON.parse(JSON.stringify(forms["default"]));
+              diagsData.push(d);
+            });
+          }
+          renderDiagSelector();
+          updateDeleteDiagButton();
+          logMessage("info", "Data synchronized from Firebase for the user.");
+        },
+        (error) => {
+          logMessage("error", "Firebase Realtime Database error: " + error);
         }
-        renderDiagSelector();
-        updateDeleteDiagButton();
-        logMessage("info", "Data synchronized from Firebase for the user.");
-      }, (error) => {
-        logMessage("error", `Firebase Realtime Database error: ${error}`);
-      });
+      );
     }
 
-    // Render Diag Selector
     function renderDiagSelector() {
       const selector = document.getElementById("DiagSelector");
-      selector.innerHTML = `<option value="" disabled selected>${getTranslation('selectDiagUser')}</option>` + 
-        diagsData.map((Diag, i) => `<option value="${i}">${Diag.name}</option>`).join("");
+      selector.innerHTML =
+        `<option value="" disabled selected>${getTranslation("selectDiagUser")}</option>` +
+        diagsData
+          .map((Diag, i) => `<option value="${i}">${Diag.name}</option>`)
+          .join("");
       if (diagsData.length > 0) {
         selector.value = currentDiagIndex;
         selectDiagUser();
       }
     }
 
-    // Select Diag Function
     function selectDiagUser() {
       const selector = document.getElementById("DiagSelector");
       currentDiagIndex = parseInt(selector.value, 10);
@@ -990,8 +1498,9 @@
         logMessage("warning", "Invalid Diag index.");
         return;
       }
-      const isConnected = diagsData[currentDiagIndex].code !== undefined;
-      ["chartsSection", "timeSeriesSection", "summaryChartSection", "quizSection", "DiagSection", "calendarSection"].forEach(id => {
+      const currentDiag = diagsData[currentDiagIndex];
+      const isConnected = currentDiag && currentDiag.code !== undefined;
+      ["chartsSection", "timeSeriesSection", "summaryChartSection", "quizSection", "DiagSection", "calendarSection", "usefulDocsSection"].forEach((id) => {
         document.getElementById(id).style.display = isConnected ? "block" : "none";
       });
       if (isConnected) {
@@ -1002,31 +1511,40 @@
         renderDiag();
         renderCalendar();
         renderUpcomingEvents();
+        renderUsefulDocs();
         document.getElementById("manageQuestions").style.display = "inline-block";
       } else {
         clearSections();
         document.getElementById("manageQuestions").style.display = "none";
       }
       updateDeleteDiagButton();
-      logMessage("info", `Switched to Diag "${diagsData[currentDiagIndex].name}".`);
+      logMessage("info", `Switched to Diag "${currentDiag.name}".`);
     }
 
-    // Update Delete Diag Button Visibility
     function updateDeleteDiagButton() {
       const deleteBtn = document.getElementById("deleteDiagBtn");
       deleteBtn.style.display = diagsData.length > 0 ? "inline-block" : "none";
     }
 
-    // Clear All Sections
     function clearSections() {
-      [realtimeRadar, timeSeriesChart, summaryRadarChart].forEach(chart => { if (chart) chart.destroy(); });
+      [realtimeRadar, timeSeriesChart, summaryRadarChart].forEach((chart) => {
+        if (chart) chart.destroy();
+      });
       document.getElementById("quizForm").innerHTML = "";
       document.getElementById("messages").innerHTML = "";
       document.getElementById("calendar").innerHTML = "";
       document.getElementById("upcomingEventsList").innerHTML = "";
+      document.getElementById("docsList").innerHTML = "";
     }
 
-    // Default Forms
+    function saveDiagToDatabase(Diag) {
+      const user = firebase.auth().currentUser;
+      if (!user) return Promise.reject("No authenticated user.");
+      const userId = user.uid;
+      const dbRef = firebase.database().ref(`/users/${userId}/Diags/${Diag.code}`);
+      return dbRef.set(Diag);
+    }
+
     const forms = {
       default: [
         { label: "Did you eat today?", type: "toggle" },
@@ -1040,12 +1558,11 @@
         { label: "Are you in pain?", type: "toggle" },
         { label: "General activity level (1 = lethargic, 10 = very active)", type: "slider", min: 1, max: 10 },
         { label: "Do you drink more than usual?", type: "toggle" },
-        { label: "Do you breath normally?", type: "toggle" },
+        { label: "Do you breathe normally?", type: "toggle" },
         { label: "Are you urinating normally?", type: "toggle" }
       ]
     };
 
-    // Render Quiz
     function renderQuiz() {
       if (!diagsData.length) {
         logMessage("warning", "No Diag available to display the quiz.");
@@ -1053,71 +1570,92 @@
       }
       const quizContainer = document.getElementById("quizForm");
       const form = diagsData[currentDiagIndex].form || forms["default"];
-      const lastEntry = diagsData[currentDiagIndex].history && diagsData[currentDiagIndex].history.length > 0 ? diagsData[currentDiagIndex].history[diagsData[currentDiagIndex].history.length - 1].answers : [];
-      quizContainer.innerHTML = form.map((q, i) => {
-        if (q.type === "toggle") {
-          let checked = false;
-          let comment = "";
-          if (lastEntry[i]) {
-            checked = typeof lastEntry[i] === "object" ? lastEntry[i].value === 10 : lastEntry[i] === 10;
-            comment = typeof lastEntry[i] === "object" ? lastEntry[i].comment : "";
-          }
-          return `
-            <div class="question-container">
-              <label class="switch">
-                <input type="checkbox" data-index="${i}" onchange="toggleAnswer(${i}, this.checked)" ${checked ? "checked" : ""}>
-                <span class="slider-switch"></span>
-              </label>
-              <label>${q.label}</label>
-              ${q.hasComment ? `<textarea id="comment${i}" placeholder="${getTranslation('typeMessage')}" style="display:${checked ? "block" : "none"};">${comment}</textarea>` : ''}
-            </div>
-          `;
-        } else if (q.type === "slider") {
-          let value = Math.floor((q.min + q.max) / 2);
-          if (lastEntry[i] !== undefined) {
-            value = lastEntry[i];
-          }
-          let valueClass = "good";
-          const mid = (q.min + q.max) / 2;
-          if (value <= mid) {
-            valueClass = "good";
-          } else if (value > mid && value < q.max) {
-            valueClass = "warning";
-          } else {
-            valueClass = "bad";
-          }
-          return `
-            <div class="slider-container">
-              <label for="slider${i}">${q.label}</label>
-              <div class="slider-input">
-                <input type="range" id="slider${i}" min="${q.min}" max="${q.max}" value="${value}" oninput="updateSliderValue(${i}, this.value)">
-                <span class="slider-value ${valueClass}" id="sliderValue${i}">${value}</span>
+      const lastEntry =
+        diagsData[currentDiagIndex].history && diagsData[currentDiagIndex].history.length > 0
+          ? diagsData[currentDiagIndex].history[diagsData[currentDiagIndex].history.length - 1].answers
+          : [];
+      quizContainer.innerHTML = form
+        .map((q, i) => {
+          if (q.type === "toggle") {
+            let checked = false;
+            let comment = "";
+            if (lastEntry[i]) {
+              checked = typeof lastEntry[i] === "object" ? lastEntry[i].value === 10 : lastEntry[i] === 10;
+              comment = typeof lastEntry[i] === "object" ? lastEntry[i].comment : "";
+            }
+            return `
+              <div class="question-container">
+                <label class="switch">
+                  <input
+                    type="checkbox"
+                    data-index="${i}"
+                    onchange="toggleAnswer(${i}, this.checked)"
+                    ${checked ? "checked" : ""}
+                  />
+                  <span class="slider-switch"></span>
+                </label>
+                <label>${q.label}</label>
+                ${
+                  q.hasComment
+                    ? `<textarea
+                        id="comment${i}"
+                        placeholder="${getTranslation("typeMessage")}"
+                        style="display:${checked ? "block" : "none"};"
+                      >${comment}</textarea>`
+                    : ""
+                }
               </div>
-            </div>
-          `;
-        }
-        return "";
-      }).join('');
+            `;
+          } else if (q.type === "slider") {
+            let value = Math.floor((q.min + q.max) / 2);
+            if (lastEntry[i] !== undefined) {
+              value = lastEntry[i];
+            }
+            let valueClass = "good";
+            const mid = (q.min + q.max) / 2;
+            if (value <= mid) {
+              valueClass = "good";
+            } else if (value > mid && value < q.max) {
+              valueClass = "warning";
+            } else {
+              valueClass = "bad";
+            }
+            return `
+              <div class="slider-container">
+                <label for="slider${i}">${q.label}</label>
+                <div class="slider-input">
+                  <input
+                    type="range"
+                    id="slider${i}"
+                    min="${q.min}"
+                    max="${q.max}"
+                    value="${value}"
+                    oninput="updateSliderValue(${i}, this.value)"
+                  />
+                  <span class="slider-value ${valueClass}" id="sliderValue${i}">${value}</span>
+                </div>
+              </div>
+            `;
+          }
+          return "";
+        })
+        .join("");
     }
 
-    // Toggle Answer Visibility
     function toggleAnswer(index, isChecked) {
       const form = diagsData[currentDiagIndex].form || forms["default"];
       const question = form[index];
       if (question.hasComment) {
-        const commentField = document.getElementById(`comment${index}`);
+        const commentField = document.getElementById("comment" + index);
         commentField.style.display = isChecked ? "block" : "none";
-        if (!isChecked) {
-          commentField.value = "";
-        }
+        if (!isChecked) commentField.value = "";
       }
       renderRealtimeRadar();
       renderSummaryRadarChart();
     }
 
-    // Update Slider Value Display
     function updateSliderValue(index, value) {
-      const valueSpan = document.getElementById(`sliderValue${index}`);
+      const valueSpan = document.getElementById("sliderValue" + index);
       valueSpan.textContent = value;
       const form = diagsData[currentDiagIndex].form || forms["default"];
       const q = form[index];
@@ -1138,28 +1676,27 @@
       renderSummaryRadarChart();
     }
 
-    // Get Current Answers
     function currentAnswers() {
       if (!diagsData.length) return [];
       const form = diagsData[currentDiagIndex].form || forms["default"];
-      const answers = form.map((q, i) => {
+      return form.map((q, i) => {
         if (q.type === "toggle") {
-          const toggle = document.querySelector(`input[data-index="${i}"]`);
+          const toggleInput = document.querySelector("input[data-index='" + i + "']");
           if (q.hasComment) {
-            const comment = document.getElementById(`comment${i}`).value.trim();
-            return toggle ? { value: toggle.checked ? 10 : 0, comment: toggle.checked ? comment : "" } : { value: 0, comment: "" };
+            const comment = document.getElementById("comment" + i).value.trim();
+            return toggleInput
+              ? { value: toggleInput.checked ? 10 : 0, comment: toggleInput.checked ? comment : "" }
+              : { value: 0, comment: "" };
           }
-          return toggle ? (toggle.checked ? 10 : 0) : 0;
+          return toggleInput ? (toggleInput.checked ? 10 : 0) : 0;
         } else if (q.type === "slider") {
-          const slider = document.getElementById(`slider${i}`);
+          const slider = document.getElementById("slider" + i);
           return slider ? parseInt(slider.value, 10) : 0;
         }
         return 0;
       });
-      return answers;
     }
 
-    // Save Answers to Firebase
     function saveAnswers() {
       if (!diagsData.length) {
         logMessage("warning", "No Diag available to save answers.");
@@ -1172,101 +1709,20 @@
         diagsData[currentDiagIndex].history = [];
       }
       diagsData[currentDiagIndex].history.push(historyEntry);
-      saveDiagToDatabase(diagsData[currentDiagIndex]);
-      renderTimeSeriesChart();
-      renderRealtimeRadar();
-      renderSummaryRadarChart();
-      logMessage("info", "Answers saved successfully.");
+      saveDiagToDatabase(diagsData[currentDiagIndex])
+        .then(() => {
+          renderTimeSeriesChart();
+          renderRealtimeRadar();
+          renderSummaryRadarChart();
+          logMessage("info", "Answers saved successfully.");
+          alert("Answers saved successfully.");
+        })
+        .catch((err) => {
+          logMessage("error", "Failed to save answers: " + err);
+          alert("Failed to save answers.");
+        });
     }
 
-    // Save Diag to Firebase
-    function saveDiagToDatabase(Diag) {
-      const user = firebase.auth().currentUser;
-      if (!user) return;
-      const userId = user.uid;
-      const dbRef = firebase.database().ref(`/users/${userId}/Diags/${Diag.code}`);
-      dbRef.set(Diag)
-        .then(() => logMessage("info", "Diag data saved to database."))
-        .catch(error => logMessage("error", `Error saving Diag data: ${error}`));
-    }
-
-    // Render Real-Time Radar Chart
-    function renderRealtimeRadar() {
-      if (!diagsData.length) return;
-      const answers = currentAnswers();
-      const data = answers.map(a => (typeof a === "object" ? a.value : a));
-      const labels = diagsData[currentDiagIndex].form.map(q => q.label);
-      if (realtimeRadar) { realtimeRadar.destroy(); }
-      const ctx = document.getElementById("realtimeRadar").getContext("2d");
-      realtimeRadar = new Chart(ctx, {
-        type: "radar",
-        data: {
-          labels,
-          datasets: [{
-            label: "Current Health",
-            data,
-            backgroundColor: "rgba(255, 99, 132, 0.2)",
-            borderColor: "rgba(255, 99, 132, 1)",
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: { r: { beginAtZero: true, max: 10 } }
-        }
-      });
-    }
-
-    // Render Time Series Chart
-    function renderTimeSeriesChart() {
-      if (!diagsData.length || !diagsData[currentDiagIndex].history) return;
-      const history = diagsData[currentDiagIndex].history;
-      const labels = history.map(entry => new Date(entry.timestamp).toLocaleString());
-      const form = diagsData[currentDiagIndex].form || forms["default"];
-      const datasets = form.map((q, i) => ({
-        label: q.label,
-        data: history.map(entry => entry.answers[i] || 0),
-        fill: false,
-        borderColor: `hsl(${(i * 50) % 360}, 70%, 50%)`,
-        tension: 0.1
-      }));
-      if (timeSeriesChart) { timeSeriesChart.destroy(); }
-      const ctx = document.getElementById("timeSeriesChart").getContext("2d");
-      timeSeriesChart = new Chart(ctx, {
-        type: "line",
-        data: { labels, datasets },
-        options: { responsive: true, scales: { y: { beginAtZero: true, max: 10 } } }
-      });
-    }
-
-    // Render Summary Radar Chart
-    function renderSummaryRadarChart() {
-      if (!diagsData.length || !diagsData[currentDiagIndex].history) return;
-      const history = diagsData[currentDiagIndex].history;
-      const labels = diagsData[currentDiagIndex].form.map(q => q.label);
-      const data = labels.map((_, i) =>
-        history.map(entry => entry.answers[i] || 0)
-          .reduce((sum, value) => sum + value, 0) / history.length
-      );
-      if (summaryRadarChart) { summaryRadarChart.destroy(); }
-      const ctx = document.getElementById("summaryRadarChart").getContext("2d");
-      summaryRadarChart = new Chart(ctx, {
-        type: "radar",
-        data: {
-          labels,
-          datasets: [{
-            label: "Summary",
-            data,
-            backgroundColor: "rgba(54, 162, 235, 0.2)",
-            borderColor: "rgba(54, 162, 235, 1)",
-            borderWidth: 1
-          }]
-        },
-        options: { responsive: true, scales: { r: { beginAtZero: true, max: 10 } } }
-      });
-    }
-
-    // Create New Diag
     function createDiag() {
       const name = prompt("Enter Diag Name:");
       if (!name) {
@@ -1279,67 +1735,49 @@
         logMessage("warning", "User attempted to create a follow-up without authentication.");
         return;
       }
-      const newDiag = { 
-        name: name.trim(), 
-        code, 
-        history: [], 
+      const newDiag = {
+        name: name.trim(),
+        code,
+        history: [],
         form: JSON.parse(JSON.stringify(forms["default"])),
         members: { [user.uid]: { email: user.email, role: "admin" } },
-        calendar: []
+        calendar: [],
+        documents: []
       };
       diagsData.push(newDiag);
-      saveDiagToDatabase(newDiag);
-      renderDiagSelector();
-      selectDiagUser();
-      updateDeleteDiagButton();
-      logMessage("info", `New Diag "${name}" created successfully.`);
-    }
-
-    // Generate Secure Code for Sharing
-    function generateSecureCode() {
-      return Math.random().toString(36).substring(2, 15).toUpperCase() + Math.random().toString(36).substring(2, 15).toUpperCase();
-    }
-
-    // Share Diag via URL
-    function shareDiag() {
-      if (!diagsData.length) {
-        logMessage("warning", "No Diag available to share.");
-        return;
-      }
-      const currentDiag = diagsData[currentDiagIndex];
-      const shareCode = generateSecureCode();
-      const sharedDiag = { ...currentDiag };
-      delete sharedDiag.history;
-      firebase.database().ref(`/sharedDiags/${shareCode}`).set(sharedDiag)
+      saveDiagToDatabase(newDiag)
         .then(() => {
-          const shareURL = `${window.lodiagion.origin}${window.lodiagion.pathname}?share=${shareCode}`;
-          navigator.clipboard.writeText(shareURL).then(() => {
-            logMessage("info", `Diag "${currentDiag.name}" shared via URL.`);
-            alert("Diag share URL copied to clipboard!");
-          }).catch(err => {
-            logMessage("error", `Failed to copy share URL: ${err}`);
-            alert("Failed to copy share URL.");
-          });
+          renderDiagSelector();
+          selectDiagUser();
+          updateDeleteDiagButton();
+          logMessage("info", `New Diag "${name}" created successfully.`);
+          alert("Diag created successfully.");
         })
-        .catch(err => {
-          logMessage("error", `Failed to share Diag: ${err}`);
-          alert("Failed to share Diag.");
+        .catch((err) => {
+          logMessage("error", "Failed to create Diag: " + err);
+          alert("Failed to create Diag.");
         });
     }
 
-    // Delete Diag
+    function generateSecureCode() {
+      return (
+        Math.random().toString(36).substring(2, 15).toUpperCase() +
+        Math.random().toString(36).substring(2, 15).toUpperCase()
+      );
+    }
+
     function deleteDiag() {
       if (!diagsData.length) return;
       const currentDiag = diagsData[currentDiagIndex];
       const user = firebase.auth().currentUser;
       if (!user || !currentDiag.members[user.uid] || currentDiag.members[user.uid].role !== "admin") {
         logMessage("warning", "User attempted to delete a Diag without admin permissions.");
+        alert("You do not have permission to delete this Diag.");
         return;
       }
       document.getElementById("deleteDiagModal").style.display = "flex";
     }
 
-    // Confirm Delete Diag
     function confirmDeleteDiag() {
       const currentDiag = diagsData[currentDiagIndex];
       const confirmation = document.getElementById("confirmDiagName").value.trim();
@@ -1351,7 +1789,10 @@
           logMessage("warning", "User attempted to delete Diag without authentication.");
           return;
         }
-        firebase.database().ref(`/users/${user.uid}/Diags/${currentDiag.code}`).remove()
+        firebase
+          .database()
+          .ref("/users/" + user.uid + "/Diags/" + currentDiag.code)
+          .remove()
           .then(() => {
             logMessage("info", `Diag "${currentDiag.name}" deleted successfully.`);
             diagsData.splice(currentDiagIndex, 1);
@@ -1359,9 +1800,11 @@
             clearSections();
             closeModal("deleteDiagModal");
             updateDeleteDiagButton();
+            alert("Diag deleted successfully.");
           })
-          .catch(err => {
-            logMessage("error", `Error deleting Diag "${currentDiag.name}": ${err}`);
+          .catch((err) => {
+            logMessage("error", `Error deleting Diag "${currentDiag.name}": ` + err);
+            alert("Failed to delete Diag.");
           });
       } else {
         logMessage("warning", "Diag name confirmation failed.");
@@ -1370,198 +1813,97 @@
       }
     }
 
-    // Show Add Event Modal
-    function showAddEventModal() {
-      document.getElementById("addEventModal").style.display = "flex";
-      document.getElementById("eventTitle").value = "";
-      document.getElementById("eventDateTime").value = "";
-      document.getElementById("eventDescription").value = "";
-      if (window.selectedDate) {
-        const selectedDate = window.selectedDate;
-        const formattedDate = selectedDate.toISOString().slice(0,16);
-        document.getElementById("eventDateTime").value = formattedDate;
-      }
-    }
-
-    // Add Event to Calendar
-    function addEvent() {
-      const title = document.getElementById("eventTitle").value.trim();
-      const dateTime = document.getElementById("eventDateTime").value;
-      const description = document.getElementById("eventDescription").value.trim();
-      if (!title || !dateTime) {
-        logMessage("warning", "No event title or date/time entered.");
-        alert(getTranslation('errorOccurred'));
+    function shareDiag() {
+      if (!diagsData.length) {
+        logMessage("warning", "No Diag available to share.");
+        alert("No Diag available to share.");
         return;
       }
-      const eventDate = new Date(dateTime);
-      if (isNaN(eventDate.getTime())) {
-        logMessage("warning", "Invalid date/time entered.");
-        alert(getTranslation('errorOccurred'));
-        return;
-      }
-      const formattedDate = eventDate.toLocaleString();
-      const user = firebase.auth().currentUser;
-      if (!user) {
-        logMessage("warning", "User attempted to add event without authentication.");
-        alert(getTranslation('loginPrompt'));
-        return;
-      }
-      const DiagCode = diagsData[currentDiagIndex].code;
-      const event = { title, description, date: formattedDate };
-      diagsData[currentDiagIndex].calendar.push(event);
-      saveDiagToDatabase(diagsData[currentDiagIndex])
+      const currentDiag = diagsData[currentDiagIndex];
+      const shareCode = generateSecureCode();
+      const sharedDiag = { ...currentDiag };
+      delete sharedDiag.history;
+      firebase
+        .database()
+        .ref("/sharedDiags/" + shareCode)
+        .set(sharedDiag)
         .then(() => {
-          renderCalendar();
-          closeModal("addEventModal");
-          logMessage("info", `Event "${title}" added to calendar.`);
-          alert(getTranslation('eventAdded'));
+          const shareURL = window.location.origin + window.location.pathname + "?share=" + shareCode;
+          navigator.clipboard
+            .writeText(shareURL)
+            .then(() => {
+              logMessage("info", `Diag "${currentDiag.name}" shared via URL.`);
+              alert("Diag share URL copied to clipboard!");
+            })
+            .catch((err) => {
+              logMessage("error", "Failed to copy share URL: " + err);
+              alert("Failed to copy share URL.");
+            });
         })
-        .catch(err => {
-          logMessage("error", `Failed to add event: ${err}`);
-          alert(getTranslation('errorOccurred'));
+        .catch((err) => {
+          logMessage("error", "Failed to share Diag: " + err);
+          alert("Failed to share Diag.");
         });
     }
 
-    // Render Calendar
-    function renderCalendar() {
-      if (!diagsData.length) return;
-      const calendarContainer = document.getElementById("calendar");
-      calendarContainer.innerHTML = '';
-      const calendar = diagsData[currentDiagIndex].calendar || [];
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = today.getMonth();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dayDiv = document.createElement("div");
-        dayDiv.classList.add("calendar-day");
-        const date = new Date(year, month, day);
-        dayDiv.textContent = day;
-        const dayEvents = calendar.filter(event => {
-          const eventDate = new Date(event.date);
-          return eventDate.getDate() === day && eventDate.getMonth() === month && eventDate.getFullYear() === year;
-        });
-        if (dayEvents.length > 0) {
-          dayDiv.classList.add("has-event");
-          const tooltip = document.createElement("div");
-          tooltip.classList.add("tooltip");
-          tooltip.innerHTML = `<strong>Events:</strong><br>${dayEvents.map(event => `<em>${event.title}</em>: ${event.description}`).join('<br>')}`;
-          dayDiv.appendChild(tooltip);
-        }
-        dayDiv.onclick = () => {
-          window.selectedDate = date;
-          showAddEventModal();
-        };
-        calendarContainer.appendChild(dayDiv);
-      }
-      logMessage("info", "Calendar rendered.");
-    }
-
-    // Render Upcoming Events
-    function renderUpcomingEvents() {
-      if (!diagsData.length) return;
-      const upcomingList = document.getElementById("upcomingEventsList");
-      upcomingList.innerHTML = '';
-      const calendar = diagsData[currentDiagIndex].calendar || [];
-      const now = new Date();
-      const futureDate = new Date();
-      futureDate.setDate(now.getDate() + 15);
-      const upcomingEvents = calendar.filter(event => {
-        const eventDate = new Date(event.date);
-        return eventDate >= now && eventDate <= futureDate;
-      }).sort((a, b) => new Date(a.date) - new Date(b.date));
-      if (upcomingEvents.length === 0) {
-        upcomingList.innerHTML = `<li>${getTranslation('noUpcomingEvents')}</li>`;
-        return;
-      }
-      upcomingEvents.forEach(event => {
-        const li = document.createElement("li");
-        li.innerHTML = `<strong>${event.title}</strong><br>${event.description}<br><em>${event.date}</em>`;
-        upcomingList.appendChild(li);
-      });
-    }
-
-    // Toggle Logs Visibility
-    function toggleLogs() {
-      const logs = document.getElementById("logsContainer");
-      logs.style.display = (logs.style.display === "none" || logs.style.display === "") ? "flex" : "none";
-    }
-
-    // authentication Function
-    function authentidiage() {
-      const authTitle = document.getElementById("authTitle").innerText;
-      const email = document.getElementById("authEmail").value.trim();
-      const password = document.getElementById("authPassword").value;
-      if (!email || !password) {
-        logMessage("warning", "authentication fields left empty.");
-        alert(getTranslation('errorOccurred'));
-        return;
-      }
-      if (authTitle === getTranslation('login')) {
-        firebase.auth().signInWithEmailAndPassword(email, password)
-          .then((userCredential) => {
-            if (!userCredential.user.emailVerified) {
-              logMessage("warning", "User attempted to login without verifying email.");
-              alert("Please verify your email before logging in.");
-              firebase.auth().signOut();
-              return;
+    function checkShareURL(user) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const shareCode = urlParams.get("share");
+      if (shareCode) {
+        const sharedDiagRef = firebase.database().ref("/sharedDiags/" + shareCode);
+        sharedDiagRef
+          .once("value")
+          .then((snapshot) => {
+            if (snapshot.exists()) {
+              const sharedDiag = snapshot.val();
+              const existingIndex = diagsData.findIndex((c) => c.code === sharedDiag.code);
+              if (existingIndex === -1) {
+                if (!sharedDiag.members) sharedDiag.members = {};
+                sharedDiag.members[user.uid] = { email: user.email, role: "user" };
+                saveToFirebase("/users/" + user.uid + "/Diags/" + sharedDiag.code, sharedDiag)
+                  .then(() => {
+                    diagsData.push(sharedDiag);
+                    renderDiagSelector();
+                    selectDiagUser();
+                    updateDeleteDiagButton();
+                    renderQuestionsList();
+                    renderQuiz();
+                    renderRealtimeRadar();
+                    renderTimeSeriesChart();
+                    renderSummaryRadarChart();
+                    renderDiag();
+                    renderCalendar();
+                    renderUpcomingEvents();
+                    renderUsefulDocs();
+                    logMessage("info", `Shared Diag "${sharedDiag.name}" added to user.`);
+                    alert("Shared Diag added successfully!");
+                    const newURL = window.location.origin + window.location.pathname;
+                    window.history.replaceState({}, document.title, newURL);
+                  })
+                  .catch((err) => {
+                    logMessage("error", "Failed to add shared Diag: " + err);
+                    alert("Failed to add shared Diag.");
+                  });
+              } else {
+                logMessage("warning", `Attempt to add already linked Diag "${sharedDiag.name}".`);
+                alert("Diag is already linked.");
+              }
+            } else {
+              logMessage("warning", `No shared Diag found with code "${shareCode}".`);
+              alert("No shared Diag found with the provided code.");
             }
-            logMessage("info", `User "${userCredential.user.email}" logged in.`);
-            alert(getTranslation('loginSuccess'));
-            closeModal("authModal");
           })
-          .catch((error) => {
-            logMessage("error", `Login error: ${error.message}`);
-            alert(`Error: ${error.message}`);
-          });
-      } else {
-        if (password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password) || !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-          alert("Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.");
-          logMessage("warning", "User entered weak password during signup.");
-          return;
-        }
-        firebase.auth().createUserWithEmailAndPassword(email, password)
-          .then((userCredential) => {
-            userCredential.user.sendEmailVerifidiagion();
-            logMessage("info", `User "${userCredential.user.email}" signed up.`);
-            alert(getTranslation('signupSuccess'));
-            closeModal("authModal");
-          })
-          .catch((error) => {
-            logMessage("error", `Signup error: ${error.message}`);
-            alert(`Error: ${error.message}`);
+          .catch((err) => {
+            logMessage("error", "Error retrieving shared Diag: " + err);
+            alert("Error retrieving shared Diag.");
           });
       }
     }
 
-    // Toggle authentication Mode (Login/Signup)
-    function toggleAuthMode() {
-      const authTitle = document.getElementById("authTitle").innerText;
-      const signupText = getTranslation('signup');
-      const loginText = getTranslation('login');
-      if (authTitle === loginText) {
-        document.getElementById("authTitle").innerText = signupText;
-        document.querySelector("button[onclick='authentidiage()']").innerText = signupText;
-        document.querySelector("button[onclick='toggleAuthMode()']").innerText = loginText;
-      } else {
-        document.getElementById("authTitle").innerText = loginText;
-        document.querySelector("button[onclick='authentidiage()']").innerText = loginText;
-        document.querySelector("button[onclick='toggleAuthMode()']").innerText = signupText;
-      }
+    function saveToFirebase(path, data) {
+      return firebase.database().ref(path).set(data);
     }
 
-    // Logout Function
-    function logout() {
-      firebase.auth().signOut().then(() => {
-        logMessage("info", "User logged out.");
-        alert(getTranslation('logoutSuccess'));
-      }).catch((error) => {
-        logMessage("error", `Logout error: ${error.message}`);
-        alert(`Error: ${error.message}`);
-      });
-    }
-
-    // Render Diag Messages
     function renderDiag() {
       if (!diagsData.length) return;
       const messagesContainer = document.getElementById("messages");
@@ -1569,17 +1911,20 @@
       const user = firebase.auth().currentUser;
       if (!user) return;
       const DiagCode = diagsData[currentDiagIndex].code;
-      const DiagRef = firebase.database().ref(`/users/${user.uid}/Diags/${DiagCode}/messages`);
-      DiagRef.on('child_added', snapshot => {
+      const DiagRef = firebase.database().ref("/users/" + user.uid + "/Diags/" + DiagCode + "/messages");
+      DiagRef.on("child_added", (snapshot) => {
         const msg = snapshot.val();
         const messageDiv = document.createElement("div");
         messageDiv.classList.add("message");
         if (msg.user === user.email) messageDiv.classList.add("user");
+
         const avatarDiv = document.createElement("div");
         avatarDiv.classList.add("avatar");
         messageDiv.appendChild(avatarDiv);
+
         const textDiv = document.createElement("div");
         textDiv.classList.add("text");
+
         if (msg.type === "text") {
           textDiv.textContent = msg.content;
         } else if (msg.type === "voice") {
@@ -1588,6 +1933,7 @@
           audio.controls = true;
           textDiv.appendChild(audio);
         }
+
         messageDiv.appendChild(textDiv);
         messagesContainer.appendChild(messageDiv);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -1595,27 +1941,144 @@
       renderDiagMembers();
     }
 
-    // Render Diag Members
+    function sendMessage() {
+      if (!diagsData.length) return;
+      const messageInput = document.getElementById("messageInput");
+      const message = messageInput.value.trim();
+      if (!message) return;
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        logMessage("warning", "User attempted to send message without authentication.");
+        alert(getTranslation("loginPrompt"));
+        return;
+      }
+      const DiagCode = diagsData[currentDiagIndex].code;
+      const DiagRef = firebase.database().ref(`/users/${user.uid}/Diags/${DiagCode}/messages`).push();
+      DiagRef.set({
+        user: user.email,
+        type: "text",
+        content: message,
+        timestamp: Date.now()
+      })
+      .then(() => {
+        messageInput.value = "";
+      })
+      .catch((err) => {
+        logMessage("error", "Failed to send message: " + err);
+        alert("Failed to send message.");
+      });
+    }
+
+    function toggleRecording() {
+      const recordButton = document.getElementById("recordButton");
+      const stopRecordButton = document.getElementById("stopRecordButton");
+      if (!isRecording) {
+        if (!navigator.mediaDevices) {
+          logMessage("error", "Media devices not supported.");
+          return;
+        }
+        navigator.mediaDevices
+          .getUserMedia({ audio: true })
+          .then((stream) => {
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.start();
+            isRecording = true;
+            recordButton.style.display = "none";
+            stopRecordButton.style.display = "inline-block";
+            mediaRecorder.ondataavailable = (e) => {
+              audioChunks.push(e.data);
+            };
+            mediaRecorder.onstop = () => {
+              const audioBlob = new Blob(audioChunks, { type: "audio/mp3" });
+              const reader = new FileReader();
+              reader.onloadend = () => {
+                recordedVoice = reader.result;
+                document.getElementById("sendVoiceButton").style.display = "inline-block";
+                document.getElementById("reRecordButton").style.display = "inline-block";
+                logMessage("info", "Recording stopped and ready to send.");
+              };
+              reader.readAsDataURL(audioBlob);
+              audioChunks = [];
+              isRecording = false;
+              recordButton.style.display = "inline-block";
+              stopRecordButton.style.display = "none";
+              stream.getTracks().forEach(track => track.stop());
+            };
+            logMessage("info", "Recording started.");
+          })
+          .catch((err) => {
+            logMessage("error", "Microphone access denied: " + err);
+            alert("Microphone access denied.");
+          });
+      }
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && isRecording) {
+        mediaRecorder.stop();
+        logMessage("info", "Recording stopped.");
+      }
+    }
+
+    function sendVoice() {
+      if (!recordedVoice) {
+        alert("No voice recording available to send.");
+        return;
+      }
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        logMessage("warning", "User attempted to send voice message without authentication.");
+        alert(getTranslation("loginPrompt"));
+        return;
+      }
+      const DiagCode = diagsData[currentDiagIndex].code;
+      const DiagRef = firebase.database().ref(`/users/${user.uid}/Diags/${DiagCode}/messages`).push();
+      DiagRef.set({
+        user: user.email,
+        type: "voice",
+        content: recordedVoice,
+        timestamp: Date.now()
+      })
+      .then(() => {
+        logMessage("info", "Voice message sent successfully.");
+        alert("Voice message sent!");
+        recordedVoice = null;
+        document.getElementById("sendVoiceButton").style.display = "none";
+        document.getElementById("reRecordButton").style.display = "none";
+      })
+      .catch((err) => {
+        logMessage("error", "Failed to send voice message: " + err);
+        alert("Failed to send voice message.");
+      });
+    }
+
+    function reRecordVoice() {
+      recordedVoice = null;
+      document.getElementById("sendVoiceButton").style.display = "none";
+      document.getElementById("reRecordButton").style.display = "none";
+      logMessage("info", "Voice recording cleared. Ready to re-record.");
+    }
+
     function renderDiagMembers() {
       const user = firebase.auth().currentUser;
       if (!user) return;
       const DiagCode = diagsData[currentDiagIndex].code;
       const members = diagsData[currentDiagIndex].members;
       const usersList = document.getElementById("usersList");
-      usersList.innerHTML = '';
+      usersList.innerHTML = "";
       for (const uid in members) {
         const member = members[uid];
         const li = document.createElement("li");
         li.innerHTML = `${member.email} - ${member.role === "admin" ? "Admin" : "User"}`;
         if (member.role !== "admin") {
           const promoteBtn = document.createElement("button");
-          promoteBtn.textContent = getTranslation('promote');
+          promoteBtn.textContent = getTranslation("promote");
           promoteBtn.onclick = () => promoteUser(uid);
           li.appendChild(promoteBtn);
         } else {
           if (uid !== user.uid) {
             const demoteBtn = document.createElement("button");
-            demoteBtn.textContent = getTranslation('demote');
+            demoteBtn.textContent = getTranslation("demote");
             demoteBtn.onclick = () => demoteUser(uid);
             li.appendChild(demoteBtn);
           }
@@ -1624,43 +2087,134 @@
       }
     }
 
-    // Add Question
+    function promoteUser(uid) {
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        logMessage("warning", "User attempted to promote without authentication.");
+        alert(getTranslation("loginPrompt"));
+        return;
+      }
+      const isAdmin = diagsData[currentDiagIndex].members[user.uid].role === "admin";
+      if (!isAdmin) {
+        logMessage("warning", "User attempted to promote without admin permissions.");
+        alert("You do not have permission to promote users.");
+        return;
+      }
+      diagsData[currentDiagIndex].members[uid].role = "admin";
+      saveDiagToDatabase(diagsData[currentDiagIndex])
+        .then(() => {
+          renderDiagMembers();
+          logMessage("info", "User promoted to admin.");
+          alert("User promoted to admin.");
+        })
+        .catch((err) => {
+          logMessage("error", "Failed to promote user: " + err);
+          alert("Failed to promote user.");
+        });
+    }
+
+    function demoteUser(uid) {
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        logMessage("warning", "User attempted to demote without authentication.");
+        alert(getTranslation("loginPrompt"));
+        return;
+      }
+      const isAdmin = diagsData[currentDiagIndex].members[user.uid].role === "admin";
+      if (!isAdmin) {
+        logMessage("warning", "User attempted to demote without admin permissions.");
+        alert("You do not have permission to demote users.");
+        return;
+      }
+      const admins = Object.values(diagsData[currentDiagIndex].members).filter((m) => m.role === "admin");
+      if (admins.length <= 1 && diagsData[currentDiagIndex].members[uid].role === "admin") {
+        logMessage("warning", "Attempt to demote the last admin.");
+        alert("There must be at least one admin for this Diag.");
+        return;
+      }
+      diagsData[currentDiagIndex].members[uid].role = "user";
+      saveDiagToDatabase(diagsData[currentDiagIndex])
+        .then(() => {
+          renderDiagMembers();
+          logMessage("info", "User demoted to user.");
+          alert("User demoted to user.");
+        })
+        .catch((err) => {
+          logMessage("error", "Failed to demote user: " + err);
+          alert("Failed to demote user.");
+        });
+    }
+
+    function openManageQuestionsModal() {
+      renderQuestionsList();
+      document.getElementById("manageQuestionsModal").style.display = "flex";
+    }
+
+    function renderQuestionsList() {
+      const questionsList = document.getElementById("questionsList");
+      questionsList.innerHTML = "";
+      const form = diagsData[currentDiagIndex].form || forms["default"];
+      form.forEach((q, index) => {
+        const li = document.createElement("li");
+        let sliderInfo = "";
+        if (q.type === "slider") {
+          sliderInfo = ` [${q.min} - ${q.max}]`;
+        }
+        let commentIcon = "";
+        if (q.hasComment) {
+          commentIcon = " 🔍";
+        }
+        li.innerHTML = `
+          <span>${q.label} (${q.type})${sliderInfo}${commentIcon}</span>
+          <div class="question-actions">
+            <button onclick="editQuestion(${index})">${getTranslation("editQuestion")}</button>
+            <button onclick="deleteQuestion(${index})">${getTranslation("deleteQuestion")}</button>
+          </div>
+        `;
+        questionsList.appendChild(li);
+      });
+    }
+
     function addQuestion() {
       const user = firebase.auth().currentUser;
       if (!user) {
         logMessage("warning", "User attempted to add a question without authentication.");
-        alert(getTranslation('loginPrompt'));
+        alert(getTranslation("loginPrompt"));
         return;
       }
       const isAdmin = diagsData[currentDiagIndex].members[user.uid].role === "admin";
       if (!isAdmin) {
         logMessage("warning", "User attempted to add a question without admin permissions.");
+        alert("You do not have permission to add questions.");
         return;
       }
-      const questionLabel = prompt(getTranslation('questionLabel'));
+      const questionLabel = prompt(getTranslation("questionLabel"));
       if (!questionLabel) {
         logMessage("warning", "No question label entered.");
         return;
       }
-      const questionType = prompt(`${getTranslation('questionType')} (${getTranslation('toggle')}/${getTranslation('slider')}):`);
-      if (!['toggle', 'slider'].includes(questionType)) {
+      const questionType = prompt(
+        `${getTranslation("questionType")} (${getTranslation("toggle")}/${getTranslation("slider")}):`
+      );
+      if (!["toggle", "slider"].includes(questionType)) {
         logMessage("warning", "Invalid question type entered.");
         alert("Invalid question type. Please enter 'toggle' or 'slider'.");
         return;
       }
-      let min = null, max = null;
-      if (questionType === 'slider') {
-        min = parseInt(prompt(getTranslation('sliderMin')), 10);
-        max = parseInt(prompt(getTranslation('sliderMax')), 10);
+      let min = null;
+      let max = null;
+      if (questionType === "slider") {
+        min = parseInt(prompt(getTranslation("sliderMin")), 10);
+        max = parseInt(prompt(getTranslation("sliderMax")), 10);
         if (isNaN(min) || isNaN(max) || min >= max) {
           logMessage("warning", "Invalid slider min/max values entered.");
           alert("Invalid slider min/max values.");
           return;
         }
       }
-      const hasComment = confirm(getTranslation('hasComment'));
+      const hasComment = confirm(getTranslation("hasComment"));
       const newQuestion = { label: questionLabel, type: questionType };
-      if (questionType === 'slider') {
+      if (questionType === "slider") {
         newQuestion.min = min;
         newQuestion.max = max;
       }
@@ -1678,69 +2232,55 @@
           logMessage("info", `Question added: "${questionLabel}".`);
           alert("Question added successfully!");
         })
-        .catch(err => {
-          logMessage("error", `Failed to add question: ${err}`);
+        .catch((err) => {
+          logMessage("error", "Failed to add question: " + err);
           alert("Failed to add question.");
         });
     }
 
-    // Render Questions List
-    function renderQuestionsList() {
-      const questionsList = document.getElementById("questionsList");
-      questionsList.innerHTML = '';
-      const form = diagsData[currentDiagIndex].form || forms["default"];
-      form.forEach((q, index) => {
-        const li = document.createElement("li");
-        li.innerHTML = `
-          <span>${q.label} (${q.type})${q.type === 'slider' ? ` [${q.min} - ${q.max}]` : ''}${q.hasComment ? ' 🔍' : ''}</span>
-          <div class="question-actions">
-            <button onclick="editQuestion(${index})">${getTranslation('editQuestion')}</button>
-            <button onclick="deleteQuestion(${index})">${getTranslation('deleteQuestion')}</button>
-          </div>
-        `;
-        questionsList.appendChild(li);
-      });
-    }
-
-    // Edit Question
     function editQuestion(index) {
       const user = firebase.auth().currentUser;
       if (!user) {
         logMessage("warning", "User attempted to edit a question without authentication.");
-        alert(getTranslation('loginPrompt'));
+        alert(getTranslation("loginPrompt"));
         return;
       }
       const isAdmin = diagsData[currentDiagIndex].members[user.uid].role === "admin";
       if (!isAdmin) {
         logMessage("warning", "User attempted to edit a question without admin permissions.");
+        alert("You do not have permission to edit questions.");
         return;
       }
       const form = diagsData[currentDiagIndex].form || forms["default"];
       const question = form[index];
-      const newLabel = prompt(getTranslation('questionLabel'), question.label);
+      const newLabel = prompt(getTranslation("questionLabel"), question.label);
       if (!newLabel) {
         logMessage("warning", "No question label entered during edit.");
         return;
       }
-      const newType = prompt(`${getTranslation('questionType')} (${getTranslation('toggle')}/${getTranslation('slider')}):`, question.type);
-      if (!['toggle', 'slider'].includes(newType)) {
+      const newType = prompt(
+        `${getTranslation("questionType")} (${getTranslation("toggle")}/${getTranslation("slider")}):`,
+        question.type
+      );
+      if (!["toggle", "slider"].includes(newType)) {
         logMessage("warning", "Invalid question type entered during edit.");
         alert("Invalid question type. Please enter 'toggle' or 'slider'.");
         return;
       }
-      let min = null, max = null;
-      if (newType === 'slider') {
-        min = parseInt(prompt(getTranslation('sliderMin'), question.min), 10);
-        max = parseInt(prompt(getTranslation('sliderMax'), question.max), 10);
+      let min = null;
+      let max = null;
+      if (newType === "slider") {
+        min = parseInt(prompt(getTranslation("sliderMin"), question.min), 10);
+        max = parseInt(prompt(getTranslation("sliderMax"), question.max), 10);
         if (isNaN(min) || isNaN(max) || min >= max) {
           logMessage("warning", "Invalid slider min/max values entered during edit.");
           alert("Invalid slider min/max values.");
           return;
         }
       }
-      const hasComment = confirm(getTranslation('hasComment'));
+      const hasComment = confirm(getTranslation("hasComment"));
       const updatedQuestion = { label: newLabel, type: newType };
-      if (newType === 'slider') {
+      if (newType === "slider") {
         updatedQuestion.min = min;
         updatedQuestion.max = max;
       }
@@ -1758,23 +2298,23 @@
           logMessage("info", `Question edited: "${newLabel}".`);
           alert("Question edited successfully!");
         })
-        .catch(err => {
-          logMessage("error", `Failed to edit question: ${err}`);
+        .catch((err) => {
+          logMessage("error", "Failed to edit question: " + err);
           alert("Failed to edit question.");
         });
     }
 
-    // Delete Question
     function deleteQuestion(index) {
       const user = firebase.auth().currentUser;
       if (!user) {
         logMessage("warning", "User attempted to delete a question without authentication.");
-        alert(getTranslation('loginPrompt'));
+        alert(getTranslation("loginPrompt"));
         return;
       }
       const isAdmin = diagsData[currentDiagIndex].members[user.uid].role === "admin";
       if (!isAdmin) {
         logMessage("warning", "User attempted to delete a question without admin permissions.");
+        alert("You do not have permission to delete questions.");
         return;
       }
       if (confirm("Are you sure you want to delete this question?")) {
@@ -1790,193 +2330,400 @@
             logMessage("info", `Question deleted: "${removedQuestion.label}".`);
             alert("Question deleted successfully!");
           })
-          .catch(err => {
-            logMessage("error", `Failed to delete question: ${err}`);
+          .catch((err) => {
+            logMessage("error", "Failed to delete question: " + err);
             alert("Failed to delete question.");
           });
       }
     }
 
-    // Send Message Function
-    function sendMessage() {
+    function renderRealtimeRadar() {
       if (!diagsData.length) return;
-      const messageInput = document.getElementById("messageInput");
-      const message = messageInput.value.trim();
-      if (!message) return;
-      const user = firebase.auth().currentUser;
-      if (!user) {
-        logMessage("warning", "User attempted to send message without authentication.");
-        alert(getTranslation('loginPrompt'));
-        return;
-      }
-      const DiagCode = diagsData[currentDiagIndex].code;
-      const DiagRef = firebase.database().ref(`/users/${user.uid}/Diags/${DiagCode}/messages`).push();
-      DiagRef.set({ user: user.email, type: "text", content: message, timestamp: Date.now() });
-      messageInput.value = "";
-    }
-
-    // Toggle Recording Function
-    function toggleRecording() {
-      const recordButton = document.getElementById("recordButton");
-      const stopRecordButton = document.getElementById("stopRecordButton");
-      if (!isRecording) {
-        if (!navigator.mediaDevices) {
-          logMessage("error", "Media devices not supported.");
-          return;
+      const answers = currentAnswers();
+      const data = answers.map((a) => (typeof a === "object" ? a.value : a));
+      const labels = diagsData[currentDiagIndex].form.map((q) => q.label);
+      if (realtimeRadar) realtimeRadar.destroy();
+      const ctx = document.getElementById("realtimeRadar").getContext("2d");
+      realtimeRadar = new Chart(ctx, {
+        type: "radar",
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: "Current Health",
+              data: data,
+              backgroundColor: "rgba(255, 99, 132, 0.2)",
+              borderColor: "rgba(255, 99, 132, 1)",
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            r: {
+              beginAtZero: true,
+              max: 10
+            }
+          }
         }
-        navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-          mediaRecorder = new MediaRecorder(stream);
-          mediaRecorder.start();
-          isRecording = true;
-          recordButton.style.display = "none";
-          stopRecordButton.style.display = "inline-block";
-          mediaRecorder.ondataavailable = e => { audioChunks.push(e.data); };
-          mediaRecorder.onstop = () => {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              recordedVoice = reader.result;
-              document.getElementById("sendVoiceButton").style.display = "inline-block";
-              document.getElementById("reRecordButton").style.display = "inline-block";
-              logMessage("info", "Recording stopped and ready to send.");
-            };
-            reader.readAsDataURL(audioBlob);
-            audioChunks = [];
-            isRecording = false;
-            recordButton.style.display = "inline-block";
-            stopRecordButton.style.display = "none";
-          };
-          logMessage("info", "Recording started.");
-        }).catch(err => {
-          logMessage("error", `Microphone access denied: ${err}`);
-          alert("Microphone access denied.");
+      });
+    }
+
+    function renderTimeSeriesChart() {
+      if (!diagsData.length || !diagsData[currentDiagIndex].history) return;
+      const history = diagsData[currentDiagIndex].history;
+      const labels = history.map((entry) => new Date(entry.timestamp).toLocaleString());
+      const form = diagsData[currentDiagIndex].form || forms["default"];
+      const datasets = form.map((q, i) => {
+        return {
+          label: q.label,
+          data: history.map((entry) => entry.answers[i] || 0),
+          fill: false,
+          borderColor: `hsl(${(i * 50) % 360}, 70%, 50%)`,
+          tension: 0.1
+        };
+      });
+      if (timeSeriesChart) timeSeriesChart.destroy();
+      const ctx = document.getElementById("timeSeriesChart").getContext("2d");
+      timeSeriesChart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: labels,
+          datasets: datasets
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 10
+            }
+          }
+        }
+      });
+    }
+
+    function renderSummaryRadarChart() {
+      if (!diagsData.length || !diagsData[currentDiagIndex].history) return;
+      const history = diagsData[currentDiagIndex].history;
+      const labels = diagsData[currentDiagIndex].form.map((q) => q.label);
+      const data = labels.map((_, i) => {
+        return (
+          history
+            .map((entry) => entry.answers[i] || 0)
+            .reduce((sum, value) => sum + value, 0) / history.length
+        );
+      });
+      if (summaryRadarChart) summaryRadarChart.destroy();
+      const ctx = document.getElementById("summaryRadarChart").getContext("2d");
+      summaryRadarChart = new Chart(ctx, {
+        type: "radar",
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: "Summary",
+              data: data,
+              backgroundColor: "rgba(54, 162, 235, 0.2)",
+              borderColor: "rgba(54, 162, 235, 1)",
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            r: {
+              beginAtZero: true,
+              max: 10
+            }
+          }
+        }
+      });
+    }
+
+    let currentMonth = new Date().getMonth();
+    let currentYear = new Date().getFullYear();
+
+    function renderCalendar(mode = "current") {
+      if (!diagsData[currentDiagIndex]) {
+        logMessage("error", "Current Diag is undefined.");
+        return;
+      }
+      const calendarContainer = document.getElementById("calendar");
+      calendarContainer.innerHTML = "";
+      if (mode === "previous") {
+        currentMonth--;
+        if (currentMonth < 0) {
+          currentMonth = 11;
+          currentYear--;
+        }
+      } else if (mode === "next") {
+        currentMonth++;
+        if (currentMonth > 11) {
+          currentMonth = 0;
+          currentYear++;
+        }
+      }
+      const calendar = diagsData[currentDiagIndex].calendar || [];
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      const monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+      ];
+      const monthYearLabel = document.createElement("div");
+      monthYearLabel.style.textAlign = "center";
+      monthYearLabel.style.marginBottom = "10px";
+      monthYearLabel.style.fontWeight = "bold";
+      monthYearLabel.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+      calendarContainer.appendChild(monthYearLabel);
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dayDiv = document.createElement("div");
+        dayDiv.classList.add("calendar-day");
+        const date = new Date(currentYear, currentMonth, day);
+        dayDiv.textContent = day;
+
+        const dayEvents = calendar.filter((ev) => {
+          const eventDate = new Date(ev.date);
+          return (
+            eventDate.getDate() === day &&
+            eventDate.getMonth() === currentMonth &&
+            eventDate.getFullYear() === currentYear
+          );
         });
+
+        if (dayEvents.length > 0) {
+          dayDiv.classList.add("has-event");
+          const tooltip = document.createElement("div");
+          tooltip.classList.add("tooltip");
+          tooltip.innerHTML =
+            "<strong>Events:</strong><br>" +
+            dayEvents
+              .map(
+                (event) => `
+                <div class="tooltip-event">
+                  <em>${event.title}</em>: ${event.description}
+                  <div class="event-actions">
+                    <button class="edit-event-btn" onclick="openEditEventModal('${event.id}')">${getTranslation("editQuestion")}</button>
+                    <button class="delete-event-btn" onclick="deleteEvent('${event.id}')">${getTranslation("deleteQuestion")}</button>
+                  </div>
+                </div>
+              `
+              )
+              .join("<br>");
+          dayDiv.appendChild(tooltip);
+        }
+        dayDiv.onclick = (e) => {
+          if (!e.target.classList.contains("edit-event-btn") && !e.target.classList.contains("delete-event-btn")) {
+            window.selectedDate = date;
+            showAddEventModal();
+          }
+        };
+        calendarContainer.appendChild(dayDiv);
+      }
+
+      const prevButton = document.createElement("button");
+      prevButton.textContent = "<";
+      prevButton.classList.add("calendar-nav-button", "prev");
+      prevButton.onclick = () => {
+        renderCalendar("previous");
+      };
+      calendarContainer.prepend(prevButton);
+
+      const nextButton = document.createElement("button");
+      nextButton.textContent = ">";
+      nextButton.classList.add("calendar-nav-button", "next");
+      nextButton.onclick = () => {
+        renderCalendar("next");
+      };
+      calendarContainer.appendChild(nextButton);
+
+      logMessage("info", "Calendar rendered.");
+    }
+
+    function showAddEventModal() {
+      document.getElementById("addEventModal").style.display = "flex";
+      document.getElementById("eventTitle").value = "";
+      document.getElementById("eventDateTime").value = "";
+      document.getElementById("eventDescription").value = "";
+      if (window.selectedDate) {
+        const selectedDate = window.selectedDate;
+        // Adjust for timezone offset to ensure correct date is set
+        const tzOffset = selectedDate.getTimezoneOffset() * 60000;
+        const adjustedDate = new Date(selectedDate.getTime() - tzOffset);
+        const formattedDate = adjustedDate.toISOString().slice(0, 16);
+        document.getElementById("eventDateTime").value = formattedDate;
       }
     }
 
-    // Stop Recording Function
-    function stopRecording() {
-      if (mediaRecorder && isRecording) {
-        mediaRecorder.stop();
-        logMessage("info", "Recording stopped.");
+    function addEvent() {
+      const title = document.getElementById("eventTitle").value.trim();
+      const dateTime = document.getElementById("eventDateTime").value;
+      const description = document.getElementById("eventDescription").value.trim();
+      if (!title || !dateTime) {
+        logMessage("warning", "No event title or date/time entered.");
+        alert(getTranslation("errorOccurred"));
+        return;
       }
-    }
-
-    // Send Voice Message
-    function sendVoice() {
-      if (!recordedVoice) {
-        alert("No voice recording available to send.");
+      const eventDate = new Date(dateTime);
+      if (isNaN(eventDate.getTime())) {
+        logMessage("warning", "Invalid date/time entered.");
+        alert(getTranslation("errorOccurred"));
         return;
       }
       const user = firebase.auth().currentUser;
       if (!user) {
-        logMessage("warning", "User attempted to send voice message without authentication.");
-        alert(getTranslation('loginPrompt'));
+        logMessage("warning", "User attempted to add event without authentication.");
+        alert(getTranslation("loginPrompt"));
         return;
       }
-      const DiagCode = diagsData[currentDiagIndex].code;
-      const DiagRef = firebase.database().ref(`/users/${user.uid}/Diags/${DiagCode}/messages`).push();
-      DiagRef.set({ user: user.email, type: "voice", content: recordedVoice, timestamp: Date.now() })
-        .then(() => {
-          logMessage("info", "Voice message sent successfully.");
-          alert("Voice message sent!");
-          recordedVoice = null;
-          document.getElementById("sendVoiceButton").style.display = "none";
-          document.getElementById("reRecordButton").style.display = "none";
-        })
-        .catch(err => {
-          logMessage("error", `Failed to send voice message: ${err}`);
-          alert("Failed to send voice message.");
-        });
-    }
-
-    // Re-record Voice Message
-    function reRecordVoice() {
-      recordedVoice = null;
-      document.getElementById("sendVoiceButton").style.display = "none";
-      document.getElementById("reRecordButton").style.display = "none";
-      logMessage("info", "Voice recording cleared. Ready to re-record.");
-    }
-
-    // Open Manage Questions Modal
-    function openManageQuestionsModal() {
-      renderQuestionsList();
-      document.getElementById("manageQuestionsModal").style.display = "flex";
-    }
-
-    // Promote User to Admin
-    function promoteUser(uid) {
-      const user = firebase.auth().currentUser;
-      if (!user) {
-        logMessage("warning", "User attempted to promote without authentication.");
-        alert(getTranslation('loginPrompt'));
-        return;
-      }
-      const isAdmin = diagsData[currentDiagIndex].members[user.uid].role === "admin";
-      if (!isAdmin) {
-        logMessage("warning", "User attempted to promote without admin permissions.");
-        return;
-      }
-      diagsData[currentDiagIndex].members[uid].role = "admin";
+      const newEventId = "event-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9);
+      const event = {
+        id: newEventId,
+        title,
+        description,
+        date: eventDate.toISOString()
+      };
+      diagsData[currentDiagIndex].calendar.push(event);
       saveDiagToDatabase(diagsData[currentDiagIndex])
         .then(() => {
-          renderDiagMembers();
-          logMessage("info", "User promoted to admin.");
-          alert("User promoted to admin.");
+          renderCalendar();
+          renderUpcomingEvents();
+          renderDiag();
+          closeModal("addEventModal");
+          logMessage("info", `Event "${title}" added to calendar.`);
+          alert(getTranslation("eventAdded"));
         })
-        .catch(err => {
-          logMessage("error", `Failed to promote user: ${err}`);
-          alert("Failed to promote user.");
+        .catch((err) => {
+          logMessage("error", "Failed to add event: " + err);
+          alert(getTranslation("errorOccurred"));
         });
     }
 
-    // Demote User to Regular User
-    function demoteUser(uid) {
-      const user = firebase.auth().currentUser;
-      if (!user) {
-        logMessage("warning", "User attempted to demote without authentication.");
-        alert(getTranslation('loginPrompt'));
+    function openEditEventModal(eventId) {
+      const currentDiag = diagsData[currentDiagIndex];
+      const event = currentDiag.calendar.find(ev => ev.id === eventId);
+      if (!event) {
+        logMessage("error", "Event not found.");
+        alert("Event not found.");
         return;
       }
-      const isAdmin = diagsData[currentDiagIndex].members[user.uid].role === "admin";
-      if (!isAdmin) {
-        logMessage("warning", "User attempted to demote without admin permissions.");
+      document.getElementById("editEventTitle").value = event.title;
+      // Adjust for timezone offset
+      const eventDate = new Date(event.date);
+      const tzOffset = eventDate.getTimezoneOffset() * 60000;
+      const adjustedDate = new Date(eventDate.getTime() - tzOffset);
+      document.getElementById("editEventDateTime").value = adjustedDate.toISOString().slice(0, 16);
+      document.getElementById("editEventDescription").value = event.description;
+      const editModal = document.getElementById("editEventModal");
+      editModal.style.display = "flex";
+      editModal.dataset.editEventId = eventId;
+    }
+
+    function deleteEvent(eventId) {
+      if (!confirm("Are you sure you want to delete this event?")) return;
+      const currentDiag = diagsData[currentDiagIndex];
+      const eventIndex = currentDiag.calendar.findIndex(ev => ev.id === eventId);
+      if (eventIndex === -1) {
+        logMessage("error", "Event not found for deletion.");
+        alert("Event not found.");
         return;
       }
-      const admins = Object.values(diagsData[currentDiagIndex].members).filter(member => member.role === "admin");
-      if (admins.length <= 1 && diagsData[currentDiagIndex].members[uid].role === "admin") {
-        logMessage("warning", "Attempt to demote the last admin.");
-        alert("There must be at least one admin for this Diag.");
-        return;
-      }
-      diagsData[currentDiagIndex].members[uid].role = "user";
-      saveDiagToDatabase(diagsData[currentDiagIndex])
+      currentDiag.calendar.splice(eventIndex, 1);
+      saveDiagToDatabase(currentDiag)
         .then(() => {
-          renderDiagMembers();
-          logMessage("info", "User demoted to user.");
-          alert("User demoted to user.");
+          renderCalendar();
+          renderUpcomingEvents();
+          renderDiag();
+          logMessage("info", `Event "${eventId}" deleted successfully.`);
+          alert("Event deleted successfully.");
         })
-        .catch(err => {
-          logMessage("error", `Failed to demote user: ${err}`);
-          alert("Failed to demote user.");
+        .catch((err) => {
+          logMessage("error", "Failed to delete event: " + err);
+          alert("Failed to delete event.");
         });
     }
 
-    // Export Diag to Excel
+    function saveEditedEvent() {
+      const modal = document.getElementById("editEventModal");
+      const eventId = modal.dataset.editEventId;
+      const updatedTitle = document.getElementById("editEventTitle").value.trim();
+      const updatedDateTime = document.getElementById("editEventDateTime").value;
+      const updatedDescription = document.getElementById("editEventDescription").value.trim();
+      if (!updatedTitle || !updatedDateTime) {
+        alert("Event title and date/time are required.");
+        return;
+      }
+      const updatedDate = new Date(updatedDateTime);
+      if (isNaN(updatedDate.getTime())) {
+        alert("Invalid date/time format.");
+        return;
+      }
+      const currentDiag = diagsData[currentDiagIndex];
+      const event = currentDiag.calendar.find((ev) => ev.id === eventId);
+      if (event) {
+        event.title = updatedTitle;
+        event.date = updatedDate.toISOString();
+        event.description = updatedDescription;
+        saveDiagToDatabase(currentDiag)
+          .then(() => {
+            renderCalendar();
+            renderUpcomingEvents();
+            renderDiag();
+            closeModal("editEventModal");
+            logMessage("info", `Event "${updatedTitle}" edited successfully.`);
+            alert("Event edited successfully!");
+          })
+          .catch((err) => {
+            logMessage("error", "Failed to edit event: " + err);
+            alert("Failed to edit event.");
+          });
+      }
+    }
+
+    function renderUpcomingEvents() {
+      if (!diagsData.length) return;
+      const upcomingList = document.getElementById("upcomingEventsList");
+      upcomingList.innerHTML = "";
+      const calendar = diagsData[currentDiagIndex].calendar || [];
+      const now = new Date();
+      const futureDate = new Date();
+      futureDate.setDate(now.getDate() + 15);
+
+      const upcomingEvents = calendar
+        .filter((event) => {
+          const eventDate = new Date(event.date);
+          return eventDate >= now && eventDate <= futureDate;
+        })
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      if (upcomingEvents.length === 0) {
+        upcomingList.innerHTML = `<li>${getTranslation("noUpcomingEvents")}</li>`;
+        return;
+      }
+      upcomingEvents.forEach((ev) => {
+        const li = document.createElement("li");
+        li.innerHTML = `<strong>${ev.title}</strong><br>${ev.description}<br><em>${new Date(ev.date).toLocaleString()}</em>`;
+        upcomingList.appendChild(li);
+      });
+    }
+
     function exportDiagExcel() {
       if (!diagsData.length) return;
       const currentDiag = diagsData[currentDiagIndex];
-      const data = currentDiag.history.map(entry => {
+      const data = currentDiag.history.map((entry) => {
         const row = {
           Date: new Date(entry.timestamp).toLocaleDateString(),
           Time: new Date(entry.timestamp).toLocaleTimeString()
         };
         entry.answers.forEach((ans, i) => {
-          const question = currentDiag.form[i] ? currentDiag.form[i].label : `Question ${i+1}`;
+          const question = currentDiag.form[i] ? currentDiag.form[i].label : "Question " + (i + 1);
           if (typeof ans === "object") {
             row[question] = ans.value;
             if (ans.comment) {
-              row[`${question} Comment`] = ans.comment;
+              row[question + " Comment"] = ans.comment;
             }
           } else {
             row[question] = ans;
@@ -1987,38 +2734,34 @@
       const worksheet = XLSX.utils.json_to_sheet(data);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Diag Data");
-      XLSX.writeFile(workbook, `${currentDiag.name}.xlsx`);
+      XLSX.writeFile(workbook, currentDiag.name + ".xlsx");
       logMessage("info", `Diag "${currentDiag.name}" exported as Excel.`);
+      alert("Diag exported successfully.");
     }
 
-    // Render Summary Radar Chart
-    function renderSummaryRadarChart() {
-      if (!diagsData.length || !diagsData[currentDiagIndex].history) return;
-      const history = diagsData[currentDiagIndex].history;
-      const labels = diagsData[currentDiagIndex].form.map(q => q.label);
-      const data = labels.map((_, i) =>
-        history.map(entry => entry.answers[i] || 0)
-          .reduce((sum, value) => sum + value, 0) / history.length
-      );
-      if (summaryRadarChart) { summaryRadarChart.destroy(); }
-      const ctx = document.getElementById("summaryRadarChart").getContext("2d");
-      summaryRadarChart = new Chart(ctx, {
-        type: "radar",
-        data: {
-          labels,
-          datasets: [{
-            label: "Summary",
-            data,
-            backgroundColor: "rgba(54, 162, 235, 0.2)",
-            borderColor: "rgba(54, 162, 235, 1)",
-            borderWidth: 1
-          }]
-        },
-        options: { responsive: true, scales: { r: { beginAtZero: true, max: 10 } } }
-      });
-    }
+    const tutorialSteps = {
+      en: [
+        { title: "Welcome", text: "Welcome to Autodiag Health Tracker! Follow the steps to get started." },
+        { title: "Create a follow-up", text: "Click on 'Create a follow-up' to add a new follow-up." },
+        { title: "Fill the Checklist", text: "Fill out the daily checklist to monitor the patient health." },
+        { title: "Real-Time Radar", text: "The radar updates in real-time based on your responses." },
+        { title: "Health Metrics", text: "View health metrics over time in the charts." },
+        { title: "Export to Excel", text: "Export the Diag data to Excel for easy sharing and analysis." },
+        { title: "Share Diag", text: "Share your Diag with others using a secure code." },
+        { title: "Manage Questions", text: "Edit the list of questions specific to this Diag." }
+      ],
+      fr: [
+        { title: "Bienvenue", text: "Bienvenue dans Autodiag Health Tracker! Suivez les étapes pour commencer." },
+        { title: "Créer un Diag", text: "Cliquez sur 'Créer un Diag' pour ajouter un nouveau Diag." },
+        { title: "Remplir la Checklist", text: "Remplissez la checklist quotidienne pour surveiller la santé de votre Diag." },
+        { title: "Radar en Temps Réel", text: "Le radar se met à jour en temps réel en fonction de vos réponses." },
+        { title: "Métriques de Santé", text: "Consultez les métriques de santé au fil du temps dans les graphiques." },
+        { title: "Exporter vers Excel", text: "Exportez les données du Diag vers Excel pour un partage et une analyse faciles." },
+        { title: "Partager le Diag", text: "Partagez votre Diag avec d'autres utilisateurs via un code sécurisé." },
+        { title: "Gérer les Questions", text: "Modifiez la liste des questions spécifiques à ce Diag." }
+      ]
+    };
 
-    // Show Tutorial Modal
     function showTutorial() {
       tutorialStep = 0;
       updateTutorialModal();
@@ -2026,7 +2769,6 @@
       logMessage("info", "Tutorial started.");
     }
 
-    // Next Tutorial Step
     function nextTutorialStep() {
       if (tutorialStep < tutorialSteps[currentLanguage].length - 1) {
         tutorialStep++;
@@ -2037,131 +2779,110 @@
       }
     }
 
-    // Update Tutorial Modal Content
     function updateTutorialModal() {
-      document.getElementById("tutorialTitle").innerText = tutorialSteps[currentLanguage][tutorialStep].title;
-      document.getElementById("tutorialText").innerText = tutorialSteps[currentLanguage][tutorialStep].text;
+      document.getElementById("tutorialTitle").innerText =
+        tutorialSteps[currentLanguage][tutorialStep].title;
+      document.getElementById("tutorialText").innerText =
+        tutorialSteps[currentLanguage][tutorialStep].text;
     }
 
-    // Check for Shared Diag via URL
-    function checkShareURL(user) {
-      const urlParams = new URLSearchParams(window.lodiagion.search);
-      const shareCode = urlParams.get('share');
-      if (shareCode) {
-        const sharedDiagRef = firebase.database().ref(`/sharedDiags/${shareCode}`);
-        sharedDiagRef.once('value').then(snapshot => {
-          if (snapshot.exists()) {
-            const sharedDiag = snapshot.val();
-            const existingIndex = diagsData.findIndex(c => c.code === sharedDiag.code);
-            if (existingIndex === -1) {
-              sharedDiag.members = { ...sharedDiag.members, [user.uid]: { email: user.email, role: "user" } };
-              saveToFirebase(`/users/${user.uid}/Diags/${sharedDiag.code}`, sharedDiag)
-                .then(() => {
-                  diagsData.push(sharedDiag);
-                  renderDiagSelector();
-                  selectDiagUser();
-                  updateDeleteDiagButton();
-                  renderQuestionsList();
-                  renderQuiz();
-                  renderRealtimeRadar();
-                  renderTimeSeriesChart();
-                  renderSummaryRadarChart();
-                  renderDiag();
-                  renderCalendar();
-                  renderUpcomingEvents();
-                  logMessage("info", `Shared Diag "${sharedDiag.name}" added to user.`);
-                  alert("Shared Diag added successfully!");
-                  const newURL = window.lodiagion.origin + window.lodiagion.pathname;
-                  window.history.replaceState({}, document.title, newURL);
-                })
-                .catch(err => {
-                  logMessage("error", `Failed to add shared Diag: ${err}`);
-                  alert("Failed to add shared Diag.");
-                });
-            } else {
-              logMessage("warning", `Attempt to add already linked Diag "${sharedDiag.name}".`);
-              alert("Diag is already linked.");
-            }
-          } else {
-            logMessage("warning", `No shared Diag found with code "${shareCode}".`);
-            alert("No shared Diag found with the provided code.");
-          }
-        }).catch(err => {
-          logMessage("error", `Error retrieving shared Diag: ${err}`);
-          alert("Error retrieving shared Diag.");
+    function toggleLogs() {
+      const logsContainer = document.getElementById("logsContainer");
+      logsContainer.style.display =
+        logsContainer.style.display === "none" || logsContainer.style.display === ""
+          ? "flex"
+          : "none";
+    }
+
+    function togglePasswordVisibility(id) {
+      const passwordInput = document.getElementById(id);
+      passwordInput.type = passwordInput.type === "password" ? "text" : "password";
+    }
+
+    function addUsefulDoc() {
+      const labelInput = document.getElementById("docLabelInput");
+      const linkInput = document.getElementById("docLinkInput");
+      const labelVal = labelInput.value.trim();
+      const linkVal = linkInput.value.trim();
+      if (!labelVal || !linkVal) {
+        logMessage("warning", "Incomplete doc info.");
+        alert("Please provide both label and link for the document.");
+        return;
+      }
+      diagsData[currentDiagIndex].documents.push({ label: labelVal, link: linkVal });
+      saveDiagToDatabase(diagsData[currentDiagIndex])
+        .then(() => {
+          renderUsefulDocs();
+          labelInput.value = "";
+          linkInput.value = "";
+          logMessage("info", `Document "${labelVal}" added.`);
+          alert("Document added successfully.");
+        })
+        .catch((err) => {
+          logMessage("error", "Failed to add document: " + err);
+          alert("Failed to add document.");
         });
+    }
+
+    function editUsefulDoc(index) {
+      const doc = diagsData[currentDiagIndex].documents[index];
+      const newLabel = prompt("Edit Document Label:", doc.label);
+      if (!newLabel) {
+        logMessage("warning", "No document label entered during edit.");
+        return;
+      }
+      const newLink = prompt("Edit Document Link (URL):", doc.link);
+      if (!newLink) {
+        logMessage("warning", "No document link entered during edit.");
+        return;
+      }
+      diagsData[currentDiagIndex].documents[index].label = newLabel;
+      diagsData[currentDiagIndex].documents[index].link = newLink;
+      saveDiagToDatabase(diagsData[currentDiagIndex])
+        .then(() => {
+          renderUsefulDocs();
+          logMessage("info", `Document "${newLabel}" edited.`);
+          alert("Document edited successfully.");
+        })
+        .catch((err) => {
+          logMessage("error", "Failed to edit document: " + err);
+          alert("Failed to edit document.");
+        });
+    }
+
+    function deleteUsefulDoc(index) {
+      if (confirm("Are you sure you want to delete this document?")) {
+        const removedDoc = diagsData[currentDiagIndex].documents.splice(index, 1)[0];
+        saveDiagToDatabase(diagsData[currentDiagIndex])
+          .then(() => {
+            renderUsefulDocs();
+            logMessage("info", `Document "${removedDoc.label}" deleted.`);
+            alert("Document deleted successfully.");
+          })
+          .catch((err) => {
+            logMessage("error", "Failed to delete document: " + err);
+            alert("Failed to delete document.");
+          });
       }
     }
 
-    // Render Calendar (Ensuring Proper CSS is Applied)
-    function renderCalendar() {
-      if (!diagsData.length) return;
-      const calendarContainer = document.getElementById("calendar");
-      calendarContainer.innerHTML = '';
-      const calendar = diagsData[currentDiagIndex].calendar || [];
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = today.getMonth();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dayDiv = document.createElement("div");
-        dayDiv.classList.add("calendar-day");
-        const date = new Date(year, month, day);
-        dayDiv.textContent = day;
-        const dayEvents = calendar.filter(event => {
-          const eventDate = new Date(event.date);
-          return eventDate.getDate() === day && eventDate.getMonth() === month && eventDate.getFullYear() === year;
-        });
-        if (dayEvents.length > 0) {
-          dayDiv.classList.add("has-event");
-          const tooltip = document.createElement("div");
-          tooltip.classList.add("tooltip");
-          tooltip.innerHTML = `<strong>Events:</strong><br>${dayEvents.map(event => `<em>${event.title}</em>: ${event.description}`).join('<br>')}`;
-          dayDiv.appendChild(tooltip);
-        }
-        dayDiv.onclick = () => {
-          window.selectedDate = date;
-          showAddEventModal();
-        };
-        calendarContainer.appendChild(dayDiv);
-      }
-      logMessage("info", "Calendar rendered.");
-    }
-
-    // Prevent Duplidiage Function Definitions
-    // All functions are defined once above
-
-    // Render Diag Members (Ensured Unique)
-    function renderDiagMembers() {
-      const user = firebase.auth().currentUser;
-      if (!user) return;
-      const DiagCode = diagsData[currentDiagIndex].code;
-      const members = diagsData[currentDiagIndex].members;
-      const usersList = document.getElementById("usersList");
-      usersList.innerHTML = '';
-      for (const uid in members) {
-        const member = members[uid];
+    function renderUsefulDocs() {
+      const docsList = document.getElementById("docsList");
+      docsList.innerHTML = "";
+      diagsData[currentDiagIndex].documents.forEach((doc, i) => {
         const li = document.createElement("li");
-        li.innerHTML = `${member.email} - ${member.role === "admin" ? "Admin" : "User"}`;
-        if (member.role !== "admin") {
-          const promoteBtn = document.createElement("button");
-          promoteBtn.textContent = getTranslation('promote');
-          promoteBtn.onclick = () => promoteUser(uid);
-          li.appendChild(promoteBtn);
-        } else {
-          if (uid !== user.uid) {
-            const demoteBtn = document.createElement("button");
-            demoteBtn.textContent = getTranslation('demote');
-            demoteBtn.onclick = () => demoteUser(uid);
-            li.appendChild(demoteBtn);
-          }
-        }
-        usersList.appendChild(li);
-      }
+        li.innerHTML = `
+          <span><strong>${doc.label}</strong> - <a href="${doc.link}" target="_blank">${doc.link}</a></span>
+          <div>
+            <button onclick="editUsefulDoc(${i})">Edit</button>
+            <button onclick="deleteUsefulDoc(${i})">Delete</button>
+          </div>
+        `;
+        docsList.appendChild(li);
+      });
     }
 
-    // Handle Page Load
-    window.onload = () => {
+    document.addEventListener("DOMContentLoaded", () => {
       setTimeout(() => {
         document.getElementById("splash").classList.add("fade-out");
         setTimeout(() => {
@@ -2169,654 +2890,9 @@
           initializeFirebase();
         }, 1000);
       }, 3000);
+      renderCalendar();
       renderUpcomingEvents();
-    };
-
-    // Toggle Password Visibility
-    function togglePasswordVisibility(id) {
-      const passwordInput = document.getElementById(id);
-      passwordInput.type = passwordInput.type === "password" ? "text" : "password";
-    }
-
-    // Additional Helper Functions
-    // (Ensure no duplidiages and all functionalities are intact)
-
-    function updateModalTranslations() {
-      // Mettez à jour les textes des modals en fonction de la langue actuelle
-      const modals = document.querySelectorAll('.modal-content');
-      modals.forEach(modal => {
-        // Parcours des éléments ayant des attributs `data-key`
-        modal.querySelectorAll('[data-key]').forEach(element => {
-          const key = element.getAttribute('data-key');
-          if (languages[currentLanguage][key]) {
-            if (element.tagName.toLowerCase() === 'input' || element.tagName.toLowerCase() === 'textarea') {
-              element.placeholder = languages[currentLanguage][key];
-            } else {
-              element.textContent = languages[currentLanguage][key];
-            }
-          }
-        });
-      });
-    }
-    
+    });
   </script>
-  
-  
-  
- <script>
-// Patch 1: Navigation in the Shared Calendar (left and right)
-document.addEventListener('DOMContentLoaded', () => {
-    const calendarContainer = document.querySelector('.calendar-container');
-    const prevButton = document.createElement('button');
-    const nextButton = document.createElement('button');
-
-    prevButton.textContent = '<';
-    nextButton.textContent = '>';
-
-    prevButton.classList.add('calendar-nav-button');
-    nextButton.classList.add('calendar-nav-button');
-
-    calendarContainer.prepend(prevButton);
-    calendarContainer.append(nextButton);
-
-    prevButton.addEventListener('click', () => {
-        renderCalendar('previous'); // Move to previous period
-    });
-
-    nextButton.addEventListener('click', () => {
-        renderCalendar('next'); // Move to next period
-    });
-});
-</script>
-
-<script>
-// Patch 2: Event modifidiagion and deletion via modal on hover tooltip
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.calendar-event').forEach(event => {
-        event.addEventListener('mouseover', () => {
-            const tooltip = document.createElement('div');
-            tooltip.className = 'event-tooltip';
-            tooltip.innerHTML = `
-                <button class="edit-event-btn">Edit</button>
-                <button class="delete-event-btn">Delete</button>
-            `;
-            event.appendChild(tooltip);
-
-            tooltip.querySelector('.edit-event-btn').addEventListener('click', () => {
-                openModalToEditEvent(event.dataset.eventId); // Implement this function
-            });
-
-            tooltip.querySelector('.delete-event-btn').addEventListener('click', () => {
-                deleteEvent(event.dataset.eventId); // Implement this function
-            });
-
-            event.addEventListener('mouseleave', () => {
-                tooltip.remove();
-            });
-        });
-    });
-});
-</script>
-
-
-
-<script>
-// Patch 4: Correcting dates in health metrics graph
-document.addEventListener('DOMContentLoaded', () => {
-    const healthMetricsGraph = document.querySelector('.health-metrics-graph');
-    if (healthMetricsGraph) {
-        const dateElements = healthMetricsGraph.querySelectorAll('.date');
-        dateElements.forEach(dateElement => {
-            const rawDate = dateElement.dataset.rawDate;
-            const parsedDate = new Date(rawDate);
-
-            if (!isNaN(parsedDate.getTime())) {
-                dateElement.textContent = parsedDate.toLocaleDateString();
-            } else {
-                dateElement.textContent = 'Invalid Date';
-            }
-        });
-    }
-});
-</script>
-
-<!-- Patch Script: Enhanced Tooltip Event Management -->
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // Function to find the index of an event in the calendar array
-    function findEventIndex(event) {
-      const calendar = diagsData[currentDiagIndex].calendar;
-      return calendar.findIndex(e => 
-        e.title === event.title && 
-        e.description === event.description && 
-        new Date(e.date).toISOString() === new Date(event.date).toISOString()
-      );
-    }
-
-    // Function to create editable tooltip content
-    function createEditableTooltip(dayEvents) {
-      return `
-        <strong>Events:</strong><br>
-        ${dayEvents.map((event, idx) => `
-          <div class="tooltip-event" data-event-index="${idx}">
-            <em>${event.title}</em>: ${event.description}
-            <div class="event-actions">
-              <button class="edit-event-btn">Edit</button>
-              <button class="delete-event-btn">Delete</button>
-            </div>
-          </div>
-        `).join('<br>')}
-      `;
-    }
-
-    // Initialize MutationObserver to watch for tooltip additions
-    const observer = new MutationObserver(mutations => {
-      mutations.forEach(mutation => {
-        mutation.addedNodes.forEach(node => {
-          if (node.classList && node.classList.contains('tooltip')) {
-            // Retrieve the corresponding day's events
-            const dayNumber = node.parentElement.textContent.trim();
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = today.getMonth();
-            const day = parseInt(dayNumber, 10);
-            const eventsForDay = diagsData[currentDiagIndex].calendar.filter(event => {
-              const eventDate = new Date(event.date);
-              return eventDate.getDate() === day &&
-                     eventDate.getMonth() === month &&
-                     eventDate.getFullYear() === year;
-            });
-
-            // Update tooltip with editable content
-            node.innerHTML = createEditableTooltip(eventsForDay);
-          }
-        });
-      });
-    });
-
-    // Start observing the calendar container for tooltip changes
-    const calendarContainer = document.querySelector('.calendar-container');
-    observer.observe(calendarContainer, { childList: true, subtree: true });
-
-    // Event delegation for Edit and Delete buttons within tooltips
-    calendarContainer.addEventListener('click', (e) => {
-      if (e.target.classList.contains('edit-event-btn')) {
-        const tooltipEventDiv = e.target.closest('.tooltip-event');
-        const eventIndex = parseInt(tooltipEventDiv.dataset.eventIndex, 10);
-        const event = diagsData[currentDiagIndex].calendar[eventIndex];
-        openEditEventModal(eventIndex, event);
-      }
-
-      if (e.target.classList.contains('delete-event-btn')) {
-        const tooltipEventDiv = e.target.closest('.tooltip-event');
-        const eventIndex = parseInt(tooltipEventDiv.dataset.eventIndex, 10);
-        confirmDeleteEvent(eventIndex);
-      }
-    });
-
-    // Function to open the Edit Event Modal with pre-filled data
-    function openEditEventModal(index, event) {
-      const modal = document.getElementById("editEventModal");
-      modal.style.display = "flex";
-      modal.dataset.eventIndex = index;
-
-      document.getElementById("editEventTitle").value = event.title;
-      const eventDate = new Date(event.date);
-      // Format date to 'YYYY-MM-DDTHH:MM' for datetime-local input
-      const formattedDate = eventDate.toISOString().slice(0,16);
-      document.getElementById("editEventDateTime").value = formattedDate;
-      document.getElementById("editEventDescription").value = event.description;
-    }
-
-    // Function to save the edited event
-    window.saveEditedEvent = function() {
-      const modal = document.getElementById("editEventModal");
-      const index = parseInt(modal.dataset.eventIndex, 10);
-      const updatedTitle = document.getElementById("editEventTitle").value.trim();
-      const updatedDateTime = document.getElementById("editEventDateTime").value;
-      const updatedDescription = document.getElementById("editEventDescription").value.trim();
-
-      if (!updatedTitle || !updatedDateTime) {
-        alert("Event title and date/time are required.");
-        return;
-      }
-
-      const updatedDate = new Date(updatedDateTime);
-      if (isNaN(updatedDate.getTime())) {
-        alert("Invalid date/time format.");
-        return;
-      }
-
-      // Update the event in the calendar array
-      diagsData[currentDiagIndex].calendar[index] = {
-        title: updatedTitle,
-        date: updatedDate.toISOString(),
-        description: updatedDescription
-      };
-
-      // Save the updated Diag to Firebase
-      saveDiagToDatabase(diagsData[currentDiagIndex])
-        .then(() => {
-          logMessage("info", `Event "${updatedTitle}" edited successfully.`);
-          alert("Event edited successfully!");
-          closeModal("editEventModal");
-          renderCalendar(); // Re-render the calendar to reflect changes
-        })
-        .catch(err => {
-          logMessage("error", `Failed to edit event: ${err}`);
-          alert("Failed to edit event. Please try again.");
-        });
-    }
-
-    // Function to confirm and delete an event
-    function confirmDeleteEvent(index) {
-      const event = diagsData[currentDiagIndex].calendar[index];
-      const confirmation = confirm(`Are you sure you want to delete the event "${event.title}"?`);
-      if (confirmation) {
-        // Remove the event from the calendar array
-        diagsData[currentDiagIndex].calendar.splice(index, 1);
-
-        // Save the updated Diag to Firebase
-        saveDiagToDatabase(diagsData[currentDiagIndex])
-          .then(() => {
-            logMessage("info", `Event "${event.title}" deleted successfully.`);
-            alert("Event deleted successfully!");
-            renderCalendar(); // Re-render the calendar to reflect changes
-          })
-          .catch(err => {
-            logMessage("error", `Failed to delete event: ${err}`);
-            alert("Failed to delete event. Please try again.");
-          });
-      }
-    }
-
-    // Optional: Close Edit Event Modal when clicking outside the modal content
-    window.onclick = function(event) {
-      const editModal = document.getElementById("editEventModal");
-      if (event.target == editModal) {
-        editModal.style.display = "none";
-      }
-    }
-
-  });
-</script>
-
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const translateElements = () => {
-      document.querySelectorAll('[data-key]').forEach(el => {
-        const key = el.getAttribute('data-key');
-        if (languages[currentLanguage][key]) {
-          if (el.placeholder) {
-            el.placeholder = languages[currentLanguage][key];
-          } else {
-            el.textContent = languages[currentLanguage][key];
-          }
-        }
-      });
-    };
-
-    translateElements();
-
-    const observer = new MutationObserver(mutations => {
-      mutations.forEach(mutation => {
-        mutation.addedNodes.forEach(node => {
-          if (node.nodeType === 1) {
-            if (node.hasAttribute('data-key')) {
-              const key = node.getAttribute('data-key');
-              if (languages[currentLanguage][key]) {
-                if (node.placeholder) {
-                  node.placeholder = languages[currentLanguage][key];
-                } else {
-                  node.textContent = languages[currentLanguage][key];
-                }
-              }
-            }
-            node.querySelectorAll('[data-key]').forEach(el => {
-              const key = el.getAttribute('data-key');
-              if (languages[currentLanguage][key]) {
-                if (el.placeholder) {
-                  el.placeholder = languages[currentLanguage][key];
-                } else {
-                  el.textContent = languages[currentLanguage][key];
-                }
-              }
-            });
-          }
-        });
-      });
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    window.changeLanguage = function(lang) {
-      currentLanguage = lang;
-      localStorage.setItem('selectedLanguage', lang);
-      translateElements();
-    };
-  });
-</script>
-
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    diagsData.forEach(Diag => {
-      Diag.calendar.forEach(event => {
-        if (!event.id) {
-          event.id = 'event-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-        }
-      });
-    });
-
-    window.renderCalendar = function(mode = 'current') {
-      if (!diagsData.length) return;
-      const calendarContainer = document.getElementById("calendar");
-      calendarContainer.innerHTML = '';
-      const calendar = diagsData[currentDiagIndex].calendar || [];
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = today.getMonth();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dayDiv = document.createElement("div");
-        dayDiv.classList.add("calendar-day");
-        const date = new Date(year, month, day);
-        dayDiv.textContent = day;
-        const dayEvents = calendar.filter(event => {
-          const eventDate = new Date(event.date);
-          return eventDate.getDate() === day && eventDate.getMonth() === month && eventDate.getFullYear() === year;
-        });
-        if (dayEvents.length > 0) {
-          dayDiv.classList.add("has-event");
-          const tooltip = document.createElement("div");
-          tooltip.classList.add("tooltip");
-          tooltip.innerHTML = `<strong>Events:</strong><br>${dayEvents.map(event => `
-            <div class="tooltip-event" data-event-id="${event.id}">
-              <em>${event.title}</em>: ${event.description}
-              <div class="event-actions">
-                <button class="edit-event-btn">Edit</button>
-                <button class="delete-event-btn">Delete</button>
-              </div>
-            </div>
-          `).join('<br>')}`;
-          dayDiv.appendChild(tooltip);
-        }
-        dayDiv.onclick = () => {
-          window.selectedDate = date;
-          showAddEventModal();
-        };
-        calendarContainer.appendChild(dayDiv);
-      }
-      logMessage("info", "Calendar rendered.");
-    };
-
-    document.querySelector('.calendar-container').addEventListener('click', (e) => {
-      if (e.target.classList.contains('edit-event-btn')) {
-        const eventId = e.target.closest('.tooltip-event').dataset.eventId;
-        const event = diagsData[currentDiagIndex].calendar.find(ev => ev.id === eventId);
-        if (event) {
-          document.getElementById("editEventTitle").value = event.title;
-          document.getElementById("editEventDateTime").value = new Date(event.date).toISOString().slice(0,16);
-          document.getElementById("editEventDescription").value = event.description;
-          document.getElementById("editEventModal").dataset.editEventId = eventId;
-          document.getElementById("editEventModal").style.display = "flex";
-        }
-      }
-      if (e.target.classList.contains('delete-event-btn')) {
-        const eventId = e.target.closest('.tooltip-event').dataset.eventId;
-        const event = diagsData[currentDiagIndex].calendar.find(ev => ev.id === eventId);
-        if (event && confirm(`Are you sure you want to delete the event "${event.title}"?`)) {
-          const index = diagsData[currentDiagIndex].calendar.findIndex(ev => ev.id === eventId);
-          if (index !== -1) {
-            diagsData[currentDiagIndex].calendar.splice(index, 1);
-            saveDiagToDatabase(diagsData[currentDiagIndex]).then(() => {
-              renderCalendar();
-              logMessage("info", `Event "${event.title}" deleted successfully.`);
-              alert("Event deleted successfully.");
-            }).catch(err => {
-              logMessage("error", `Failed to delete event: ${err}`);
-              alert("Failed to delete event.");
-            });
-          }
-        }
-      }
-    });
-
-    window.saveEditedEvent = function() {
-      const modal = document.getElementById("editEventModal");
-      const eventId = modal.dataset.editEventId;
-      const updatedTitle = document.getElementById("editEventTitle").value.trim();
-      const updatedDateTime = document.getElementById("editEventDateTime").value;
-      const updatedDescription = document.getElementById("editEventDescription").value.trim();
-      if (!updatedTitle || !updatedDateTime) {
-        alert("Event title and date/time are required.");
-        return;
-      }
-      const updatedDate = new Date(updatedDateTime);
-      if (isNaN(updatedDate.getTime())) {
-        alert("Invalid date/time format.");
-        return;
-      }
-      const event = diagsData[currentDiagIndex].calendar.find(ev => ev.id === eventId);
-      if (event) {
-        event.title = updatedTitle;
-        event.date = updatedDate.toISOString();
-        event.description = updatedDescription;
-        saveDiagToDatabase(diagsData[currentDiagIndex]).then(() => {
-          renderCalendar();
-          closeModal("editEventModal");
-          logMessage("info", `Event "${updatedTitle}" edited successfully.`);
-          alert("Event edited successfully!");
-        }).catch(err => {
-          logMessage("error", `Failed to edit event: ${err}`);
-          alert("Failed to edit event.");
-        });
-      }
-    };
-
-    window.addEventListener('load', () => {
-      window.addEventEvent = function() {
-        const title = document.getElementById("eventTitle").value.trim();
-        const dateTime = document.getElementById("eventDateTime").value;
-        const description = document.getElementById("eventDescription").value.trim();
-        if (!title || !dateTime) {
-          logMessage("warning", "No event title or date/time entered.");
-          alert(getTranslation('errorOccurred'));
-          return;
-        }
-        const eventDate = new Date(dateTime);
-        if (isNaN(eventDate.getTime())) {
-          logMessage("warning", "Invalid date/time entered.");
-          alert(getTranslation('errorOccurred'));
-          return;
-        }
-        const id = 'event-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-        const event = { id, title, description, date: eventDate.toISOString() };
-        diagsData[currentDiagIndex].calendar.push(event);
-        saveDiagToDatabase(diagsData[currentDiagIndex]).then(() => {
-          renderCalendar();
-          closeModal("addEventModal");
-          logMessage("info", `Event "${title}" added to calendar.`);
-          alert(getTranslation('eventAdded'));
-        }).catch(err => {
-          logMessage("error", `Failed to add event: ${err}`);
-          alert(getTranslation('errorOccurred'));
-        });
-      };
-    });
-
-    window.onclick = function(event) {
-      const editModal = document.getElementById("editEventModal");
-      if (event.target == editModal) {
-        editModal.style.display = "none";
-      }
-    }
-  });
-</script>
-
-<script>
-  // Corrected saveDiagToDatabase function
-  function saveDiagToDatabase(Diag) {
-    const user = firebase.auth().currentUser;
-    if (!user) return Promise.reject("No authentidiaged user.");
-    const userId = user.uid;
-    const dbRef = firebase.database().ref(`/users/${userId}/Diags/${Diag.code}`);
-    return dbRef.set(Diag);
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    diagsData.forEach(Diag => {
-      Diag.calendar.forEach(event => {
-        if (!event.id) {
-          event.id = 'event-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-        }
-      });
-    });
-
-    window.renderCalendar = function(mode = 'current') {
-      if (!diagsData.length) return;
-      const calendarContainer = document.getElementById("calendar");
-      calendarContainer.innerHTML = '';
-      const calendar = diagsData[currentDiagIndex].calendar || [];
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = today.getMonth();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dayDiv = document.createElement("div");
-        dayDiv.classList.add("calendar-day");
-        const date = new Date(year, month, day);
-        dayDiv.textContent = day;
-        const dayEvents = calendar.filter(event => {
-          const eventDate = new Date(event.date);
-          return eventDate.getDate() === day && eventDate.getMonth() === month && eventDate.getFullYear() === year;
-        });
-        if (dayEvents.length > 0) {
-          dayDiv.classList.add("has-event");
-          const tooltip = document.createElement("div");
-          tooltip.classList.add("tooltip");
-          tooltip.innerHTML = `<strong>Events:</strong><br>${dayEvents.map(event => `
-            <div class="tooltip-event" data-event-id="${event.id}">
-              <em>${event.title}</em>: ${event.description}
-              <div class="event-actions">
-                <button class="edit-event-btn">Edit</button>
-                <button class="delete-event-btn">Delete</button>
-              </div>
-            </div>
-          `).join('<br>')}`;
-          dayDiv.appendChild(tooltip);
-        }
-        dayDiv.onclick = () => {
-          window.selectedDate = date;
-          showAddEventModal();
-        };
-        calendarContainer.appendChild(dayDiv);
-      }
-      logMessage("info", "Calendar rendered.");
-    };
-
-    document.querySelector('.calendar-container').addEventListener('click', (e) => {
-      if (e.target.classList.contains('edit-event-btn')) {
-        const eventId = e.target.closest('.tooltip-event').dataset.eventId;
-        const event = diagsData[currentDiagIndex].calendar.find(ev => ev.id === eventId);
-        if (event) {
-          document.getElementById("editEventTitle").value = event.title;
-          document.getElementById("editEventDateTime").value = new Date(event.date).toISOString().slice(0,16);
-          document.getElementById("editEventDescription").value = event.description;
-          document.getElementById("editEventModal").dataset.editEventId = eventId;
-          document.getElementById("editEventModal").style.display = "flex";
-        }
-      }
-      if (e.target.classList.contains('delete-event-btn')) {
-        const eventId = e.target.closest('.tooltip-event').dataset.eventId;
-        const event = diagsData[currentDiagIndex].calendar.find(ev => ev.id === eventId);
-        if (event && confirm(`Are you sure you want to delete the event "${event.title}"?`)) {
-          const index = diagsData[currentDiagIndex].calendar.findIndex(ev => ev.id === eventId);
-          if (index !== -1) {
-            diagsData[currentDiagIndex].calendar.splice(index, 1);
-            saveDiagToDatabase(diagsData[currentDiagIndex]).then(() => {
-              renderCalendar();
-              logMessage("info", `Event "${event.title}" deleted successfully.`);
-              alert("Event deleted successfully.");
-            }).catch(err => {
-              logMessage("error", `Failed to delete event: ${err}`);
-              alert("Failed to delete event.");
-            });
-          }
-        }
-      }
-    });
-
-    window.saveEditedEvent = function() {
-      const modal = document.getElementById("editEventModal");
-      const eventId = modal.dataset.editEventId;
-      const updatedTitle = document.getElementById("editEventTitle").value.trim();
-      const updatedDateTime = document.getElementById("editEventDateTime").value;
-      const updatedDescription = document.getElementById("editEventDescription").value.trim();
-      if (!updatedTitle || !updatedDateTime) {
-        alert("Event title and date/time are required.");
-        return;
-      }
-      const updatedDate = new Date(updatedDateTime);
-      if (isNaN(updatedDate.getTime())) {
-        alert("Invalid date/time format.");
-        return;
-      }
-      const event = diagsData[currentDiagIndex].calendar.find(ev => ev.id === eventId);
-      if (event) {
-        event.title = updatedTitle;
-        event.date = updatedDate.toISOString();
-        event.description = updatedDescription;
-        saveDiagToDatabase(diagsData[currentDiagIndex]).then(() => {
-          renderCalendar();
-          closeModal("editEventModal");
-          logMessage("info", `Event "${updatedTitle}" edited successfully.`);
-          alert("Event edited successfully!");
-        }).catch(err => {
-          logMessage("error", `Failed to edit event: ${err}`);
-          alert("Failed to edit event.");
-        });
-      }
-    };
-
-    window.addEventListener('load', () => {
-      window.addEventEvent = function() {
-        const title = document.getElementById("eventTitle").value.trim();
-        const dateTime = document.getElementById("eventDateTime").value;
-        const description = document.getElementById("eventDescription").value.trim();
-        if (!title || !dateTime) {
-          logMessage("warning", "No event title or date/time entered.");
-          alert(getTranslation('errorOccurred'));
-          return;
-        }
-        const eventDate = new Date(dateTime);
-        if (isNaN(eventDate.getTime())) {
-          logMessage("warning", "Invalid date/time entered.");
-          alert(getTranslation('errorOccurred'));
-          return;
-        }
-        const id = 'event-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-        const event = { id, title, description, date: eventDate.toISOString() };
-        diagsData[currentDiagIndex].calendar.push(event);
-        saveDiagToDatabase(diagsData[currentDiagIndex]).then(() => {
-          renderCalendar();
-          closeModal("addEventModal");
-          logMessage("info", `Event "${title}" added to calendar.`);
-          alert(getTranslation('eventAdded'));
-        }).catch(err => {
-          logMessage("error", `Failed to add event: ${err}`);
-          alert(getTranslation('errorOccurred'));
-        });
-      };
-    });
-
-    window.onclick = function(event) {
-      const editModal = document.getElementById("editEventModal");
-      if (event.target == editModal) {
-        editModal.style.display = "none";
-      }
-    }
-  });
-</script>
-
 </body>
 </html>
