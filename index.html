@@ -1340,7 +1340,7 @@
         .update(updates)
         .then(() => {
           logMessage("info", "Utilisateur " + uid + " vérifié: " + verify);
-          alert("Utilisateur " + (verify ? "validé" : "désactivé") + " avec succès.");
+          //alert("Utilisateur " + (verify ? "validé" : "désactivé") + " avec succès.");
         })
         .catch((err) => {
           logMessage("error", "Erreur lors de la mise à jour de la vérification: " + err);
@@ -1369,7 +1369,7 @@
               return;
             }
             logMessage("info", 'User "' + userCredential.user.email + '" logged in.');
-            alert(getTranslation("loginSuccess"));
+            //alert(getTranslation("loginSuccess"));
             closeModal("authModal");
           })
           .catch((error) => {
@@ -1410,7 +1410,7 @@
               .then(() => {
                 user.sendEmailVerification();
                 logMessage("info", 'User "' + user.email + '" signed up and email verification sent.');
-                alert(getTranslation("signupSuccess"));
+                //alert(getTranslation("signupSuccess"));
                 closeModal("authModal");
               })
               .catch((err) => {
@@ -1446,7 +1446,7 @@
         .signOut()
         .then(() => {
           logMessage("info", "User logged out.");
-          alert(getTranslation("logoutSuccess"));
+          //alert(getTranslation("logoutSuccess"));
         })
         .catch((error) => {
           logMessage("error", "Logout error: " + error.message);
@@ -1720,7 +1720,7 @@
           renderRealtimeRadar();
           renderSummaryRadarChart();
           logMessage("info", "Answers saved successfully.");
-          alert("Answers saved successfully.");
+          //alert("Answers saved successfully.");
         })
         .catch((err) => {
           logMessage("error", "Failed to save answers: " + err);
@@ -1804,7 +1804,7 @@
             clearSections();
             closeModal("deleteDiagModal");
             updateDeleteDiagButton();
-            alert("Patient deleted successfully.");
+            //alert("Patient deleted successfully.");
           })
           .catch((err) => {
             logMessage("error", `Error deleting Patient "${currentDiag.name}": ` + err);
@@ -1880,7 +1880,7 @@
                     renderUpcomingEvents();
                     renderUsefulDocs();
                     logMessage("info", `Shared Patient "${sharedDiag.name}" added to user.`);
-                    alert("Shared Patient added successfully!");
+                    //alert("Shared Patient added successfully!");
                     const newURL = window.location.origin + window.location.pathname;
                     window.history.replaceState({}, document.title, newURL);
                   })
@@ -2045,7 +2045,7 @@
       })
       .then(() => {
         logMessage("info", "Voice message sent successfully.");
-        alert("Voice message sent!");
+        //alert("Voice message sent!");
         recordedVoice = null;
         document.getElementById("sendVoiceButton").style.display = "none";
         document.getElementById("reRecordButton").style.display = "none";
@@ -2234,7 +2234,7 @@
           renderSummaryRadarChart();
           renderQuestionsList();
           logMessage("info", `Question added: "${questionLabel}".`);
-          alert("Question added successfully!");
+          //alert("Question added successfully!");
         })
         .catch((err) => {
           logMessage("error", "Failed to add question: " + err);
@@ -2300,7 +2300,7 @@
           renderSummaryRadarChart();
           renderQuestionsList();
           logMessage("info", `Question edited: "${newLabel}".`);
-          alert("Question edited successfully!");
+          //alert("Question edited successfully!");
         })
         .catch((err) => {
           logMessage("error", "Failed to edit question: " + err);
@@ -2332,7 +2332,7 @@
             renderSummaryRadarChart();
             renderQuestionsList();
             logMessage("info", `Question deleted: "${removedQuestion.label}".`);
-            alert("Question deleted successfully!");
+            //alert("Question deleted successfully!");
           })
           .catch((err) => {
             logMessage("error", "Failed to delete question: " + err);
@@ -2642,7 +2642,7 @@
           renderUpcomingEvents();
           renderDiag();
           logMessage("info", `Event "${eventId}" deleted successfully.`);
-          alert("Event deleted successfully.");
+          //alert("Event deleted successfully.");
         })
         .catch((err) => {
           logMessage("error", "Failed to delete event: " + err);
@@ -2678,7 +2678,7 @@
             renderDiag();
             closeModal("editEventModal");
             logMessage("info", `Event "${updatedTitle}" edited successfully.`);
-            alert("Event edited successfully!");
+            //alert("Event edited successfully!");
           })
           .catch((err) => {
             logMessage("error", "Failed to edit event: " + err);
@@ -2740,7 +2740,7 @@
       XLSX.utils.book_append_sheet(workbook, worksheet, "Patient Data");
       XLSX.writeFile(workbook, currentDiag.name + ".xlsx");
       logMessage("info", `Patient "${currentDiag.name}" exported as Excel.`);
-      alert("Patient exported successfully.");
+      //alert("Patient exported successfully.");
     }
 
     const tutorialSteps = {
@@ -2820,7 +2820,7 @@
           labelInput.value = "";
           linkInput.value = "";
           logMessage("info", `Document "${labelVal}" added.`);
-          alert("Document added successfully.");
+          //alert("Document added successfully.");
         })
         .catch((err) => {
           logMessage("error", "Failed to add document: " + err);
@@ -2846,7 +2846,7 @@
         .then(() => {
           renderUsefulDocs();
           logMessage("info", `Document "${newLabel}" edited.`);
-          alert("Document edited successfully.");
+          //alert("Document edited successfully.");
         })
         .catch((err) => {
           logMessage("error", "Failed to edit document: " + err);
@@ -2861,7 +2861,7 @@
           .then(() => {
             renderUsefulDocs();
             logMessage("info", `Document "${removedDoc.label}" deleted.`);
-            alert("Document deleted successfully.");
+            //alert("Document deleted successfully.");
           })
           .catch((err) => {
             logMessage("error", "Failed to delete document: " + err);
