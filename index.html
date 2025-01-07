@@ -120,7 +120,7 @@
       flex: 1;
       overflow-y: hidden;
       padding: 1em;
-      flex-direction: row;
+      flex-direction: column;
     }
     .main-content {
       flex-grow: 1;
@@ -133,7 +133,7 @@
     }
     .chart-container,
     .quiz-container,
-    .Diag-container,
+    .Chat-container,
     .calendar-container,
     .summary-chart-container,
     .useful-docs-container {
@@ -227,10 +227,10 @@
     input:checked + .slider-switch:before {
       transform: translateX(26px);
     }
-    .Diag-container {
+    .Chat-container {
       display: flex;
       flex-direction: column;
-      height: 400px;
+      /* Removed fixed height to prevent overlap */
     }
     .connected-users {
       margin-bottom: 1em;
@@ -310,17 +310,17 @@
       left: -20px;
       border-right-color: #fff;
     }
-    .Diag-input {
+    .Chat-input {
       display: flex;
       gap: 0.5em;
     }
-    .Diag-input input {
+    .Chat-input input {
       flex-grow: 1;
       padding: 0.5em;
       border: 1px solid #ccc;
       border-radius: 5px;
     }
-    .Diag-input button {
+    .Chat-input button {
       padding: 0.5em 1em;
       border: none;
       background-color: #76c7c0;
@@ -386,7 +386,10 @@
       color: #fff;
       padding: 5px;
       border-radius: 3px;
-      white-space: nowrap;
+      white-space: normal;
+      max-width: 200px;
+      max-height: 150px;
+      overflow: auto;
       z-index: 10;
     }
     .tooltip-event {
@@ -761,13 +764,13 @@
         <option value="" disabled selected>Select Patient</option>
       </select>
       <div class="nav-buttons">
-        <button onclick="createDiag()">Create a follow-up</button>
-        <button onclick="shareDiag()">Share Diag</button>
-        <button onclick="exportDiagExcel()">Export Diag Excel</button>
-        <button onclick="deleteDiag()" id="deleteDiagBtn" style="display:none;">Delete Diag</button>
-        <button onclick="openManageQuestionsModal()" id="manageQuestions" style="display:none;">Manage Questions</button>
+        <button data-key="createDiag" onclick="createDiag()">Create Patient</button>
+        <button data-key="shareDiag" onclick="shareDiag()">Share Patient</button>
+        <button data-key="exportDiagExcel" onclick="exportDiagExcel()">Export Patient to Excel</button>
+        <button onclick="deleteDiag()" id="deleteDiagBtn" style="display:none;" data-key="deleteDiag">Delete Patient</button>
+        <button onclick="openManageQuestionsModal()" id="manageQuestions" style="display:none;" data-key="manageQuestions">Manage Questions</button>
         <button onclick="logout()" style="display:none;" id="logoutBtn">Logout</button>
-        <button class="toggle-logs-btn" onclick="toggleLogs()">Toggle Logs</button>
+        <button class="toggle-logs-btn" onclick="toggleLogs()" data-key="toggleLogs">Toggle Logs</button>
       </div>
     </nav>
     <main>
@@ -803,14 +806,14 @@
           <canvas id="summaryRadarChart"></canvas>
         </section>
 
-        <section class="Diag-container" id="DiagSection" style="display:none;">
-          <h2>Diag</h2>
+        <section class="Chat-container" id="ChatSection" style="display:none;">
+          <h2 data-key="chat">Chat</h2>
           <div class="connected-users">
-            <h3>Connected Users:</h3>
+            <h3 data-key="connectedUsers">Connected Users:</h3>
             <ul id="usersList"></ul>
           </div>
           <div class="messages" id="messages"></div>
-          <div class="Diag-input">
+          <div class="Chat-input">
             <input type="text" id="messageInput" placeholder="Type a message" />
             <button onclick="sendMessage()">Send</button>
           </div>
@@ -876,9 +879,9 @@
 
   <div class="modal" id="linkDiagModal">
     <div class="modal-content">
-      <h2>Link to Existing Diag</h2>
-      <input type="text" id="linkDiagCode" placeholder="Enter Diag Code" />
-      <button onclick="linkExistingDiag()">Link Diag</button>
+      <h2>Link to Existing Patient</h2>
+      <input type="text" id="linkDiagCode" placeholder="Enter Chat Code" />
+      <button onclick="linkExistingDiag()">Link Patient</button>
       <button onclick="closeModal('linkDiagModal')">Close</button>
     </div>
   </div>
@@ -894,8 +897,8 @@
 
   <div class="modal" id="deleteDiagModal">
     <div class="modal-content">
-      <h2>Delete Diag</h2>
-      <p>Please type the Diag name to confirm deletion:</p>
+      <h2>Delete Patient</h2>
+      <p data-key="confirmDelete">Please type the Patient name to confirm deletion:</p>
       <input type="text" id="confirmDiagName" placeholder="Enter patient's first name" />
       <button onclick="confirmDeleteDiag()">Delete</button>
       <button onclick="closeModal('deleteDiagModal')">Close</button>
@@ -965,10 +968,10 @@
         close: "Close",
         email: "Email",
         password: "Password",
-        createDiag: "Create a follow-up",
-        shareDiag: "Share Diag",
-        exportDiagExcel: "Export Diag Excel",
-        deleteDiag: "Delete Diag",
+        createDiag: "Create Patient",
+        shareDiag: "Share Patient",
+        exportDiagExcel: "Export Patient to Excel",
+        deleteDiag: "Delete Patient",
         realTimeRadar: "Real-Time Health Radar",
         dailyHealthChecklist: "Daily Health Checklist",
         healthMetrics: "Health Metrics Over Time",
@@ -985,7 +988,7 @@
         addQuestion: "Add Question",
         editQuestion: "Edit",
         deleteQuestion: "Delete",
-        confirmDelete: "Please type the Diag name to confirm deletion:",
+        confirmDelete: "Please type the Patient name to confirm deletion:",
         enterDiagName: "Enter patient's first name",
         tutorial: "Tutorial",
         next: "Next",
@@ -1013,7 +1016,8 @@
         usefulDocuments: "Documents",
         sharedCalendar: "Shared Calendar",
         addEventLabel: "Add Event",
-        editEventLabel: "Edit Event"
+        editEventLabel: "Edit Event",
+        connectedUsers: "Connected Users:"
       },
       fr: {
         appTitle: "Autodiag Health Tracker",
@@ -1031,10 +1035,10 @@
         close: "Fermer",
         email: "Email",
         password: "Mot de passe",
-        createDiag: "Créer un Diag",
-        shareDiag: "Partager le Diag",
-        exportDiagExcel: "Exporter le Diag en Excel",
-        deleteDiag: "Supprimer le Diag",
+        createDiag: "Créer un Patient",
+        shareDiag: "Partager le Patient",
+        exportDiagExcel: "Exporter le Patient au format Excel",
+        deleteDiag: "Supprimer le Patient",
         realTimeRadar: "Radar de santé en temps réel",
         dailyHealthChecklist: "Checklist santé quotidienne",
         healthMetrics: "Métriques de santé au fil du temps",
@@ -1051,7 +1055,7 @@
         addQuestion: "Ajouter une question",
         editQuestion: "Modifier",
         deleteQuestion: "Supprimer",
-        confirmDelete: "Veuillez taper le nom du Diag pour confirmer la suppression :",
+        confirmDelete: "Veuillez taper le nom du Patient pour confirmer la suppression :",
         enterDiagName: "Entrez le prénom du patient",
         tutorial: "Tutoriel",
         next: "Suivant",
@@ -1079,7 +1083,8 @@
         usefulDocuments: "Documents",
         sharedCalendar: "Calendrier Partagé",
         addEventLabel: "Ajouter un événement",
-        editEventLabel: "Modifier l'Événement"
+        editEventLabel: "Modifier l'Événement",
+        connectedUsers: "Utilisateurs Connectés :"
       }
     };
     let currentLanguage = localStorage.getItem("selectedLanguage") || "en";
@@ -1500,7 +1505,7 @@
       }
       const currentDiag = diagsData[currentDiagIndex];
       const isConnected = currentDiag && currentDiag.code !== undefined;
-      ["chartsSection", "timeSeriesSection", "summaryChartSection", "quizSection", "DiagSection", "calendarSection", "usefulDocsSection"].forEach((id) => {
+      ["chartsSection", "timeSeriesSection", "summaryChartSection", "quizSection", "ChatSection", "calendarSection", "usefulDocsSection"].forEach((id) => {
         document.getElementById(id).style.display = isConnected ? "block" : "none";
       });
       if (isConnected) {
@@ -1518,7 +1523,7 @@
         document.getElementById("manageQuestions").style.display = "none";
       }
       updateDeleteDiagButton();
-      logMessage("info", `Switched to Diag "${currentDiag.name}".`);
+      logMessage("info", `Switched to Patient "${currentDiag.name}".`);
     }
 
     function updateDeleteDiagButton() {
@@ -1565,7 +1570,7 @@
 
     function renderQuiz() {
       if (!diagsData.length) {
-        logMessage("warning", "No Diag available to display the quiz.");
+        logMessage("warning", "No Patient available to display the quiz.");
         return;
       }
       const quizContainer = document.getElementById("quizForm");
@@ -1699,7 +1704,7 @@
 
     function saveAnswers() {
       if (!diagsData.length) {
-        logMessage("warning", "No Diag available to save answers.");
+        logMessage("warning", "No Patient available to save answers.");
         return;
       }
       const answers = currentAnswers();
@@ -1724,15 +1729,15 @@
     }
 
     function createDiag() {
-      const name = prompt("Enter Diag Name:");
+      const name = prompt("Enter Patient Name:");
       if (!name) {
-        logMessage("warning", "No name entered for new Diag.");
+        logMessage("warning", "No name entered for new Patient.");
         return;
       }
       const code = generateSecureCode();
       const user = firebase.auth().currentUser;
       if (!user) {
-        logMessage("warning", "User attempted to create a follow-up without authentication.");
+        logMessage("warning", "User attempted to create a Patient without authentication.");
         return;
       }
       const newDiag = {
@@ -1750,12 +1755,11 @@
           renderDiagSelector();
           selectDiagUser();
           updateDeleteDiagButton();
-          logMessage("info", `New Diag "${name}" created successfully.`);
-          alert("Diag created successfully.");
+          logMessage("info", `New Patient "${name}" created successfully.`);
         })
         .catch((err) => {
-          logMessage("error", "Failed to create Diag: " + err);
-          alert("Failed to create Diag.");
+          logMessage("error", "Failed to create Patient: " + err);
+          alert("Failed to create Patient.");
         });
     }
 
@@ -1771,8 +1775,8 @@
       const currentDiag = diagsData[currentDiagIndex];
       const user = firebase.auth().currentUser;
       if (!user || !currentDiag.members[user.uid] || currentDiag.members[user.uid].role !== "admin") {
-        logMessage("warning", "User attempted to delete a Diag without admin permissions.");
-        alert("You do not have permission to delete this Diag.");
+        logMessage("warning", "User attempted to delete a Patient without admin permissions.");
+        alert("You do not have permission to delete this Patient.");
         return;
       }
       document.getElementById("deleteDiagModal").style.display = "flex";
@@ -1786,7 +1790,7 @@
       if (confirmation === currentDiag.name) {
         const user = firebase.auth().currentUser;
         if (!user) {
-          logMessage("warning", "User attempted to delete Diag without authentication.");
+          logMessage("warning", "User attempted to delete Patient without authentication.");
           return;
         }
         firebase
@@ -1794,20 +1798,20 @@
           .ref("/users/" + user.uid + "/Diags/" + currentDiag.code)
           .remove()
           .then(() => {
-            logMessage("info", `Diag "${currentDiag.name}" deleted successfully.`);
+            logMessage("info", `Patient "${currentDiag.name}" deleted successfully.`);
             diagsData.splice(currentDiagIndex, 1);
             renderDiagSelector();
             clearSections();
             closeModal("deleteDiagModal");
             updateDeleteDiagButton();
-            alert("Diag deleted successfully.");
+            alert("Patient deleted successfully.");
           })
           .catch((err) => {
-            logMessage("error", `Error deleting Diag "${currentDiag.name}": ` + err);
-            alert("Failed to delete Diag.");
+            logMessage("error", `Error deleting Patient "${currentDiag.name}": ` + err);
+            alert("Failed to delete Patient.");
           });
       } else {
-        logMessage("warning", "Diag name confirmation failed.");
+        logMessage("warning", "Patient name confirmation failed.");
         inputField.classList.add("error");
         errorMsg.style.display = "block";
       }
@@ -1815,8 +1819,8 @@
 
     function shareDiag() {
       if (!diagsData.length) {
-        logMessage("warning", "No Diag available to share.");
-        alert("No Diag available to share.");
+        logMessage("warning", "No Patient available to share.");
+        alert("No Patient available to share.");
         return;
       }
       const currentDiag = diagsData[currentDiagIndex];
@@ -1832,8 +1836,8 @@
           navigator.clipboard
             .writeText(shareURL)
             .then(() => {
-              logMessage("info", `Diag "${currentDiag.name}" shared via URL.`);
-              alert("Diag share URL copied to clipboard!");
+              logMessage("info", `Patient "${currentDiag.name}" shared via URL.`);
+              alert("Patient share URL copied to clipboard!");
             })
             .catch((err) => {
               logMessage("error", "Failed to copy share URL: " + err);
@@ -1841,8 +1845,8 @@
             });
         })
         .catch((err) => {
-          logMessage("error", "Failed to share Diag: " + err);
-          alert("Failed to share Diag.");
+          logMessage("error", "Failed to share Patient: " + err);
+          alert("Failed to share Patient.");
         });
     }
 
@@ -1875,27 +1879,27 @@
                     renderCalendar();
                     renderUpcomingEvents();
                     renderUsefulDocs();
-                    logMessage("info", `Shared Diag "${sharedDiag.name}" added to user.`);
-                    alert("Shared Diag added successfully!");
+                    logMessage("info", `Shared Patient "${sharedDiag.name}" added to user.`);
+                    alert("Shared Patient added successfully!");
                     const newURL = window.location.origin + window.location.pathname;
                     window.history.replaceState({}, document.title, newURL);
                   })
                   .catch((err) => {
-                    logMessage("error", "Failed to add shared Diag: " + err);
-                    alert("Failed to add shared Diag.");
+                    logMessage("error", "Failed to add shared Patient: " + err);
+                    alert("Failed to add shared Patient.");
                   });
               } else {
-                logMessage("warning", `Attempt to add already linked Diag "${sharedDiag.name}".`);
-                alert("Diag is already linked.");
+                logMessage("warning", `Attempt to add already linked Patient "${sharedDiag.name}".`);
+                alert("Patient is already linked.");
               }
             } else {
-              logMessage("warning", `No shared Diag found with code "${shareCode}".`);
-              alert("No shared Diag found with the provided code.");
+              logMessage("warning", `No shared Patient found with code "${shareCode}".`);
+              alert("No shared Patient found with the provided code.");
             }
           })
           .catch((err) => {
-            logMessage("error", "Error retrieving shared Diag: " + err);
-            alert("Error retrieving shared Diag.");
+            logMessage("error", "Error retrieving shared Patient: " + err);
+            alert("Error retrieving shared Patient.");
           });
       }
     }
@@ -2129,7 +2133,7 @@
       const admins = Object.values(diagsData[currentDiagIndex].members).filter((m) => m.role === "admin");
       if (admins.length <= 1 && diagsData[currentDiagIndex].members[uid].role === "admin") {
         logMessage("warning", "Attempt to demote the last admin.");
-        alert("There must be at least one admin for this Diag.");
+        alert("There must be at least one admin for this Patient.");
         return;
       }
       diagsData[currentDiagIndex].members[uid].role = "user";
@@ -2448,7 +2452,7 @@
 
     function renderCalendar(mode = "current") {
       if (!diagsData[currentDiagIndex]) {
-        logMessage("error", "Current Diag is undefined.");
+        logMessage("error", "Current Patient is undefined.");
         return;
       }
       const calendarContainer = document.getElementById("calendar");
@@ -2733,32 +2737,32 @@
       });
       const worksheet = XLSX.utils.json_to_sheet(data);
       const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Diag Data");
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Patient Data");
       XLSX.writeFile(workbook, currentDiag.name + ".xlsx");
-      logMessage("info", `Diag "${currentDiag.name}" exported as Excel.`);
-      alert("Diag exported successfully.");
+      logMessage("info", `Patient "${currentDiag.name}" exported as Excel.`);
+      alert("Patient exported successfully.");
     }
 
     const tutorialSteps = {
       en: [
         { title: "Welcome", text: "Welcome to Autodiag Health Tracker! Follow the steps to get started." },
-        { title: "Create a follow-up", text: "Click on 'Create a follow-up' to add a new follow-up." },
+        { title: "Create a Patient", text: "Click on 'Create Patient' to add a new patient." },
         { title: "Fill the Checklist", text: "Fill out the daily checklist to monitor the patient health." },
         { title: "Real-Time Radar", text: "The radar updates in real-time based on your responses." },
         { title: "Health Metrics", text: "View health metrics over time in the charts." },
-        { title: "Export to Excel", text: "Export the Diag data to Excel for easy sharing and analysis." },
-        { title: "Share Diag", text: "Share your Diag with others using a secure code." },
-        { title: "Manage Questions", text: "Edit the list of questions specific to this Diag." }
+        { title: "Export to Excel", text: "Export the Patient data to Excel for easy sharing and analysis." },
+        { title: "Share Patient", text: "Share your Patient with others using a secure code." },
+        { title: "Manage Questions", text: "Edit the list of questions specific to this Patient." }
       ],
       fr: [
         { title: "Bienvenue", text: "Bienvenue dans Autodiag Health Tracker! Suivez les étapes pour commencer." },
-        { title: "Créer un Diag", text: "Cliquez sur 'Créer un Diag' pour ajouter un nouveau Diag." },
-        { title: "Remplir la Checklist", text: "Remplissez la checklist quotidienne pour surveiller la santé de votre Diag." },
+        { title: "Créer un Patient", text: "Cliquez sur 'Créer un Patient' pour ajouter un nouveau patient." },
+        { title: "Remplir la Checklist", text: "Remplissez la checklist quotidienne pour surveiller la santé de votre patient." },
         { title: "Radar en Temps Réel", text: "Le radar se met à jour en temps réel en fonction de vos réponses." },
         { title: "Métriques de Santé", text: "Consultez les métriques de santé au fil du temps dans les graphiques." },
-        { title: "Exporter vers Excel", text: "Exportez les données du Diag vers Excel pour un partage et une analyse faciles." },
-        { title: "Partager le Diag", text: "Partagez votre Diag avec d'autres utilisateurs via un code sécurisé." },
-        { title: "Gérer les Questions", text: "Modifiez la liste des questions spécifiques à ce Diag." }
+        { title: "Exporter vers Excel", text: "Exportez les données du Patient vers Excel pour un partage et une analyse faciles." },
+        { title: "Partager le Patient", text: "Partagez votre Patient avec d'autres utilisateurs via un code sécurisé." },
+        { title: "Gérer les Questions", text: "Modifiez la liste des questions spécifiques à ce Patient." }
       ]
     };
 
@@ -2890,8 +2894,7 @@
           initializeFirebase();
         }, 1000);
       }, 3000);
-      renderCalendar();
-      renderUpcomingEvents();
+      // Removed renderCalendar() and renderUpcomingEvents() from here
     });
   </script>
 </body>
